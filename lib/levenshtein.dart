@@ -15,30 +15,27 @@ class Levenshtein implements StringDistance, NormalizedStringDistance {
       return 0;
     }
 
-    if (s1.isEmpty) {
-      return s2.length;
+    var l1 = s1.length;
+    var l2 = s2.length;
+
+    if (l1 == 0) {
+      return l2;
     }
 
-    if (s2.isEmpty) {
-      return s1.length;
+    if (l2 == 0) {
+      return l1;
     }
 
-    var v0 = List<int>.generate(s2.length + 1, (i) => i);
-    var v1 = List<int>.filled(s2.length + 1, 0);
+    var v0 = List<int>.generate(l2 + 1, (i) => i);
+    var v1 = List<int>.filled(l2 + 1, 0);
     List<int> vtemp;
+    var cost = 0;
 
-    for (var i = 0; i < v0.length; i++) {
-      v0[i] = i;
-    }
-
-    for (var i = 0; i < s1.length; i++) {
+    for (var i = 0; i < l1; i++) {
       v1[0] = i + 1;
 
-      for (var j = 0; j < s2.length; j++) {
-        var cost = 1;
-        if (s1.codeUnitAt(i) == s2.codeUnitAt(j)) {
-          cost = 0;
-        }
+      for (var j = 0; j < l2; j++) {
+        cost = s1.codeUnitAt(i) == s2.codeUnitAt(j) ? 0 : 1;
         v1[j + 1] = min(v1[j] + 1, min(v0[j + 1] + 1, v0[j] + cost));
       }
 

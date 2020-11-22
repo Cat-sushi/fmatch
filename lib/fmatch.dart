@@ -416,6 +416,9 @@ double similarity(String one, String two) {
   if (lenMin / lenMax < Settings.termMatchingMinLetterRatio) {
     return 0.0;
   }
+  if (lenMin < Settings.termMatchingMinLetters) {
+    return 0.0;
+  }
   if (one == two) {
     return 1.0;
   }

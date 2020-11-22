@@ -1,0 +1,32 @@
+# Files and directories created by pub
+.dart_tool/
+.packages
+
+
+# Conventional directory for build outputs
+build/
+
+# Directory created by dartdoc
+doc/api/
+
+# Other
+.vscode/
+.VSCodeCounter
+git_ignore/
+bin/fbatch
+bin/fserver
+lib/batch/result*
+lib/batch/Log*
+lib/batch/queries*
+lib/database/*.csv
+lib/database/*.json
+test/env0/db.csv
+test/env0/idb.json
+test/env1/db.csv
+test/env1/idb.json
+test/phase2-4_test.dart
+test/phase2-6_test.dart
+test/phase2-7_test.dart
+test/env0/list.csv
+test/env0/Log.txt
+test/env0/results.csv

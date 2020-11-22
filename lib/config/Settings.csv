@@ -1,0 +1,14 @@
+﻿termMatchingMinLetterRatio,0.6666, 最小一致文字比
+termMatchingMinLetters,3, 最小一致文字数
+termPartialMatchingMinLetterRatio,0.2, 最小部分一致文字比
+termPartialMatchingMinLetters,2, 最小部分一致文字数
+queryMatchingMinTermRatio,0.5, 最小一致単語比
+queryMatchingMinTerms,1, 最小一致単語数
+queryMatchingTypicalProperNounDf,10, 典型固有名詞文書頻度
+queryMatchingMinTermOrderSimilarity,0.75, 最小語順類似度 PoCで変更
+scoreIdfMagnifier,2.0, 単語希少性強調係数
+fallbackThresholdCombinations,1048576, 組合せ爆発防止境界 PoCで追加
+fallbackMaxQueryTerms,10, 組合せ爆発防止縮退後のクエリ単語数上限 PoCで追加
+fallbackMaxQueryTermMobility,3, 組合せ爆発防止縮退後のクエリ単語箇所数上限 PoCで追加
+queryMatchingTermOrderCoefficent,0.5, 語順の影響度 PoCで追加
+queryResultCacheSize,00000, 結果キャッシュ PoCで追加

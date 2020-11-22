@@ -1,0 +1,93 @@
+﻿,," 単語置換定義 Ver 1.9"
+,,
+,," アクロニム正規化"
+$1$2$3$4$5$6$7$8$9,(?:(\p{L}) )(?:(\p{L}) )?(?:(\p{L}) )?(?:(\p{L}) )?(?:(\p{L}) )?(?:(\p{L}) )?(?:(\p{L}) )?(?:(\p{L}))((?: \p{L})*),,"					アクロニム('U S A')"
+$1$2$3$4$5$6$7$8$9,(?:(\p{L})\.)(?:(\p{L})\.)?(?:(\p{L})\.)?(?:(\p{L})\.)?(?:(\p{L})\.)?(?:(\p{L})\.)?(?:(\p{L})\.)?(?:(\p{L}))((?:\.\p{L})*)\.?,,"			アクロニム('U.S.A', 'U.S.A.')"
+$1$2$3$4$5$6$7$8$9,(?:(\p{L})\. )(?:(\p{L})\. )?(?:(\p{L})\. )?(?:(\p{L})\. )?(?:(\p{L})\. )?(?:(\p{L})\. )?(?:(\p{L})\. )?(?:(\p{L}))((?:\. \p{L})*)\.?,,"	アクロニム('U. S. A', 'U. S. A.')"
+
+,,"法人格"
+$1,<\*(.+)\*>,,"								法人格"
+
+,," 一文字記号(接続記号としてでなく、単語として意味のある英語表記が一般的な記号)"
+NO.,#
+AND,&
+AT,@
+
+,," 数字(英字表記を追加、ローマ数字バリエーションIIII、VIIIIを追加) PoC 1ST等を追加"
+1,ONE,FIRST,1ST,I
+2,TWO,SECOND,2ND,II
+3,THREE,THIRD,3RD,III
+4,FOUR,FOURTH,4TH,IIII,IV
+5,FIVE,FIFTH,5TH,V
+6,SIX,SIXTH,6TH,VI
+7,SEVEN,SEVENTH,7TH,VII
+8,EIGHT,EIGHTH,8TH,VIII
+9,NINE,NINETH,9TH,VIIII,IX
+10,TEN,TENTH,10TH,X
+,,
+,," 省略形(置換後の末尾にドットを追加"
+,," ドットを追加することで一致しないドット無し2文字省略形を明示的に置換)"
+DEPT.,DEPARTMENT
+DIV.,DIVISION
+GOVT.,GOV\.,GOVERNMENT,,"						GOV.を追加 PoCバグ修正"
+BLDG.,BUILDING
+UNIV.,UNIVERSITY,UNIVERSITYS,,"					UNIVERSITIESの誤り?"
+,INDUSTRY,INDUSTRIES,INDUSTRIAL,,"				単語曖昧一致可能"
+,FACTORY,FACTORIES,FACTORYS,,"					単語曖昧一致可能"
+JR.,JUNIOR,JR,,"								JR.とJRは曖昧一致不可"
+MR.,MISTER,,"									MR.とMRは曖昧一致不可"
+MRS.,MISTRESS
+MS.,MISS,MS,,"									MS.とMSは曖昧一致不可"
+DR.,DOCTOR,DR,,"								DR.とDRは曖昧一致不可"
+NO.,NUMBER,NO,,"								NO.とNOは曖昧一致不可"
+,,
+,," 人名"
+// PoCで単語曖昧一致可能なものをコメントアウト
+HSIEN,HSEIN
+,AKSYONOV,AKSENOV,,"								単語曖昧一致可能"
+ALEKSANDER,OLEKSANDR,ALEXANDER,,"				OLEKSANDRとALEXANDRは単語曖昧一致不可"
+ALEKSEI,ALEKSEY,ALEXEY,OLEKSIY,,"				ALEXEYとOLEKSIYは単語曖昧一致不可"
+,ANDRIY,ANDREI,ANDREY,,"							単語曖昧一致可能"
+,BEREZOVSKIY,BEREZOVSKY,BEREZOVSKII,,"			単語曖昧一致可能"
+,BORODAI,ORODAY,,"								単語曖昧一致可能"
+,CHALIY,CHALYY,,"								単語曖昧一致可能"
+DENIS,DENYS,DENIZ,,"							DENYSとDENIZは単語曖昧一致不可"
+,FEODOSIIA,FEODOSIA,FEODOSIA,,"					単語曖昧一致可能、2と3が同じ"
+,GERMAN,HERMAN,,"								単語曖昧一致可能"
+,IGOR,IHOR,,"									単語曖昧一致可能"
+,KAKIDZYANOV,KAKIZYANOV,KAKIDZHANOV,,"			単語曖昧一致可能"
+,KALYUSSKY,KALIUSKY,KALYUSKII,KALIUSKYY,KALYUSKYY,,"単語曖昧一致可能"
+,KARYAKIN,KARIAKIN,,"							単語曖昧一致可能"
+,KHODAKOVSKY,KHODAKOVSKYY,KHODAKOVSKII,,"		単語曖昧一致可能"
+,KHRYAKOV,KHRIAKOV,,"							単語曖昧一致可能"
+,KOZYURA,KOZHURA,,"								単語曖昧一致可能"
+,LYAGIN,LIAHIN,LYAHIN,,"							単語曖昧一致可能"
+,MALIKHIN,MALYKHIN,,"							単語曖昧一致可能"
+MOZGOVOY,MOZGOVOI,MOZGOVY,MOZHOVY,MOZHOVYY,MOZGOVII,,"一部単語曖昧一致不可"
+,NATALIA,NATALIYA,,"								単語曖昧一致可能"
+NIKOLAY,NIKOLAI,MYKOLA,,"						MYKOLAが他の二つと単語曖昧一致不可"
+,OLEG,OLEH,,"									単語曖昧一致可能"
+,OLGA,OL'GA,,"									単語曖昧一致可能 同意語では’が全角"
+PETR,PYOTR,
+,PLOTNITSKY,PLOTNYTSKY,PLOTNYTSKYY,PLOTNITSKII,,"単語曖昧一致可能"
+,PONOMARIOV,PONOMAREV,PONOMAROV,,"				単語曖昧一致可能"
+,PUSHYLIN,PUSHILIN,,"							単語曖昧一致可能"
+SERGEY,SERGEI,SERHIY,,"							SERGEIとSERHIYが単語曖昧一致不可"
+,TSARIOV,TSAROV,TSARYOV,TSAREV,,"				単語曖昧一致可能"
+,VALERIY,VALERY,VALERII,,"						単語曖昧一致可能"
+VASYL,VASILY,VASILIY,VASILI,VASILII,,"			一部単語曖昧一致不可"
+,VIACHESLAV,VYACHESLAV,VYACHECLAV,,"				単語曖昧一致可能"
+,YANUKOVYCH,YANUKOVICH,,"						単語曖昧一致可能"
+,YURIY,YURII,YURIJ,,"							単語曖昧一致可能"
+,NOVOKUIBYSHEVSK,NOVOKUYBYSHEV,,"				単語曖昧一致可能"
+,OBRONPROM,OBORONPROM,,"							単語曖昧一致可能"
+,,
+,," 会社旧称"
+ZTE,ZHONGXING
+,,
+,," その他"
+,,
+,," 変更履歴"
+,," Ver 0.1		2020.02.18	サンプル初版"
+,," Ver 1.9		2020.xx.xx	CSVに変更、現行システムの同意語を反映"
+,," Ver 1.10    2020.07.17  法人格成形を追加, 「#」→「No.」のバグ修正"

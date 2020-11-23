@@ -195,55 +195,6 @@ class QueryResult {
       };
 }
 
-// class BatchQuery {
-//   final String transactionId;
-//   final String rawQuery;
-//   final String countryCode;
-//   BatchQuery(this.transactionId, this.rawQuery, this.countryCode);
-//   @override
-//   bool operator ==(dynamic other) =>
-//       identical(this, other) ||
-//       other is BatchQuery &&
-//           transactionId == other.transactionId &&
-//           countryCode == other.countryCode;
-//   @override
-//   int get hashCode => hashObjects(<Object>[
-//         transactionId,
-//         rawQuery,
-//         countryCode,
-//       ]);
-// }
-
-// class WhiteListKey {
-//   final String transactionId;
-//   final String rawQuery;
-//   final String countryCode;
-//   final String rawEntry;
-//   WhiteListKey(
-//       this.transactionId, this.rawQuery, this.countryCode, this.rawEntry);
-//   @override
-//   bool operator ==(dynamic other) =>
-//       identical(this, other) ||
-//       other is WhiteListKey &&
-//           transactionId == other.transactionId &&
-//           rawQuery == other.rawQuery &&
-//           countryCode == other.countryCode &&
-//           rawEntry == other.rawEntry;
-//   @override
-//   int get hashCode => hashObjects(<Object>[
-//         transactionId,
-//         rawQuery,
-//         countryCode,
-//         rawEntry,
-//       ]);
-// }
-
-// class WhiteListValue {
-//   final bool isPositive;
-//   final DateTime datetime;
-//   WhiteListValue(this.isPositive, this.datetime);
-// }
-
 class ResultCache {
   // ignore: prefer_collection_literals
   final map = LinkedHashMap<Query, List<MatchedEntry>>();

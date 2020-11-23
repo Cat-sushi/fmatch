@@ -1,15 +1,10 @@
 // Copyright (c) 2016, Kwang Yul Seo. All rights reserved. Use of this source code
 // is governed by a BSD-style license that can be found in the LICENSE file.
 
-import 'dart:math';
-
-import 'base.dart';
-
 /// The Levenshtein distance, or edit distance, between two words is the
 /// minimum number of single-character edits (insertions, deletions or
 /// substitutions) required to change one word into the other.
-class Levenshtein implements StringDistance, NormalizedStringDistance {
-  @override
+class Levenshtein {
   int distance(String s1, String s2) {
     if (s1 == s2) {
       return 0;
@@ -29,14 +24,17 @@ class Levenshtein implements StringDistance, NormalizedStringDistance {
     var v0 = List<int>.generate(l2 + 1, (i) => i);
     var v1 = List<int>.filled(l2 + 1, 0);
     List<int> vtemp;
-    var cost = 0;
 
     for (var i = 0; i < l1; i++) {
       v1[0] = i + 1;
 
       for (var j = 0; j < l2; j++) {
-        cost = s1.codeUnitAt(i) == s2.codeUnitAt(j) ? 0 : 1;
-        v1[j + 1] = min(v1[j] + 1, min(v0[j + 1] + 1, v0[j] + cost));
+        var cost = s1.codeUnitAt(i) == s2.codeUnitAt(j) ? 0 : 1;
+        var a = v0[j + 1] + 1;
+        var b = v0[j] + cost;
+        var mab = a < b ? a : b;
+        var c = v1[j] + 1;
+        v1[j + 1] = mab < c ? mab : c;
       }
 
       vtemp = v0;
@@ -44,15 +42,6 @@ class Levenshtein implements StringDistance, NormalizedStringDistance {
       v1 = vtemp;
     }
 
-    return v0[s2.length];
-  }
-
-  @override
-  double normalizedDistance(String s1, String s2) {
-    var maxLength = max(s1.length, s2.length);
-    if (maxLength == 0) {
-      return 0.0;
-    }
-    return distance(s1, s2) / maxLength;
+    return v0[l2];
   }
 }

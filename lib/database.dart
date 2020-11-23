@@ -73,8 +73,9 @@ class Db {
   }
 
   static Future<Db> readList(String path) async {
-    var plainEntries =
-        readCsvLines(path).where((l) => l.isNotEmpty && l[0] != null).map((l) => l[0]!);
+    var plainEntries = readCsvLines(path)
+        .where((l) => l.isNotEmpty && l[0] != null)
+        .map((l) => l[0]!);
     return Db.fromStringStream(plainEntries);
   }
 
@@ -108,6 +109,7 @@ class Db {
 class IDbEntryKey implements Comparable<IDbEntryKey> {
   final String term;
   final bool isLet;
+  final int _hashCode;
   @override
   int compareTo(IDbEntryKey other) {
     var tc = term.compareTo(other.term);
@@ -125,8 +127,8 @@ class IDbEntryKey implements Comparable<IDbEntryKey> {
       identical(this, other) ||
       other is IDbEntryKey && term == other.term && isLet == other.isLet;
   @override
-  int get hashCode => hash2(term, isLet);
-  IDbEntryKey(this.term, this.isLet);
+  int get hashCode => _hashCode;
+  IDbEntryKey(this.term, this.isLet) : _hashCode = hash2(term, isLet);
   IDbEntryKey.fromJson(Map<String, Object> json)
       : this(json['term'] as String, json['isLet'] as bool);
   Map<String, Object> toJson() => {

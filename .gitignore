@@ -15,11 +15,8 @@ doc/api/
 git_ignore/
 bin/fbatch
 bin/fserver
-lib/batch/result*
-lib/batch/Log*
-lib/batch/queries*
-lib/database/*.csv
-lib/database/*.json
+lib/batch
+lib/database
 test/env0/db.csv
 test/env0/idb.json
 test/env1/db.csv

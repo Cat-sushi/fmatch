@@ -128,10 +128,10 @@ class IDbEntryKey implements Comparable<IDbEntryKey> {
       other is IDbEntryKey && term == other.term && isLet == other.isLet;
   @override
   int get hashCode => _hashCode;
-  IDbEntryKey(this.term, this.isLet) : _hashCode = hash2(term, isLet);
-  IDbEntryKey.fromJson(Map<String, Object> json)
+  IDbEntryKey(String term, this.isLet) : term = canonicalize(term), _hashCode = hash2(term, isLet);
+  IDbEntryKey.fromJson(Map<String, dynamic> json)
       : this(json['term'] as String, json['isLet'] as bool);
-  Map<String, Object> toJson() => {
+  Map<String, dynamic> toJson() => <String, dynamic>{
         'term': term,
         'isLet': isLet,
       };
@@ -140,10 +140,10 @@ class IDbEntryKey implements Comparable<IDbEntryKey> {
 class DbTermOccurrence {
   final String rawEntry;
   final int position;
-  DbTermOccurrence(this.rawEntry, this.position);
-  DbTermOccurrence.fromJson(Map<String, Object> json)
-      : this(canonicalize(json['rawEntry'] as String), json['position'] as int);
-  Map<String, Object> toJson() => {
+  DbTermOccurrence(String rawEntry, this.position): rawEntry = canonicalize(rawEntry);
+  DbTermOccurrence.fromJson(Map<String, dynamic> json)
+      : this(json['rawEntry'] as String, json['position'] as int);
+  Map<String, dynamic> toJson() => <String, dynamic>{
         'rawEntry': rawEntry,
         'position': position,
       };
@@ -152,16 +152,17 @@ class DbTermOccurrence {
 class IDbEntryValue {
   late int df;
   late List<DbTermOccurrence> occurrences;
+  MapEntry<IDbEntryKey, IDbEntryValue>? next;
   IDbEntryValue()
       : df = 0,
         occurrences = [];
-  IDbEntryValue.fromJson(Map<String, Object> json) {
+  IDbEntryValue.fromJson(Map<String, dynamic> json) {
     df = json['df'] as int;
     occurrences = (json['occurrences'] as List)
-        .map((dynamic e) => DbTermOccurrence.fromJson(e as Map<String, Object>))
+        .map((dynamic e) => DbTermOccurrence.fromJson(e as Map<String, dynamic>))
         .toList();
   }
-  Map<String, Object> toJson() => {
+  Map<String, dynamic> toJson() => <String, dynamic>{
         'df': df,
         'occurrences': occurrences.map((o) => o.toJson()).toList(),
       };
@@ -218,7 +219,9 @@ class IDb {
       }
       value.df = df;
     }
+    _link();
   }
+
   static Future<IDb> read(String path) async {
     var ret = IDb();
     var decoder = JsonDecoder();
@@ -226,10 +229,21 @@ class IDb {
     var json = (await decoder.bind(fs).first) as List;
     ret.map = {};
     json.forEach((dynamic me) {
-      ret.map[IDbEntryKey.fromJson(me['key'] as Map<String, Object>)] =
-          IDbEntryValue.fromJson(me['value'] as Map<String, Object>);
+      ret.map[IDbEntryKey.fromJson(me['key'] as Map<String, dynamic>)] =
+          IDbEntryValue.fromJson(me['value'] as Map<String, dynamic>);
     });
+    ret._link();
     return ret;
+  }
+
+  void _link(){
+    MapEntry<IDbEntryKey, IDbEntryValue>? last;
+    for(var e in map.entries) {
+      if(last != null){
+        last.value.next = e;
+      }
+      last = e;
+    }
   }
 
   void write(String path) {
@@ -239,7 +253,7 @@ class IDb {
     ccs.add(this);
   }
 
-  List<Map<String, Object>> toJson() {
+  List<Map<String, dynamic>> toJson() {
     var mapKeys = map.keys.toList();
     mapKeys.sort();
     return mapKeys

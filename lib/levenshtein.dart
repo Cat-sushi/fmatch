@@ -35,6 +35,7 @@ class Levenshtein {
         var mab = a < b ? a : b;
         var c = v1[j] + 1;
         v1[j + 1] = mab < c ? mab : c;
+        // v1[j + 1] = min(v1[j] + 1, min(v0[j + 1] + 1, v0[j] + cost));
       }
 
       vtemp = v0;
@@ -44,4 +45,6 @@ class Levenshtein {
 
     return v0[l2];
   }
+
+  // int min(int a, int b) => a < b ? a : b;
 }

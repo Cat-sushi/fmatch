@@ -7,6 +7,7 @@ import 'dart:math';
 import 'package:quiver/core.dart';
 import 'package:fmatch/levenshtein.dart';
 import 'package:fmatch/configs.dart';
+import 'util.dart';
 import 'database.dart';
 import 'preprocess.dart';
 
@@ -231,7 +232,7 @@ QueryResult fmatch(String inputString) {
   if (hasIllegalCharacter(inputString)) {
     return QueryResult.fromError('Illegal characters in query "$inputString".');
   }
-  var rawQuery = normalizeAndCapitalize(inputString);
+  var rawQuery = canonicalize(normalizeAndCapitalize(inputString), false);
   bool requirePerfectMatching;
   Preprocessed preprocessed;
   var perfMatchTermMatcher = _perfMatchTerm.firstMatch(rawQuery);
@@ -251,6 +252,8 @@ QueryResult fmatch(String inputString) {
   if (preprocessed.terms.isEmpty) {
     return QueryResult.fromError('No valid terms in query "$inputString"');
   }
+  preprocessed = Preprocessed(preprocessed.letType,
+      preprocessed.terms.map((t) => canonicalize(t, false)).toList());
   var query = Query.fromPreprocessed(preprocessed, requirePerfectMatching);
   QueryResult ret;
   var cachedResult = resultCache[query];
@@ -307,53 +310,45 @@ List<QueryOccurrence> matchWithoutSort(Query query) {
 
 List<QueryTermOccurrence> queryTermMatch(
     QueryTerm qterm, bool isLet, bool requirePerfectMatching) {
-  if (isLet) {
-    for (var idbe in idb.map.entries) {
-      if (!idbe.key.isLet || idbe.key.term != qterm.term) {
-        continue;
-      }
-      var os = idbe.value.occurrences
-          .map((o) => QueryTermOccurrence(o.rawEntry, o.position, 1.0, false))
-          .toList();
-      qterm.df += os.length * 1.0;
-      return os;
+  if (isLet ||
+      requirePerfectMatching ||
+      qterm.term.length < Settings.termMatchingMinLetters &&
+          qterm.term.length < Settings.termPartialMatchingMinLetters) {
+    var idbv = idb.map[IDbEntryKey(qterm.term, isLet)];
+    if (idbv == null) {
+      return <QueryTermOccurrence>[];
     }
-    return <QueryTermOccurrence>[];
-  }
-  if (requirePerfectMatching) {
-    for (var idbe in idb.map.entries) {
-      if (idbe.key.isLet || idbe.key.term != qterm.term) {
-        continue;
-      }
-      var os = idbe.value.occurrences
-          .map((o) => QueryTermOccurrence(o.rawEntry, o.position, 1.0, false))
-          .toList();
-      qterm.df += os.length * 1.0;
-      return os;
-    }
-    return <QueryTermOccurrence>[];
+    qterm.df += idbv.occurrences.length * 1.0;
+    var os = idbv.occurrences
+        .map((o) => QueryTermOccurrence(o.rawEntry, o.position, 1.0, false))
+        .toList();
+    return os;
   }
   var occurrences = <QueryTermOccurrence>[];
-  for (var idbe in idb.map.entries) {
+  // for (var idbe in idb.map.entries) {  // walk around for API performace regression
+  for (MapEntry<IDbEntryKey, IDbEntryValue>? idbe = idb.map.entries.first;
+      idbe != null;
+      idbe = idbe.value.next) {
     if (idbe.key.isLet) {
       continue;
     }
+    bool partial;
     var sim = similarity(idbe.key.term, qterm.term);
     if (sim > 0) {
-      var os = idbe.value.occurrences
-          .map((o) => QueryTermOccurrence(o.rawEntry, o.position, sim, false))
-          .toList();
-      occurrences.addAll(os);
-      qterm.df += os.length * sim;
-      continue;
+      partial = false;
+      qterm.df += idbe.value.occurrences.length * sim;
+    } else {
+      sim = partialSimilarity(idbe.key.term, qterm.term);
+      if (sim == 0) {
+        continue;
+      }
+      partial = true;
+      qterm.df += 0;
     }
-    sim = partialSimilarity(idbe.key.term, qterm.term);
-    if (sim > 0) {
-      var os = idbe.value.occurrences
-          .map((o) => QueryTermOccurrence(o.rawEntry, o.position, sim, true))
-          .toList();
-      occurrences.addAll(os);
-    }
+    var os = idbe.value.occurrences
+        .map((o) => QueryTermOccurrence(o.rawEntry, o.position, sim, partial))
+        .toList();
+    occurrences.addAll(os);
   }
   occurrences.sort((a, b) => a.rawEntry.compareTo(b.rawEntry));
   return occurrences;
@@ -362,23 +357,30 @@ List<QueryTermOccurrence> queryTermMatch(
 double similarity(String one, String two) {
   var lenOne = one.length;
   var lenTwo = two.length;
-  var lenMax = max<int>(lenOne, lenTwo).toDouble();
-  var lenMin = min<int>(lenOne, lenTwo).toDouble();
-  if (lenMin / lenMax < Settings.termMatchingMinLetterRatio) {
-    return 0.0;
+  int lenMax;
+  int lenMin;
+  if (lenOne < lenTwo) {
+    lenMin = lenOne;
+    lenMax = lenTwo;
+  } else {
+    lenMin = lenTwo;
+    lenMax = lenOne;
   }
-  if (lenMin < Settings.termMatchingMinLetters) {
+  if (lenMin.toDouble() / lenMax < Settings.termMatchingMinLetterRatio) {
     return 0.0;
   }
   if (one == two) {
     return 1.0;
   }
-  var sim = (lenMax - levenshtein.distance(one, two).toDouble()) / lenMax;
-  if (sim < Settings.termMatchingMinLetterRatio) {
+  if (lenMin < Settings.termMatchingMinLetters) {
     return 0.0;
   }
-  var matched = (lenMax.toDouble() * sim).round();
+  var matched = lenMax - levenshtein.distance(one, two);
   if (matched < Settings.termMatchingMinLetters) {
+    return 0.0;
+  }
+  var sim = matched.toDouble() / lenMax;
+  if (sim < Settings.termMatchingMinLetterRatio) {
     return 0.0;
   }
   return sim;
@@ -567,8 +569,7 @@ String setRangeIndices(
     }
     var etc = db.map[nextEntry]!.terms.length;
     matchedQueryTermCounts.clear();
-    matchedQueryTermCounts.length = etc;
-    matchedQueryTermCounts.fillRange(0, etc, 0);
+    matchedQueryTermCounts.addAll(List<int>.filled(etc, 0));
     var matchedQueryTerms = 0;
     for (var qti = 0; qti < qtc; qti++) {
       int j;

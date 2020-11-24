@@ -65,9 +65,11 @@ Stream<List<String?>> readCsvLines(String filepath) async* {
 String quoteCsvCell(String cell) => r'"' + cell.replaceAll(r'"', r'""') + r'"';
 
 final _stringMap = <String, String>{};
-String canonicalize(String s) {
+String canonicalize(String s, [bool regist = true]) {
   if (!_stringMap.containsKey(s)) {
-    _stringMap[s] = s;
+    if (regist) {
+      _stringMap[s] = s;
+    }
     return s;
   }
   return _stringMap[s]!;

@@ -23,10 +23,9 @@ class Preprocessed {
 }
 
 class Db {
-  late Map<String, Preprocessed> map;
+  late final Map<String, Preprocessed> map = {};
   Db();
   Db.fromIDb(IDb idb) {
-    map = {};
     var entryTermTable = <String, Map<int, String>>{};
     var entryLetPosition = <String, int>{};
     for (var me in idb.map.entries) {
@@ -48,7 +47,7 @@ class Db {
       var rawEntry = me.key;
       var entryTermCount = me.value.length;
       var terms =
-          List<String>.generate(entryTermCount, (qti) => me.value[qti]!);
+          List<String>.generate(entryTermCount, (qti) => me.value[qti]!, growable: false);
       var letType = LetType.na;
       if (entryLetPosition[rawEntry] == entryTermCount - 1) {
         letType = LetType.postfix;
@@ -61,7 +60,6 @@ class Db {
   }
   static Future<Db> fromStringStream(Stream<String> entries) async {
     var ret = Db();
-    ret.map = {};
     await entries.where((var entry) => entry != '').forEach((var entry) {
       var rawEntry = canonicalize(normalizeAndCapitalize(entry));
       if (!ret.map.containsKey(rawEntry)) {
@@ -150,12 +148,11 @@ class DbTermOccurrence {
 }
 
 class IDbEntryValue {
-  late int df;
-  late List<DbTermOccurrence> occurrences;
-  MapEntry<IDbEntryKey, IDbEntryValue>? next;
+  late final int df;
+  late final List<DbTermOccurrence> occurrences;
+  late final MapEntry<IDbEntryKey, IDbEntryValue>? next; // workarond for API performance regression
   IDbEntryValue()
-      : df = 0,
-        occurrences = [];
+      : occurrences = [];
   IDbEntryValue.fromJson(Map<String, dynamic> json) {
     df = json['df'] as int;
     occurrences = (json['occurrences'] as List)
@@ -183,10 +180,9 @@ class JsonChankSink implements Sink<List<int>> {
 }
 
 class IDb {
-  late Map<IDbEntryKey, IDbEntryValue> map;
+  final map = <IDbEntryKey, IDbEntryValue>{};
   IDb();
   IDb.fromDb(Db db) {
-    map = {};
     var dbKeys = db.map.keys.toList();
     dbKeys.sort();
     for (var dbKey in dbKeys) {
@@ -219,7 +215,7 @@ class IDb {
       }
       value.df = df;
     }
-    _link();
+    _link(); // workarond for API performance regression
   }
 
   static Future<IDb> read(String path) async {
@@ -227,16 +223,15 @@ class IDb {
     var decoder = JsonDecoder();
     var fs = File(path).openRead().transform<String>(utf8.decoder);
     var json = (await decoder.bind(fs).first) as List;
-    ret.map = {};
     json.forEach((dynamic me) {
       ret.map[IDbEntryKey.fromJson(me['key'] as Map<String, dynamic>)] =
           IDbEntryValue.fromJson(me['value'] as Map<String, dynamic>);
     });
-    ret._link();
+    ret._link(); // workarond for API performance regression
     return ret;
   }
 
-  void _link(){
+  void _link(){ // workarond for API performance regression
     MapEntry<IDbEntryKey, IDbEntryValue>? last;
     for(var e in map.entries) {
       if(last != null){
@@ -244,6 +239,7 @@ class IDb {
       }
       last = e;
     }
+    map.entries.last.value.next = null;
   }
 
   void write(String path) {

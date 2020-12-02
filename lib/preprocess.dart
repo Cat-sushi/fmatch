@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:unorm_dart/unorm_dart.dart' as unorm;
+import 'util.dart';
 import 'database.dart';
 import 'configs.dart';
 
@@ -17,18 +18,20 @@ bool hasIllegalCharacter(String name) {
 final _htSpaces = RegExp(r'^\s+|\s+$');
 final _mSpaces = RegExp(r'\s+');
 
-String normalizeAndCapitalize(String checked) {
+String normalizeAndCapitalize(String checked, [bool canonRegistering = false]) {
   var uNormalized = unorm.nfkd(checked);
   var uwNormalized = uNormalized.replaceAll(_htSpaces, '');
   var normalized = uwNormalized.replaceAll(_mSpaces, ' ');
-  return normalized.toUpperCase();
+  var capitalized = normalized.toUpperCase();
+  var canonicalized = canonicalize(capitalized, canonRegistering);
+  return canonicalized;
 }
 
-Preprocessed preprocess(String capitalized) {
+Preprocessed preprocess(String capitalized, [bool canonRegistering = false]) {
   var stringReplaced = replaceStrings(capitalized);
   var letReplaced = replaceLegalEntiyTypes(stringReplaced);
   var wordized = wordize(letReplaced);
-  return replaceWords(wordized);
+  return replaceWords(wordized, canonRegistering);
 }
 
 String replaceStrings(String captalized) {
@@ -77,7 +80,7 @@ Preprocessed wordize(_LetReplaced letReplaced) {
       Configs.words
           .allMatches(letReplaced.name)
           .map((m) => m.group(0)!)
-          .toList());
+          .toList(growable: false));
 }
 
 final _r = [
@@ -102,7 +105,7 @@ String _replacement(Match m, String replacement) {
   return ret;
 }
 
-Preprocessed replaceWords(Preprocessed wordized) {
+Preprocessed replaceWords(Preprocessed wordized, bool canonRegisting) {
   var replaceds = <String>[];
   var letType = wordized.letType;
   for (var i = 0; i < wordized.terms.length; i++) {
@@ -123,7 +126,8 @@ Preprocessed replaceWords(Preprocessed wordized) {
       }
       continue;
     }
-    replaceds.add(replaced);
+    replaceds.add(canonicalize(replaced, canonRegisting));
   }
+  replaceds = replaceds.toList(growable: false);
   return Preprocessed(letType, replaceds);
 }

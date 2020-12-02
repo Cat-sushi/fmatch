@@ -1,12 +1,13 @@
 // Copyright (c) 2016, Kwang Yul Seo. All rights reserved. Use of this source code
 // is governed by a BSD-style license that can be found in the LICENSE file.
 // import 'dart:math';
+import 'dart:typed_data';
 
 /// The Levenshtein distance, or edit distance, between two words is the
 /// minimum number of single-character edits (insertions, deletions or
 /// substitutions) required to change one word into the other.
 class Levenshtein {
-  int min(int a, int b) => a < b ? a : b; // workaround for API performance regression
+  int min(int a, int b) => a < b ? a : b;
 
   int distance(String s1, String s2) {
     if (s1 == s2) {
@@ -24,9 +25,12 @@ class Levenshtein {
       return l1;
     }
 
-    var v0 = List<int>.generate(l2 + 1, (i) => i, growable: false);
-    var v1 = List<int>.filled(l2 + 1, 0, growable: false);
-    List<int> vtemp;
+    var v0 = Int16List(l2+1);
+    var v1 = Int16List(l2+1);
+    Int16List vtemp;
+    for(var i = 0; i < v0.length; i++){
+      v0[i] = i;
+    }
 
     for (var i = 0; i < l1; i++) {
       v1[0] = i + 1;

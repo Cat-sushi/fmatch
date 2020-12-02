@@ -46,13 +46,17 @@ class Db {
     for (var me in entryTermTable.entries) {
       var rawEntry = me.key;
       var entryTermCount = me.value.length;
-      var terms =
-          List<String>.generate(entryTermCount, (qti) => me.value[qti]!, growable: false);
-      var letType = LetType.na;
-      if (entryLetPosition[rawEntry] == entryTermCount - 1) {
+      var terms = List<String>.generate(entryTermCount, (qti) => me.value[qti]!,
+          growable: false);
+      LetType letType;
+      if (entryLetPosition[rawEntry] == -1) {
+        letType = LetType.na;
+      } else if (entryLetPosition[rawEntry] == entryTermCount - 1) {
         letType = LetType.postfix;
       } else if (entryLetPosition[rawEntry] == 0) {
         letType = LetType.prefix;
+      } else {
+        throw Exception();
       }
       map[rawEntry] = Preprocessed(letType, terms);
     }
@@ -61,9 +65,9 @@ class Db {
   static Future<Db> fromStringStream(Stream<String> entries) async {
     var ret = Db();
     await entries.where((var entry) => entry != '').forEach((var entry) {
-      var rawEntry = canonicalize(normalizeAndCapitalize(entry));
+      var rawEntry = normalizeAndCapitalize(entry, true);
       if (!ret.map.containsKey(rawEntry)) {
-        ret.map[rawEntry] = preprocess(rawEntry);
+        ret.map[rawEntry] = preprocess(rawEntry, true);
       }
     });
     assert(ret.map.length >= 2);
@@ -82,7 +86,7 @@ class Db {
     var f = File(path);
     f.writeAsBytesSync([0xEF, 0xBB, 0xBF]);
     var fs = f.openWrite(mode: FileMode.append, encoding: utf8);
-    var keys = map.keys.toList();
+    var keys = map.keys.toList(growable: false);
     keys.sort();
     for (var key in keys) {
       csvLine.write(quoteCsvCell(key));
@@ -126,9 +130,9 @@ class IDbEntryKey implements Comparable<IDbEntryKey> {
       other is IDbEntryKey && term == other.term && isLet == other.isLet;
   @override
   int get hashCode => _hashCode;
-  IDbEntryKey(String term, this.isLet) : term = canonicalize(term), _hashCode = hash2(term, isLet);
+  IDbEntryKey(this.term, this.isLet) : _hashCode = hash2(term, isLet);
   IDbEntryKey.fromJson(Map<String, dynamic> json)
-      : this(json['term'] as String, json['isLet'] as bool);
+      : this(canonicalize(json['term'] as String), json['isLet'] as bool);
   Map<String, dynamic> toJson() => <String, dynamic>{
         'term': term,
         'isLet': isLet,
@@ -138,9 +142,9 @@ class IDbEntryKey implements Comparable<IDbEntryKey> {
 class DbTermOccurrence {
   final String rawEntry;
   final int position;
-  DbTermOccurrence(String rawEntry, this.position): rawEntry = canonicalize(rawEntry);
+  DbTermOccurrence(this.rawEntry, this.position);
   DbTermOccurrence.fromJson(Map<String, dynamic> json)
-      : this(json['rawEntry'] as String, json['position'] as int);
+      : this(canonicalize(json['rawEntry'] as String), json['position'] as int);
   Map<String, dynamic> toJson() => <String, dynamic>{
         'rawEntry': rawEntry,
         'position': position,
@@ -149,19 +153,19 @@ class DbTermOccurrence {
 
 class IDbEntryValue {
   late final int df;
-  late final List<DbTermOccurrence> occurrences;
-  late final MapEntry<IDbEntryKey, IDbEntryValue>? next; // workarond for API performance regression
-  IDbEntryValue()
-      : occurrences = [];
+  late List<DbTermOccurrence> occurrences;
+  IDbEntryValue() : occurrences = [];
   IDbEntryValue.fromJson(Map<String, dynamic> json) {
     df = json['df'] as int;
     occurrences = (json['occurrences'] as List)
-        .map((dynamic e) => DbTermOccurrence.fromJson(e as Map<String, dynamic>))
-        .toList();
+        .map(
+            (dynamic e) => DbTermOccurrence.fromJson(e as Map<String, dynamic>))
+        .toList(growable: false);
   }
   Map<String, dynamic> toJson() => <String, dynamic>{
         'df': df,
-        'occurrences': occurrences.map((o) => o.toJson()).toList(),
+        'occurrences':
+            occurrences.map((o) => o.toJson()).toList(growable: false),
       };
 }
 
@@ -181,9 +185,10 @@ class JsonChankSink implements Sink<List<int>> {
 
 class IDb {
   final map = <IDbEntryKey, IDbEntryValue>{};
+  late final List<MapEntry<IDbEntryKey, IDbEntryValue>> list;
   IDb();
   IDb.fromDb(Db db) {
-    var dbKeys = db.map.keys.toList();
+    var dbKeys = db.map.keys.toList(growable: false);
     dbKeys.sort();
     for (var dbKey in dbKeys) {
       var dbValue = db.map[dbKey]!;
@@ -205,6 +210,7 @@ class IDb {
     }
     for (var mentry in map.entries) {
       var value = mentry.value;
+      value.occurrences = value.occurrences.toList(growable: false);
       var df = 0;
       var lastRawEntry = '';
       for (var o in value.occurrences) {
@@ -215,7 +221,7 @@ class IDb {
       }
       value.df = df;
     }
-    _link(); // workarond for API performance regression
+    _link();
   }
 
   static Future<IDb> read(String path) async {
@@ -227,19 +233,16 @@ class IDb {
       ret.map[IDbEntryKey.fromJson(me['key'] as Map<String, dynamic>)] =
           IDbEntryValue.fromJson(me['value'] as Map<String, dynamic>);
     });
-    ret._link(); // workarond for API performance regression
+    ret._link();
     return ret;
   }
 
-  void _link(){ // workarond for API performance regression
-    MapEntry<IDbEntryKey, IDbEntryValue>? last;
-    for(var e in map.entries) {
-      if(last != null){
-        last.value.next = e;
-      }
-      last = e;
-    }
-    map.entries.last.value.next = null;
+  void _link() {
+    list = map.entries
+        .where((e) => !(e.key.isLet ||
+            (e.key.term.length < Settings.termPartialMatchingMinLetters &&
+                e.key.term.length < Settings.queryMatchingMinTerms)))
+        .toList(growable: false);
   }
 
   void write(String path) {
@@ -250,11 +253,11 @@ class IDb {
   }
 
   List<Map<String, dynamic>> toJson() {
-    var mapKeys = map.keys.toList();
+    var mapKeys = map.keys.toList(growable: false);
     mapKeys.sort();
     return mapKeys
         .map((mk) => {'key': mk.toJson(), 'value': map[mk]!.toJson()})
-        .toList();
+        .toList(growable: false);
   }
 }
 

@@ -7,7 +7,6 @@ import 'dart:math';
 import 'package:quiver/core.dart';
 import 'package:fmatch/levenshtein.dart';
 import 'package:fmatch/configs.dart';
-import 'util.dart';
 import 'database.dart';
 import 'preprocess.dart';
 
@@ -48,10 +47,12 @@ class QueryTerm {
 class Query {
   LetType letType;
   List<QueryTerm> terms;
-  bool requirePerfectMatching;
-  Query.fromPreprocessed(Preprocessed preped, this.requirePerfectMatching)
+  bool perfectMatching;
+  Query.fromPreprocessed(Preprocessed preped, this.perfectMatching)
       : letType = preped.letType,
-        terms = preped.terms.map((e) => QueryTerm(e, 0.0, 0.0)).toList();
+        terms = preped.terms
+            .map((e) => QueryTerm(e, 0.0, 0.0))
+            .toList(growable: false);
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) {
@@ -63,7 +64,7 @@ class Query {
     if (letType != other.letType) {
       return false;
     }
-    if (requirePerfectMatching != other.requirePerfectMatching) {
+    if (perfectMatching != other.perfectMatching) {
       return false;
     }
     if (terms.length != other.terms.length) {
@@ -80,8 +81,8 @@ class Query {
   @override
   int get hashCode => hashObjects(<Object>[
         letType,
-        requirePerfectMatching,
-        ...terms.map((e) => e.term).toList()
+        perfectMatching,
+        ...terms.map((e) => e.term).toList(growable: false)
       ]);
 }
 
@@ -145,7 +146,7 @@ class QueryResult {
   final String inputString;
   final String rawQuery;
   final LetType letType;
-  final bool requirePerfectMatching;
+  final bool perfectMatching;
   final List<String> queryTerms;
   final int matchedEntryCount;
   final List<MatchedEntry> matchedEntries;
@@ -163,7 +164,7 @@ class QueryResult {
         queryTerms = preprocessed.terms,
         matchedEntryCount = result.length,
         matchedEntries = result,
-        requirePerfectMatching = false,
+        perfectMatching = false,
         error = '';
   QueryResult.fromQueryAndQueryOccurrences(
       DateTime start,
@@ -175,11 +176,12 @@ class QueryResult {
       : dateTime = start,
         durationInMilliseconds = end.difference(start).inMilliseconds,
         letType = query.letType,
-        requirePerfectMatching = query.requirePerfectMatching,
-        queryTerms = query.terms.map((e) => e.term).toList(),
+        perfectMatching = query.perfectMatching,
+        queryTerms = query.terms.map((e) => e.term).toList(growable: false),
         matchedEntryCount = sorted.length,
-        matchedEntries =
-            sorted.map((e) => MatchedEntry(e.rawEntry, e.score)).toList(),
+        matchedEntries = sorted
+            .map((e) => MatchedEntry(e.rawEntry, e.score))
+            .toList(growable: false),
         error = '';
   QueryResult.fromError(this.error)
       : dateTime = DateTime.now(),
@@ -187,7 +189,7 @@ class QueryResult {
         inputString = '',
         rawQuery = '',
         letType = LetType.na,
-        requirePerfectMatching = false,
+        perfectMatching = false,
         queryTerms = [],
         matchedEntryCount = 0,
         matchedEntries = [];
@@ -199,7 +201,8 @@ class QueryResult {
         'letType': letType.toString().substring(8),
         'queyTerms': queryTerms,
         'matchedEntryCount': matchedEntries.length,
-        'matchedEntries': matchedEntries.map((e) => e.toJson()).toList(),
+        'matchedEntries':
+            matchedEntries.map((e) => e.toJson()).toList(growable: false),
         'error': error,
       };
 }
@@ -240,12 +243,12 @@ QueryResult fmatch(String inputString) {
   if (hasIllegalCharacter(inputString)) {
     return QueryResult.fromError('Illegal characters in query: $inputString');
   }
-  var rawQuery = canonicalize(normalizeAndCapitalize(inputString), false);
-  bool requirePerfectMatching;
+  var rawQuery = normalizeAndCapitalize(inputString);
+  bool perfectMatching;
   Preprocessed preprocessed;
   var perfMatchTermMatcher = _perfMatchTerm.firstMatch(rawQuery);
   if (perfMatchTermMatcher != null) {
-    requirePerfectMatching = true;
+    perfectMatching = true;
     preprocessed = preprocess(perfMatchTermMatcher[1]!);
     if (preprocessed.letType != LetType.na ||
         preprocessed.terms.length != 1 ||
@@ -254,15 +257,13 @@ QueryResult fmatch(String inputString) {
           'Query is not suitable for perfect matching: $inputString');
     }
   } else {
-    requirePerfectMatching = false;
+    perfectMatching = false;
     preprocessed = preprocess(rawQuery);
     if (preprocessed.terms.isEmpty) {
       return QueryResult.fromError('No valid terms in query: $inputString');
     }
   }
-  preprocessed = Preprocessed(preprocessed.letType,
-      preprocessed.terms.map((t) => canonicalize(t, false)).toList());
-  var query = Query.fromPreprocessed(preprocessed, requirePerfectMatching);
+  var query = Query.fromPreprocessed(preprocessed, perfectMatching);
   var cachedResult = resultCache[query];
   if (cachedResult != null) {
     var end = DateTime.now();
@@ -284,9 +285,10 @@ List<QueryOccurrence> matchWithoutSort(Query query) {
   for (var qti = 0; qti < query.terms.length; qti++) {
     var qterm = query.terms[qti];
     var isLet = isLetByQueryTerm(query, qti);
-    var qto = queryTermMatch(qterm, isLet, query.requirePerfectMatching);
+    var qto = queryTermMatch(qterm, isLet, query.perfectMatching);
     queryTermOccurrences.add(qto);
   }
+  queryTermOccurrences = queryTermOccurrences.toList(growable: false);
   var qtc = query.terms.length;
   var maxMissedTC = maxMissedTermCount(qtc);
   if (estimateCombination(query, queryTermOccurrences, maxMissedTC) >
@@ -304,9 +306,9 @@ List<QueryOccurrence> matchWithoutSort(Query query) {
 }
 
 List<QueryTermOccurrence> queryTermMatch(
-    QueryTerm qterm, bool isLet, bool requirePerfectMatching) {
+    QueryTerm qterm, bool isLet, bool perfectMatching) {
   if (isLet ||
-      requirePerfectMatching ||
+      perfectMatching ||
       qterm.term.length < Settings.termMatchingMinLetters &&
           qterm.term.length < Settings.termPartialMatchingMinLetters) {
     var idbv = idb.map[IDbEntryKey(qterm.term, isLet)];
@@ -316,19 +318,11 @@ List<QueryTermOccurrence> queryTermMatch(
     qterm.df += idbv.occurrences.length * 1.0;
     var os = idbv.occurrences
         .map((o) => QueryTermOccurrence(o.rawEntry, o.position, 1.0, false))
-        .toList();
+        .toList(growable: false);
     return os;
   }
   var occurrences = <QueryTermOccurrence>[];
-  // for (var idbe in idb.map.entries) {  // workaround for API performace regression
-  if (idb.map.isEmpty) {
-    return occurrences;
-  }
-  MapEntry<IDbEntryKey, IDbEntryValue>? idbe;
-  for (idbe = idb.map.entries.first; idbe != null; idbe = idbe.value.next) {
-    if (idbe.key.isLet) {
-      continue;
-    }
+  for (var idbe in idb.list) {
     bool partial;
     var sim = similarity(idbe.key.term, qterm.term);
     if (sim > 0) {
@@ -344,9 +338,10 @@ List<QueryTermOccurrence> queryTermMatch(
     }
     var os = idbe.value.occurrences
         .map((o) => QueryTermOccurrence(o.rawEntry, o.position, sim, partial))
-        .toList();
+        .toList(growable: false);
     occurrences.addAll(os);
   }
+  occurrences = occurrences.toList(growable: false);
   occurrences.sort((a, b) => a.rawEntry.compareTo(b.rawEntry));
   return occurrences;
 }
@@ -407,14 +402,17 @@ double estimateCombination(
     List<List<QueryTermOccurrence>> queryTermOccurrences,
     int maxMissedTermCount) {
   var qtc = queryTermOccurrences.length;
-  var ris = List<RangeIndex>.generate(qtc, (i) => RangeIndex(), growable: false);
+  var ris =
+      List<RangeIndex>.generate(qtc, (i) => RangeIndex(), growable: false);
   var etmc = <int>[];
+  var etmcr = <List<int>>[[]];
   var maxCombi = 1.0;
   for (var currentEntry = setRangeIndices(
-          '', query, queryTermOccurrences, ris, maxMissedTermCount, etmc);
+          '', query, queryTermOccurrences, ris, maxMissedTermCount, etmcr);
       currentEntry != '';
       currentEntry = setRangeIndices(currentEntry, query, queryTermOccurrences,
-          ris, maxMissedTermCount, etmc)) {
+          ris, maxMissedTermCount, etmcr)) {
+    etmc = etmcr[0];
     var combi = 1.0;
     for (var qti = 0; qti < qtc; qti++) {
       var e = ris[qti];
@@ -445,7 +443,8 @@ List<List<QueryTermOccurrence>> reduceQueryTerms(
     tqti[query.terms[i]] = i;
   }
   tqts.sort((a, b) => a.df.compareTo(b.df));
-  tqts = tqts.sublist(0, Settings.fallbackMaxQueryTerms);
+  tqts =
+      tqts.sublist(0, Settings.fallbackMaxQueryTerms).toList(growable: false);
   tqts.sort((a, b) => tqti[a]!.compareTo(tqti[b]!));
   var tLetType = LetType.na;
   for (var e in tqts) {
@@ -457,7 +456,7 @@ List<List<QueryTermOccurrence>> reduceQueryTerms(
   }
   query.terms = tqts;
   query.letType = tLetType;
-  return ret;
+  return ret.toList(growable: false);
 }
 
 List<QueryTermOccurrence> reduceQueryTermOccurrences(
@@ -488,7 +487,7 @@ List<QueryTermOccurrence> reduceQueryTermOccurrences(
     ose = ose.sublist(0, Settings.fallbackMaxQueryTermMobility);
   }
   ret.addAll(ose);
-  return ret;
+  return ret.toList(growable: false);
 }
 
 void caliculateQueryTermWeight(Query query) {
@@ -513,16 +512,20 @@ List<QueryOccurrence> queryMatch(
     List<List<QueryTermOccurrence>> queryTermOccurrences,
     int maxMissedTermCount) {
   var qtc = queryTermOccurrences.length;
-  var ris = List<RangeIndex>.generate(qtc, (i) => RangeIndex(), growable: false);
+  var ris =
+      List<RangeIndex>.generate(qtc, (i) => RangeIndex(), growable: false);
   var ret = <QueryOccurrence>[];
   var etmc = <int>[];
+  var etmcr = <List<int>>[[]];
   for (var currentEntry = setRangeIndices(
-          '', query, queryTermOccurrences, ris, maxMissedTermCount, etmc);
+          '', query, queryTermOccurrences, ris, maxMissedTermCount, etmcr);
       currentEntry != '';
       currentEntry = setRangeIndices(currentEntry, query, queryTermOccurrences,
-          ris, maxMissedTermCount, etmc)) {
+          ris, maxMissedTermCount, etmcr)) {
+    etmc = etmcr[0];
     var tqto = List<QueryTermInQueryOccurrnece>.generate(
-        qtc, (i) => QueryTermInQueryOccurrnece(), growable: false);
+        qtc, (i) => QueryTermInQueryOccurrnece(),
+        growable: false);
     ret = joinQueryTermOccurrencesRecursively(query, currentEntry,
         queryTermOccurrences, ris, etmc, maxMissedTermCount, 0, 0, tqto, ret);
   }
@@ -540,7 +543,7 @@ String setRangeIndices(
     List<List<QueryTermOccurrence>> queryTermOccurrences,
     List<RangeIndex> rangeIndices,
     int maxMissedTermCount,
-    List<int> matchedQueryTermCounts) {
+    List<List<int>> matchedQueryTermCountsRef) {
   var nextEntry = '';
   var qtc = queryTermOccurrences.length;
   while (true) {
@@ -565,8 +568,8 @@ String setRangeIndices(
       return '';
     }
     var etc = db.map[nextEntry]!.terms.length;
-    matchedQueryTermCounts.clear();
-    matchedQueryTermCounts.addAll(List<int>.filled(etc, 0, growable: false));
+    matchedQueryTermCountsRef[0] = List<int>.filled(etc, 0, growable: false);
+    var matchedQueryTermCounts = matchedQueryTermCountsRef[0];
     var matchedQueryTerms = 0;
     for (var qti = 0; qti < qtc; qti++) {
       int j;
@@ -609,7 +612,8 @@ List<QueryOccurrence> joinQueryTermOccurrencesRecursively(
         List<QueryTermInQueryOccurrnece>.generate(
             tmpQueryTermsInQueryOccurrence.length,
             (i) => QueryTermInQueryOccurrnece.of(
-                tmpQueryTermsInQueryOccurrence[i]), growable: false);
+                tmpQueryTermsInQueryOccurrence[i]),
+            growable: false);
     if (!checkDevidedMatch(
         query, rawEntry, missedTermCount, tmpTmpQueryTermsInQueryOccurrence)) {
       return ret;

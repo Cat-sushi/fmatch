@@ -173,7 +173,7 @@ class Configs {
       stringRreplacements
           .add(StringReplacement(regExp(pattern.toString()), replacement));
     }
-    return stringRreplacements;
+    return stringRreplacements.toList(growable: false);
   }
 
   static Future<List<LegalEntityTypeReplacement>> _readLegalEntityTypesConf(
@@ -205,7 +205,7 @@ class Configs {
       legalEntryTypeReplacements.add(
           LegalEntityTypeReplacement(regexpPostfix, regexpPrefix, replacement));
     }
-    return legalEntryTypeReplacements;
+    return legalEntryTypeReplacements.toList(growable: false);
   }
 
   static Future<RegExp> _readWordsConf(String path) async {
@@ -252,6 +252,6 @@ class Configs {
       wordRreplacements
           .add(WordReplacement(regExp(pattern.toString()), toString));
     }
-    return wordRreplacements;
+    return wordRreplacements.toList(growable: false);
   }
 }

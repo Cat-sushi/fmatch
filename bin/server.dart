@@ -30,7 +30,7 @@ Future main() async {
       try {
         var content = await utf8.decoder.bind(req).join();
         var inputStrings = jsonDecode(content) as List<String>;
-        var results = inputStrings.map((q) => fmatch(q)).toList();
+        var results = inputStrings.map((q) => fmatch(q)).toList(growable: false);
         var responseContent = jsonEncode(results);
         req.response
           ..statusCode = HttpStatus.ok

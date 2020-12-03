@@ -264,6 +264,10 @@ QueryResult fmatch(String inputString) {
     }
   }
   var query = Query.fromPreprocessed(preprocessed, perfectMatching);
+  if(crossTransactionalWhiteList.contains(query)){
+      return QueryResult.fromError(
+          'Safe Customer: $rawQuery');
+  }
   var cachedResult = resultCache[query];
   if (cachedResult != null) {
     var end = DateTime.now();

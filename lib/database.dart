@@ -8,11 +8,13 @@ import 'package:quiver/core.dart';
 import 'configs.dart';
 import 'preprocess.dart';
 import 'util.dart';
+import 'fmatch.dart';
 
 const bufferSize = 128 * 1024;
 
 late Db db;
 late IDb idb;
+late Set<Query> crossTransactionalWhiteList;
 
 enum LetType { na, postfix, prefix }
 
@@ -261,6 +263,16 @@ class IDb {
   }
 }
 
+Future<Set<Query>> readCrossTransactionalWhiteList(String path) {
+  var ret = readCsvLines(path)
+      .where((l) => l.isNotEmpty && l[0] != null)
+      .map((l) => normalizeAndCapitalize(l[0]!))
+      .map((l) => preprocess(l))
+      .map((l) => Query.fromPreprocessed(l, false))
+      .toSet();
+  return ret;
+}
+
 Future<void> buildDb() async {
   var idbFile = File(Paths.idb);
   var idbFileExists = idbFile.existsSync();
@@ -290,4 +302,8 @@ Future<void> buildDb() async {
     await time(() => db = Db.fromIDb(idb), 'Db.fromIDb');
     await time(() => db.write(Paths.db), 'Db.write');
   }
+  await time(() async {
+    crossTransactionalWhiteList = await readCrossTransactionalWhiteList(
+        Paths.crossTransactionalWhiteList);
+  }, 'readXtWhiteList');
 }

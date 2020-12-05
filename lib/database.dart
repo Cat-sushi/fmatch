@@ -263,13 +263,26 @@ class IDb {
   }
 }
 
-Future<Set<Query>> readCrossTransactionalWhiteList(String path) {
-  var ret = readCsvLines(path)
-      .where((l) => l.isNotEmpty && l[0] != null)
-      .map((l) => normalizeAndCapitalize(l[0]!))
-      .map((l) => preprocess(l))
-      .map((l) => Query.fromPreprocessed(l, false))
-      .toSet();
+Future<Set<Query>> readCrossTransactionalWhiteList(String path) async {
+  var ret = <Query>{};
+  await for (var line in readCsvLines(path)) {
+    var inputString = line[0];
+    if (inputString == null || inputString == '') {
+      continue;
+    }
+    if (hasIllegalCharacter(inputString)) {
+      print(
+          'Illegal characters in cross transactional white list: $inputString');
+      continue;
+    }
+    var rawQuery = normalizeAndCapitalize(inputString);
+    var preprocessed = preprocess(rawQuery);
+    if (preprocessed.terms.isEmpty) {
+      print('No valid terms in cross transactional white list: $inputString');
+      continue;
+    }
+    ret.add(Query.fromPreprocessed(preprocessed, false));
+  }
   return ret;
 }
 

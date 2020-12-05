@@ -14,7 +14,7 @@ const bufferSize = 128 * 1024;
 
 late Db db;
 late IDb idb;
-late Set<Query> crossTransactionalWhiteList;
+late final Set<Query> crossTransactionalWhiteList;
 
 enum LetType { na, postfix, prefix }
 

@@ -14,7 +14,7 @@ const bufferSize = 128 * 1024;
 
 late Db db;
 late IDb idb;
-late Set<Query> crossTransactionalWhiteList;
+late Set<CachedQuery> crossTransactionalWhiteList;
 
 enum LetType { na, postfix, prefix }
 
@@ -263,8 +263,8 @@ class IDb {
   }
 }
 
-Future<Set<Query>> readCrossTransactionalWhiteList(String path) async {
-  var ret = <Query>{};
+Future<Set<CachedQuery>> readCrossTransactionalWhiteList(String path) async {
+  var ret = <CachedQuery>{};
   await for (var line in readCsvLines(path)) {
     if (line.isEmpty) {
       continue;
@@ -279,12 +279,12 @@ Future<Set<Query>> readCrossTransactionalWhiteList(String path) async {
       continue;
     }
     var rawQuery = normalizeAndCapitalize(inputString);
-    var preprocessed = preprocess(rawQuery);
+    var preprocessed = preprocess(rawQuery, true);
     if (preprocessed.terms.isEmpty) {
       print('No valid terms in cross transactional white list: $inputString');
       continue;
     }
-    ret.add(Query.fromPreprocessed(preprocessed, false));
+    ret.add(CachedQuery.fromPreprocessed(preprocessed, false));
   }
   return ret;
 }

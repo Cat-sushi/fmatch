@@ -44,21 +44,19 @@ class QueryTerm {
   QueryTerm(this.term, this.df, this.weight);
 }
 
-class Query {
-  LetType letType;
-  List<QueryTerm> terms;
-  bool perfectMatching;
-  Query.fromPreprocessed(Preprocessed preped, this.perfectMatching)
+class CachedQuery {
+  final LetType letType;
+  final List<String> terms;
+  final bool perfectMatching;
+  CachedQuery.fromPreprocessed(Preprocessed preped, this.perfectMatching)
       : letType = preped.letType,
-        terms = preped.terms
-            .map((e) => QueryTerm(e, 0.0, 0.0))
-            .toList(growable: false);
+        terms = preped.terms;
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) {
       return true;
     }
-    if (other is! Query) {
+    if (other is! CachedQuery) {
       return false;
     }
     if (letType != other.letType) {
@@ -71,7 +69,7 @@ class Query {
       return false;
     }
     for (var i = 0; i < terms.length; i++) {
-      if (terms[i].term != other.terms[i].term) {
+      if (terms[i] != other.terms[i]) {
         return false;
       }
     }
@@ -82,8 +80,19 @@ class Query {
   int get hashCode => hashObjects(<Object>[
         letType,
         perfectMatching,
-        ...terms.map((e) => e.term).toList(growable: false)
+        ...terms.toList(growable: false)
       ]);
+}
+
+class Query {
+  LetType letType;
+  List<QueryTerm> terms;
+  bool perfectMatching;
+  Query.fromPreprocessed(Preprocessed preped, this.perfectMatching)
+      : letType = preped.letType,
+        terms = preped.terms
+            .map((e) => QueryTerm(e, 0.0, 0.0))
+            .toList(growable: false);
 }
 
 class QueryTermOccurrence {
@@ -209,9 +218,9 @@ class QueryResult {
 
 class ResultCache {
   // ignore: prefer_collection_literals
-  final map = LinkedHashMap<Query, List<MatchedEntry>>();
+  final map = LinkedHashMap<CachedQuery, List<MatchedEntry>>();
   ResultCache();
-  List<MatchedEntry>? operator [](Query query) {
+  List<MatchedEntry>? operator [](CachedQuery query) {
     if (Settings.queryResultCacheSize == 0) {
       return null;
     }
@@ -223,7 +232,7 @@ class ResultCache {
     return rce;
   }
 
-  void operator []=(Query query, List<MatchedEntry> result) {
+  void operator []=(CachedQuery query, List<MatchedEntry> result) {
     if (Settings.queryResultCacheSize == 0) {
       return;
     }
@@ -263,24 +272,25 @@ QueryResult fmatch(String inputString) {
       return QueryResult.fromError('No valid terms in query: $inputString');
     }
   }
-  var query = Query.fromPreprocessed(preprocessed, perfectMatching);
-  if(crossTransactionalWhiteList.contains(query)){
+  var cachedQuery = CachedQuery.fromPreprocessed(preprocessed, perfectMatching);
+  if(crossTransactionalWhiteList.contains(cachedQuery)){
       return QueryResult.fromError(
           'Safe Customer: $inputString');
   }
-  var cachedResult = resultCache[query];
+  var cachedResult = resultCache[cachedQuery];
   if (cachedResult != null) {
     var end = DateTime.now();
     var ret = QueryResult.fromMatchedEntries(
         cachedResult, start, end, inputString, rawQuery, preprocessed);
     return ret;
   }
+  var query = Query.fromPreprocessed(preprocessed, perfectMatching);
   var resultUnsorted = matchWithoutSort(query);
   var sorted = sortAndDedupResults(resultUnsorted);
   var end = DateTime.now();
   var ret = QueryResult.fromQueryAndQueryOccurrences(
       start, end, inputString, rawQuery, query, sorted);
-  resultCache[query] = ret.matchedEntries;
+  resultCache[cachedQuery] = ret.matchedEntries;
   return ret;
 }
 

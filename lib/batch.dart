@@ -21,6 +21,9 @@ Future<void> batch([String path = 'lib/batch']) async {
   var currentLap = lastLap;
   var csvLine = StringBuffer();
   await for (var line in readCsvLines(batchQueryPath)) {
+    if (line.isEmpty) {
+      continue;
+    }
     var query = line[0];
     if (query == null || query == '') {
       continue;

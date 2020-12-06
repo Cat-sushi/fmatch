@@ -12,6 +12,7 @@ import 'package:fmatch/fmatch.dart';
 void main() async {
   await Settings.read();
   await Configs.read();
+  crossTransactionalWhiteList = {};
   var list = [
     r'abc defg hijkl mnopqr',
     r'xxxxxxxxxxxxxxxxxxxxxxxxxxS',

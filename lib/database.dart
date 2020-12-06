@@ -14,7 +14,7 @@ const bufferSize = 128 * 1024;
 
 late Db db;
 late IDb idb;
-late final Set<Query> crossTransactionalWhiteList;
+late Set<Query> crossTransactionalWhiteList;
 
 enum LetType { na, postfix, prefix }
 
@@ -266,6 +266,9 @@ class IDb {
 Future<Set<Query>> readCrossTransactionalWhiteList(String path) async {
   var ret = <Query>{};
   await for (var line in readCsvLines(path)) {
+    if (line.isEmpty) {
+      continue;
+    }
     var inputString = line[0];
     if (inputString == null || inputString == '') {
       continue;

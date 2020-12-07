@@ -141,11 +141,11 @@ class IDbEntryKey implements Comparable<IDbEntryKey> {
       };
 }
 
-class DbTermOccurrence {
+class IDbTermOccurrence {
   final String rawEntry;
   final int position;
-  DbTermOccurrence(this.rawEntry, this.position);
-  DbTermOccurrence.fromJson(Map<String, dynamic> json)
+  IDbTermOccurrence(this.rawEntry, this.position);
+  IDbTermOccurrence.fromJson(Map<String, dynamic> json)
       : this(canonicalize(json['rawEntry'] as String), json['position'] as int);
   Map<String, dynamic> toJson() => <String, dynamic>{
         'rawEntry': rawEntry,
@@ -155,13 +155,13 @@ class DbTermOccurrence {
 
 class IDbEntryValue {
   late final int df;
-  late List<DbTermOccurrence> occurrences;
+  late List<IDbTermOccurrence> occurrences;
   IDbEntryValue() : occurrences = [];
   IDbEntryValue.fromJson(Map<String, dynamic> json) {
     df = json['df'] as int;
     occurrences = (json['occurrences'] as List)
         .map(
-            (dynamic e) => DbTermOccurrence.fromJson(e as Map<String, dynamic>))
+            (dynamic e) => IDbTermOccurrence.fromJson(e as Map<String, dynamic>))
         .toList(growable: false);
   }
   Map<String, dynamic> toJson() => <String, dynamic>{
@@ -207,7 +207,7 @@ class IDb {
         if (!map.containsKey(idbKey)) {
           map[idbKey] = IDbEntryValue();
         }
-        map[idbKey]!.occurrences.add(DbTermOccurrence(dbKey, i));
+        map[idbKey]!.occurrences.add(IDbTermOccurrence(dbKey, i));
       }
     }
     for (var mentry in map.entries) {

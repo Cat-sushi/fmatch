@@ -77,11 +77,8 @@ class CachedQuery {
   }
 
   @override
-  int get hashCode => hashObjects(<Object>[
-        letType,
-        perfectMatching,
-        ...terms.toList(growable: false)
-      ]);
+  int get hashCode => hashObjects(
+      <Object>[letType, perfectMatching, ...terms.toList(growable: false)]);
 }
 
 class Query {
@@ -273,9 +270,8 @@ QueryResult fmatch(String inputString) {
     }
   }
   var cachedQuery = CachedQuery.fromPreprocessed(preprocessed, perfectMatching);
-  if(crossTransactionalWhiteList.contains(cachedQuery)){
-      return QueryResult.fromError(
-          'Safe Customer: $inputString');
+  if (crossTransactionalWhiteList.contains(cachedQuery)) {
+    return QueryResult.fromError('Safe Customer: $inputString');
   }
   var cachedResult = resultCache[cachedQuery];
   if (cachedResult != null) {
@@ -336,7 +332,15 @@ List<QueryTermOccurrence> queryTermMatch(
     return os;
   }
   var occurrences = <QueryTermOccurrence>[];
-  for (var idbe in idb.list) {
+  var lqt = qterm.term.length.toDouble();
+  var ls = (lqt * Settings.termMatchingMinLetterRatio).ceil();
+  var ixs = idb.indeces[ls];
+  var le1 = (lqt / Settings.termPartialMatchingMinLetterRatio).truncate();
+  var le2 = (lqt / Settings.termMatchingMinLetterRatio).truncate();
+  var le = min<int>(max<int>(le1, le2), idb.maxTermLength);
+  var ixe = idb.indeces[le + 1];
+  for (var i = ixs; i < ixe; i++) {
+    var idbe = idb.list[i];
     bool partial;
     var sim = similarity(idbe.key.term, qterm.term);
     if (sim > 0) {
@@ -360,19 +364,19 @@ List<QueryTermOccurrence> queryTermMatch(
   return occurrences;
 }
 
-double similarity(String one, String two) {
-  var lenOne = one.length;
-  var lenTwo = two.length;
+double similarity(String dbTerm, String queryTerm) {
+  var lenDt = dbTerm.length;
+  var lenQt = queryTerm.length;
   int lenMax;
   int lenMin;
-  if (lenOne < lenTwo) {
-    lenMin = lenOne;
-    lenMax = lenTwo;
+  if (lenDt < lenQt) {
+    lenMin = lenDt;
+    lenMax = lenQt;
   } else {
-    lenMin = lenTwo;
-    lenMax = lenOne;
+    lenMin = lenQt;
+    lenMax = lenDt;
   }
-  if (one == two) {
+  if (dbTerm == queryTerm) {
     return 1.0;
   }
   if (lenMin < Settings.termMatchingMinLetters) {
@@ -381,7 +385,7 @@ double similarity(String one, String two) {
   if (lenMin.toDouble() / lenMax < Settings.termMatchingMinLetterRatio) {
     return 0.0;
   }
-  var matched = lenMax - levenshtein.distance(one, two);
+  var matched = lenMax - levenshtein.distance(dbTerm, queryTerm);
   if (matched < Settings.termMatchingMinLetters) {
     return 0.0;
   }
@@ -392,20 +396,20 @@ double similarity(String one, String two) {
   return sim;
 }
 
-double partialSimilarity(String one, String two) {
-  var lenOne = one.length;
-  var lenTwo = two.length;
-  if (lenOne < lenTwo) {
+double partialSimilarity(String dbTerm, String queryTerm) {
+  var dtlen = dbTerm.length;
+  var qtlen = queryTerm.length;
+  if (dtlen < qtlen) {
     return 0.0;
   }
-  if (lenTwo < Settings.termPartialMatchingMinLetters) {
+  if (qtlen < Settings.termPartialMatchingMinLetters) {
     return 0.0;
   }
-  var sim = lenTwo.toDouble() / lenOne.toDouble();
+  var sim = qtlen.toDouble() / dtlen.toDouble();
   if (sim < Settings.termPartialMatchingMinLetterRatio) {
     return 0.0;
   }
-  if (!one.contains(two)) {
+  if (!dbTerm.contains(queryTerm)) {
     return 0.0;
   }
   return sim;

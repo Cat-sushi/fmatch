@@ -155,13 +155,16 @@ class IDbTermOccurrence {
 
 class IDbEntryValue {
   late final int df;
-  late List<IDbTermOccurrence> occurrences;
+  late final List<IDbTermOccurrence> occurrences;
   IDbEntryValue() : occurrences = [];
+  IDbEntryValue.of(IDbEntryValue o)
+      : df = o.df,
+        occurrences = o.occurrences.toList(growable: false);
   IDbEntryValue.fromJson(Map<String, dynamic> json) {
     df = json['df'] as int;
     occurrences = (json['occurrences'] as List)
-        .map(
-            (dynamic e) => IDbTermOccurrence.fromJson(e as Map<String, dynamic>))
+        .map((dynamic e) =>
+            IDbTermOccurrence.fromJson(e as Map<String, dynamic>))
         .toList(growable: false);
   }
   Map<String, dynamic> toJson() => <String, dynamic>{
@@ -188,8 +191,11 @@ class JsonChankSink implements Sink<List<int>> {
 class IDb {
   final map = <IDbEntryKey, IDbEntryValue>{};
   late final List<MapEntry<IDbEntryKey, IDbEntryValue>> list;
+  late final List<int> indeces;
+  late final int maxTermLength;
   IDb();
   IDb.fromDb(Db db) {
+    var tmpMap = <IDbEntryKey, IDbEntryValue>{};
     var dbKeys = db.map.keys.toList(growable: false);
     dbKeys.sort();
     for (var dbKey in dbKeys) {
@@ -204,15 +210,14 @@ class IDb {
           isLte = true;
         }
         var idbKey = IDbEntryKey(term, isLte);
-        if (!map.containsKey(idbKey)) {
-          map[idbKey] = IDbEntryValue();
+        if (!tmpMap.containsKey(idbKey)) {
+          tmpMap[idbKey] = IDbEntryValue();
         }
-        map[idbKey]!.occurrences.add(IDbTermOccurrence(dbKey, i));
+        tmpMap[idbKey]!.occurrences.add(IDbTermOccurrence(dbKey, i));
       }
     }
-    for (var mentry in map.entries) {
+    for (var mentry in tmpMap.entries) {
       var value = mentry.value;
-      value.occurrences = value.occurrences.toList(growable: false);
       var df = 0;
       var lastRawEntry = '';
       for (var o in value.occurrences) {
@@ -222,8 +227,9 @@ class IDb {
         }
       }
       value.df = df;
+      map[mentry.key] = IDbEntryValue.of(value);
     }
-    _link();
+    _list();
   }
 
   static Future<IDb> read(String path) async {
@@ -235,16 +241,42 @@ class IDb {
       ret.map[IDbEntryKey.fromJson(me['key'] as Map<String, dynamic>)] =
           IDbEntryValue.fromJson(me['value'] as Map<String, dynamic>);
     });
-    ret._link();
+    ret._list();
     return ret;
   }
 
-  void _link() {
+  void _list() {
     list = map.entries
         .where((e) => !(e.key.isLet ||
             (e.key.term.length < Settings.termPartialMatchingMinLetters &&
-                e.key.term.length < Settings.queryMatchingMinTerms)))
+                e.key.term.length < Settings.termMatchingMinLetters)))
         .toList(growable: false);
+    list.sort((a, b) {
+      var ta = a.key.term;
+      var tb = b.key.term;
+      if (ta.length < tb.length) {
+        return -1;
+      } else if (ta.length > tb.length) {
+        return 1;
+      } else {
+        return ta.compareTo(tb);
+      }
+    });
+    maxTermLength = list.last.key.term.length;
+    indeces = List<int>.filled(maxTermLength + 2, 0);
+    var lastLen = 0;
+    for (var i = 0; i < list.length; i++) {
+      var l = list[i].key.term.length;
+      if (l == lastLen) {
+        continue;
+      }
+      for (var j = lastLen + 1; j <= l; j++) {
+        indeces[j] = i;
+      }
+      indeces[l] = i;
+      lastLen = l;
+    }
+    indeces.last = list.length;
   }
 
   void write(String path) {

@@ -78,6 +78,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.5"
+  edit_distance:
+    dependency: "direct main"
+    description:
+      path: "/home/katsushi/development/Dart/third_party/edit_distance"
+      relative: false
+    source: path
+    version: "0.4.1"
   file:
     dependency: transitive
     description:
@@ -301,7 +308,7 @@ packages:
       name: test
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.16.0-nullsafety.12"
+    version: "1.16.0-nullsafety.13"
   test_api:
     dependency: transitive
     description:
@@ -315,7 +322,7 @@ packages:
       name: test_core
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.3.12-nullsafety.11"
+    version: "0.3.12-nullsafety.12"
   typed_data:
     dependency: transitive
     description:
@@ -326,10 +333,10 @@ packages:
   unorm_dart:
     dependency: "direct main"
     description:
-      name: unorm_dart
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.1.2"
+      path: "/home/katsushi/development/Dart/third_party/unorm-dart"
+      relative: false
+    source: path
+    version: "0.2.0-nullsafety.0"
   vm_service:
     dependency: transitive
     description:
@@ -366,4 +373,4 @@ packages:
     source: hosted
     version: "2.2.1"
 sdks:
-  dart: ">=2.12.0-0.0 <3.0.0"
+  dart: ">=2.12.0-133.2.beta <3.0.0"

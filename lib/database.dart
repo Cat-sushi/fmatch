@@ -263,7 +263,7 @@ class IDb {
       }
     });
     maxTermLength = list.last.key.term.length;
-    indeces = List<int>.filled(maxTermLength + 2, 0);
+    indeces = List<int>.filled(maxTermLength + 2, 0, growable: false);
     var lastLen = 0;
     for (var i = 0; i < list.length; i++) {
       var l = list[i].key.term.length;

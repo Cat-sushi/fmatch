@@ -158,7 +158,7 @@ class QueryResult {
   final List<MatchedEntry> matchedEntries;
   final String error;
   QueryResult.fromMatchedEntries(
-    List<MatchedEntry> result,
+    List<MatchedEntry> matchedEntries,
     DateTime start,
     DateTime end,
     this.inputString,
@@ -168,24 +168,24 @@ class QueryResult {
         durationInMilliseconds = end.difference(start).inMilliseconds,
         letType = preprocessed.letType,
         queryTerms = preprocessed.terms,
-        matchedEntryCount = result.length,
-        matchedEntries = result,
+        matchedEntryCount = matchedEntries.length,
+        matchedEntries = matchedEntries,
         perfectMatching = false,
         error = '';
-  QueryResult.fromQueryAndQueryOccurrences(
-      DateTime start,
-      DateTime end,
-      this.inputString,
-      this.rawQuery,
-      Query query,
-      List<QueryOccurrence> sorted)
-      : dateTime = start,
+  QueryResult.fromQueryOccurrences(
+    List<QueryOccurrence> queryOccurrences,
+    DateTime start,
+    DateTime end,
+    this.inputString,
+    this.rawQuery,
+    Query query,
+  )   : dateTime = start,
         durationInMilliseconds = end.difference(start).inMilliseconds,
         letType = query.letType,
         perfectMatching = query.perfectMatching,
         queryTerms = query.terms.map((e) => e.term).toList(growable: false),
-        matchedEntryCount = sorted.length,
-        matchedEntries = sorted
+        matchedEntryCount = queryOccurrences.length,
+        matchedEntries = queryOccurrences
             .map((e) => MatchedEntry(e.rawEntry, e.score))
             .toList(growable: false),
         error = '';
@@ -273,19 +273,19 @@ QueryResult fmatch(String inputString) {
   if (crossTransactionalWhiteList.contains(cachedQuery)) {
     return QueryResult.fromError('Safe Customer: $inputString');
   }
-  var cachedResult = resultCache[cachedQuery];
-  if (cachedResult != null) {
+  var matchedEntires = resultCache[cachedQuery];
+  if (matchedEntires != null) {
     var end = DateTime.now();
     var ret = QueryResult.fromMatchedEntries(
-        cachedResult, start, end, inputString, rawQuery, preprocessed);
+        matchedEntires, start, end, inputString, rawQuery, preprocessed);
     return ret;
   }
   var query = Query.fromPreprocessed(preprocessed, perfectMatching);
   var resultUnsorted = matchWithoutSort(query);
   var sorted = sortAndDedupResults(resultUnsorted);
   var end = DateTime.now();
-  var ret = QueryResult.fromQueryAndQueryOccurrences(
-      start, end, inputString, rawQuery, query, sorted);
+  var ret = QueryResult.fromQueryOccurrences(
+      sorted, start, end, inputString, rawQuery, query);
   resultCache[cachedQuery] = ret.matchedEntries;
   return ret;
 }

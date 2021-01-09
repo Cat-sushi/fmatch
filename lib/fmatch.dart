@@ -355,8 +355,7 @@ List<QueryTermOccurrence> queryTermMatch(
       qterm.df += 0;
     }
     var os = idbe.value.occurrences
-        .map((o) => QueryTermOccurrence(o.rawEntry, o.position, sim, partial))
-        .toList(growable: false);
+        .map((o) => QueryTermOccurrence(o.rawEntry, o.position, sim, partial));
     occurrences.addAll(os);
   }
   occurrences = occurrences.toList(growable: false);

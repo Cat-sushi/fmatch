@@ -5,7 +5,7 @@ termPartialMatchingMinLetters,2, 最小部分一致文字数
 queryMatchingMinTermRatio,0.5, 最小一致単語比
 queryMatchingMinTerms,1, 最小一致単語数
 queryMatchingTypicalProperNounDf,10, 典型固有名詞文書頻度
-queryMatchingMinTermOrderSimilarity,0.75, 最小語順類似度 PoCで変更
+queryMatchingMinTermOrderSimilarity,0.625, 最小語順類似度 PoCで変更 Scoreバグ修正で再変更
 scoreIdfMagnifier,2.0, 単語希少性強調係数
 fallbackThresholdCombinations,1048576, 組合せ爆発防止境界 PoCで追加
 fallbackMaxQueryTerms,10, 組合せ爆発防止縮退後のクエリ単語数上限 PoCで追加

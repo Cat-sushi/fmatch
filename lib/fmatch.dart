@@ -795,7 +795,7 @@ void caliulateScore(QueryOccurrence queryOccurrence, Query query) {
     var normDistance = distance.toDouble() * query.terms[qti].weight;
     totalNormDistance += normDistance;
   }
-  var termOrderSimilarity = 1.0 - (totalNormDistance / (qtc * qtc).toDouble());
+  var termOrderSimilarity = 1.0 - (totalNormDistance / qtc.toDouble());
   queryOccurrence.score = scro * termOrderSimilarity;
 }
 

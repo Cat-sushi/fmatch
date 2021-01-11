@@ -35,9 +35,7 @@ void main() async {
     expect(
         jsonString, endsWith(
         '"inputString":"def co","rawQuery":"DEF CO","letType":"postfix","queyTerms":["DEF","CO"],"matchedEntryCount":4,"matchedEntries":['
-        '{"rawEntry":"DEF COMPANY","score":0.4628958000823221},'
-        '{"rawEntry":"DEF GHI CO.","score":0.4628958000823221},'
-        '{"rawEntry":"COMPANY","score":0.048231815683964015},'
-        '{"rawEntry":"COMPANY ABC","score":0.048231815683964015}],"error":""}'));
+        '{"rawEntry":"DEF COMPANY","score":0.4628958000823221},{"rawEntry":"DEF GHI CO.","score":0.4628958000823221},'
+        '{"rawEntry":"COMPANY","score":0.013758139210378627},{"rawEntry":"COMPANY ABC","score":0.013758139210378627}],"error":""}'));
   });
 }

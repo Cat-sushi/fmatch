@@ -7,14 +7,14 @@ environment:
   sdk: '>=2.12.0-0 <3.0.0'
 
 dependencies:
-  # unorm_dart: ^0.1.2
-  unorm_dart:
-    path: ../third_party/unorm-dart
-#  edit_distance: ^0.4.1
-  edit_distance:
-    path: ../third_party/edit_distance
-  quiver: ^3.0.0-nullsafety.1
+  unorm_dart: ^0.2.0
+  edit_distance: ^0.5.0-nullsafety.0
+  quiver: ^3.0.0
+
+# dependency_overrides:
+#   edit_distance:
+#     path: ../third_party/edit_distance
 
 dev_dependencies:
-  pedantic: ^1.9.0
-  test: ^1.16.0-nullsafety.13
+  pedantic: ^1.11.0
+  test: ^1.16.8

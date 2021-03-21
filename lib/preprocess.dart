@@ -3,9 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:unorm_dart/unorm_dart.dart' as unorm;
-import 'util.dart';
-import 'database.dart';
+
 import 'configs.dart';
+import 'database.dart';
+import 'util.dart';
 
 bool hasIllegalCharacter(String name) {
   var m = Configs.legalChars.firstMatch(name);
@@ -56,7 +57,7 @@ _LetReplaced replaceLegalEntiyTypes(String stringReplaced) {
         stringReplaced.replaceFirstMapped(letRepl.regexpPostfix, (match) {
       var gs = (match as RegExpMatch).namedGroup('s');
       if (gs != null) {
-        return '${gs}${letRepl.replacement}';
+        return '$gs${letRepl.replacement}';
       }
       return letRepl.replacement;
     });

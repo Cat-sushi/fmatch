@@ -1,7 +1,6 @@
 // Copyright (c) 2020, Yako.
 // All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.9
 
 import 'dart:convert';
 import 'package:fmatch/preprocess.dart';
@@ -10,7 +9,7 @@ import 'package:fmatch/configs.dart';
 import 'package:fmatch/database.dart';
 import 'package:fmatch/fmatch.dart';
 
-void main() async {
+Future<void> main() async {
   await Settings.read();
   await Configs.read();
   crossTransactionalWhiteList = {};

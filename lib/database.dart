@@ -2,13 +2,15 @@
 // All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
 import 'dart:convert';
+import 'dart:io';
+
 import 'package:quiver/core.dart';
+
 import 'configs.dart';
+import 'fmatch.dart';
 import 'preprocess.dart';
 import 'util.dart';
-import 'fmatch.dart';
 
 const bufferSize = 128 * 1024;
 
@@ -83,7 +85,7 @@ class Db {
     return Db.fromStringStream(plainEntries);
   }
 
-  void write(String path) async {
+  Future<void> write(String path) async {
     var csvLine = StringBuffer();
     var f = File(path);
     f.writeAsBytesSync([0xEF, 0xBB, 0xBF]);
@@ -236,7 +238,7 @@ class IDb {
     var ret = IDb();
     var decoder = JsonDecoder();
     var fs = File(path).openRead().transform<String>(utf8.decoder);
-    var json = (await decoder.bind(fs).first) as List;
+    var json = (await decoder.bind(fs).first)! as List;
     json.forEach((dynamic me) {
       ret.map[IDbEntryKey.fromJson(me['key'] as Map<String, dynamic>)] =
           IDbEntryValue.fromJson(me['value'] as Map<String, dynamic>);
@@ -339,7 +341,7 @@ Future<void> buildDb() async {
       db = await Db.readList(Paths.list);
     }, 'Db.readList');
     await time(() async {
-      idb = await IDb.fromDb(db);
+      idb = IDb.fromDb(db);
     }, 'IDb.fromDb');
     await time(() => db.write(Paths.db), 'Db.write');
     await time(() => idb.write(Paths.idb), 'IDb.write');

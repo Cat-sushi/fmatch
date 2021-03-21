@@ -44,7 +44,7 @@ Stream<List<String?>> readCsvLines(String filepath) async* {
         continue;
       }
       if (m.group(2) != null) {
-        ret.add(m.group(2)!);
+        ret.add(m.group(2));
         continue;
       }
       if (m.group(3) != null) {

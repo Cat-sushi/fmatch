@@ -4,9 +4,10 @@
 
 import 'dart:convert';
 import 'dart:io';
-import 'util.dart';
+
 import 'database.dart';
 import 'fmatch.dart';
+import 'util.dart';
 
 Future<void> batch([String path = 'lib/batch']) async {
   var batchQueryPath = '$path/queries.csv';

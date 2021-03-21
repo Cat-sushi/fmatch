@@ -4,9 +4,11 @@
 
 import 'dart:collection';
 import 'dart:math';
-import 'package:quiver/core.dart';
+
 import 'package:edit_distance/edit_distance.dart';
-import 'package:fmatch/configs.dart';
+import 'package:quiver/core.dart';
+
+import 'configs.dart';
 import 'database.dart';
 import 'preprocess.dart';
 

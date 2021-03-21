@@ -1,14 +1,14 @@
 // Copyright (c) 2020, Yako.
 // All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.9
 
-import 'dart:io';
 import 'dart:convert';
-import 'package:fmatch/util.dart';
+import 'dart:io';
+
 import 'package:fmatch/configs.dart';
 import 'package:fmatch/database.dart';
 import 'package:fmatch/fmatch.dart';
+import 'package:fmatch/util.dart';
 
 String _host = InternetAddress.loopbackIPv4.host;
 
@@ -44,7 +44,7 @@ Future main() async {
     } else if(req.method == 'GET') {
       try {
         var inputString = req.uri.queryParameters['q'];
-        var result = fmatch(inputString);
+        var result = fmatch(inputString!);
         var responseContent = josonEncoderWithIdent.convert([result]);
         req.response
           ..statusCode = HttpStatus.ok

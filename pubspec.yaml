@@ -4,7 +4,7 @@ description: A sample command-line application.
 # homepage: https://www.example.com
 
 environment:
-  sdk: '>=2.12.0-0 <3.0.0'
+  sdk: '>=2.13.0-0 <3.0.0'
 
 dependencies:
   unorm_dart: ^0.2.0

@@ -2,12 +2,12 @@
 // All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:fmatch/preprocess.dart';
-import 'package:test/test.dart';
-import 'package:fmatch/util.dart';
+import 'package:fmatch/batch.dart';
 import 'package:fmatch/configs.dart';
 import 'package:fmatch/database.dart';
-import 'package:fmatch/batch.dart';
+import 'package:fmatch/preprocess.dart';
+import 'package:fmatch/util.dart';
+import 'package:test/test.dart';
 
 Future<void> main() async {
   var env = 'test/env0';

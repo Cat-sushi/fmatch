@@ -634,7 +634,7 @@ List<QueryOccurrence> joinQueryTermOccurrencesRecursively(
                 tmpQueryTermsInQueryOccurrence[i]),
             growable: false);
     if (!checkDevidedMatch(
-        query, rawEntry, missedTermCount, tmpTmpQueryTermsInQueryOccurrence)) {
+        query, rawEntry, tmpTmpQueryTermsInQueryOccurrence)) {
       return ret;
     }
     var qo = QueryOccurrence(rawEntry, 0.0, tmpTmpQueryTermsInQueryOccurrence);
@@ -706,7 +706,7 @@ List<QueryOccurrence> joinQueryTermOccurrencesRecursively(
   return ret;
 }
 
-bool checkDevidedMatch(Query query, String rawEntry, int missedTermCount,
+bool checkDevidedMatch(Query query, String rawEntry,
     List<QueryTermInQueryOccurrnece> tmpQueryTermsInQueryOccurrence) {
   var joinedTermQtis = <int, List<int>>{};
   for (var qti = 0; qti < tmpQueryTermsInQueryOccurrence.length; qti++) {

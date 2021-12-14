@@ -6,7 +6,6 @@ import 'dart:collection';
 import 'dart:math';
 
 import 'package:edit_distance/edit_distance.dart';
-import 'package:quiver/core.dart';
 
 import 'configs.dart';
 import 'database.dart';
@@ -50,9 +49,11 @@ class CachedQuery {
   final LetType letType;
   final List<String> terms;
   final bool perfectMatching;
+  final int _hashCode;
   CachedQuery.fromPreprocessed(Preprocessed preped, this.perfectMatching)
       : letType = preped.letType,
-        terms = preped.terms;
+        terms = preped.terms,
+        _hashCode = Object.hashAll([preped.letType, perfectMatching, ...preped.terms]);
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) {
@@ -79,8 +80,7 @@ class CachedQuery {
   }
 
   @override
-  int get hashCode => hashObjects(
-      <Object>[letType, perfectMatching, ...terms.toList(growable: false)]);
+  int get hashCode => _hashCode;
 }
 
 class Query {
@@ -160,7 +160,7 @@ class QueryResult {
   final List<MatchedEntry> matchedEntries;
   final String error;
   QueryResult.fromMatchedEntries(
-    List<MatchedEntry> matchedEntries,
+    this.matchedEntries,
     DateTime start,
     DateTime end,
     this.inputString,
@@ -171,7 +171,6 @@ class QueryResult {
         letType = preprocessed.letType,
         queryTerms = preprocessed.terms,
         matchedEntryCount = matchedEntries.length,
-        matchedEntries = matchedEntries,
         perfectMatching = false,
         error = '';
   QueryResult.fromQueryOccurrences(
@@ -639,7 +638,14 @@ List<QueryOccurrence> joinQueryTermOccurrencesRecursively(
     }
     var qo = QueryOccurrence(rawEntry, 0.0, tmpTmpQueryTermsInQueryOccurrence);
     caliulateScore(qo, query);
-    if (missedTermCount == 0 || qo.score >= minScore) {
+    if (qo.score >= minScore ||
+        missedTermCount == 0 ||
+        missedTermCount == 1 &&
+            query.terms.length >= 2 &&
+            (query.letType == LetType.postfix &&
+                    qo.queryTerms.last.position == -1 ||
+                query.letType == LetType.prefix &&
+                    qo.queryTerms.first.position == -1)) {
       ret.add(qo);
     }
     return ret;
@@ -737,9 +743,9 @@ bool checkDevidedMatch(Query query, String rawEntry,
     if (sim == 0.0) {
       return false;
     }
-    me.value.forEach((var qti) {
+    for(var qti in me.value) {
       tmpQueryTermsInQueryOccurrence[qti].termSimilarity = sim;
-    });
+    }
   }
   return true;
 }

@@ -5,8 +5,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:quiver/core.dart';
-
 import 'configs.dart';
 import 'fmatch.dart';
 import 'preprocess.dart';
@@ -27,14 +25,15 @@ class Preprocessed {
 }
 
 class Db {
-  late final Map<String, Preprocessed> map = {};
+  final Map<String, Preprocessed> map = {};
   Db();
   Db.fromIDb(IDb idb) {
     var entryTermTable = <String, Map<int, String>>{};
     var entryLetPosition = <String, int>{};
     for (var me in idb.map.entries) {
       var isLet = me.key.isLet;
-      for (var o in me.value.occurrences) {
+      var os = me.value.occurrences;
+      for (var o in os) {
         var rawEntry = o.rawEntry;
         var position = o.position;
         if (!entryTermTable.containsKey(rawEntry)) {
@@ -49,8 +48,9 @@ class Db {
     }
     for (var me in entryTermTable.entries) {
       var rawEntry = me.key;
-      var entryTermCount = me.value.length;
-      var terms = List<String>.generate(entryTermCount, (qti) => me.value[qti]!,
+      var entryTermMap = me.value;
+      var entryTermCount = entryTermMap.length;
+      var terms = List<String>.generate(entryTermCount, (qti) => entryTermMap[qti]!,
           growable: false);
       LetType letType;
       if (entryLetPosition[rawEntry] == -1) {
@@ -134,7 +134,7 @@ class IDbEntryKey implements Comparable<IDbEntryKey> {
       other is IDbEntryKey && term == other.term && isLet == other.isLet;
   @override
   int get hashCode => _hashCode;
-  IDbEntryKey(this.term, this.isLet) : _hashCode = hash2(term, isLet);
+  IDbEntryKey(this.term, this.isLet) : _hashCode = Object.hash(term, isLet);
   IDbEntryKey.fromJson(Map<String, dynamic> json)
       : this(canonicalize(json['term'] as String), json['isLet'] as bool);
   Map<String, dynamic> toJson() => <String, dynamic>{
@@ -178,7 +178,7 @@ class IDbEntryValue {
 
 class JsonChankSink implements Sink<List<int>> {
   final RandomAccessFile raFile;
-  JsonChankSink.RAFile(this.raFile);
+  JsonChankSink.fromRaFile(this.raFile);
   @override
   void add(List<int> data) {
     raFile.writeFromSync(data);
@@ -239,10 +239,10 @@ class IDb {
     var decoder = JsonDecoder();
     var fs = File(path).openRead().transform<String>(utf8.decoder);
     var json = (await decoder.bind(fs).first)! as List;
-    json.forEach((dynamic me) {
+    for(var me in json) {
       ret.map[IDbEntryKey.fromJson(me['key'] as Map<String, dynamic>)] =
           IDbEntryValue.fromJson(me['value'] as Map<String, dynamic>);
-    });
+    }
     ret._list();
     return ret;
   }
@@ -282,7 +282,7 @@ class IDb {
   }
 
   void write(String path) {
-    var jcs = JsonChankSink.RAFile(File(path).openSync(mode: FileMode.write));
+    var jcs = JsonChankSink.fromRaFile(File(path).openSync(mode: FileMode.write));
     var encoder = JsonUtf8Encoder('  ', null, bufferSize);
     var ccs = encoder.startChunkedConversion(jcs);
     ccs.add(this);

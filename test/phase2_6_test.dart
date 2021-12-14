@@ -13,53 +13,35 @@ Future<void> main() async {
   await Configs.read();
   crossTransactionalWhiteList = {};
   var list = [
-    r'abc def ghi co.',
-    r'abc defghi company',
-    r'abc defghi jkl corp.',
-    r'P.T. hogehoge hagehage',
-    r'xxx yyy zzz co., ltd.',
+    r'LI, LI',
+    r'AL-LAJNA AL-KHAYRIYYA LIL MUNASARA AL-AQSA',
+    r'OSAMA BIN LADEN-ORGANISATION',
+    r"ANSAR AL-SHARI'A IN TUNISIA (AAS-T)",
   ];
   var rawEntries = list.map((e) => normalizeAndCapitalize(e)).toList();
-  rawEntries.forEach((e) => print(e));
+  rawEntries.forEach(print);
+  var preprocessed = list.map((e) => normalizeAndCapitalize(e)).toList();
   db = await Db.fromStringStream(Stream.fromIterable(rawEntries));
   idb = IDb.fromDb(db);
-
-  test('query 1', () {
-    var q = r'abc def ghi';
-    var results = fmatch(q).matchedEntries.map((e) => e.rawEntry).toList();
-    expect(results, [
-      rawEntries[0],
-      rawEntries[1],
-      rawEntries[2],
-    ]);
-  });
-  test('query 2', () {
-    var q = r'company';
-    var results = fmatch(q).matchedEntries.map((e) => e.rawEntry).toList();
-    expect(results, [
-      rawEntries[0],
-      rawEntries[1],
-    ]);
-  });
-  test('query 3', () {
-    var q = r'hogehoge pt';
-    var results = fmatch(q).matchedEntries.map((e) => e.rawEntry).toList();
-    expect(results, [
-      rawEntries[3],
-    ]);
-  });
-  test('query 4', () {
-    var q = r'yyy co ltd';
-    var results = fmatch(q).matchedEntries.map((e) => e.rawEntry).toList();
-    expect(results, [
-      rawEntries[4],
-    ]);
-  });
-  test('query 5', () {
-    var q = r'yyy jjj kkk co ltd';
+  test('Li, Li', () {
+    var q = r'Li, Li';
     var results = fmatch(q).matchedEntries.map((e) => e.rawEntry).toList();
     expect(results, <String>[
-      rawEntries[4],
+      preprocessed[0],
+    ]);
+  });
+  test('OSAMA BIN LADIN', () {
+    var q = r'ASAMA BIN LADEN NETWORK';
+    var results = fmatch(q).matchedEntries.map((e) => e.rawEntry).toList();
+    expect(results, <String>[
+      preprocessed[2],
+    ]);
+  });
+  test("ANSAR AL-SHARI'A (AAS)", () {
+    var q = r"ANSAR AL-SHARI'A (AAS)";
+    var results = fmatch(q).matchedEntries.map((e) => e.rawEntry).toList();
+    expect(results, <String>[
+      preprocessed[3],
     ]);
   });
 }

@@ -17,7 +17,7 @@ Future<void> main() async {
     r'xxxxxxxxxxxxxxxxxxxxxxxxxxS',
   ];
   var rawEntries = list.map((e) => normalizeAndCapitalize(e)).toList();
-  rawEntries.forEach((e) => print(e));
+  rawEntries.forEach(print);
   var preprocessed = list.map((e) => normalizeAndCapitalize(e)).toList();
   db = await Db.fromStringStream(Stream.fromIterable(rawEntries));
   idb = IDb.fromDb(db);

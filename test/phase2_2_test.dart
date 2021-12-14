@@ -29,7 +29,7 @@ Future<void> main() async {
     'eee eee eee eee eee eee eee eee eee eee',
   ];
   var rawEntries = list.map((e) => normalizeAndCapitalize(e)).toList();
-  rawEntries.forEach((e) => print(e));
+  rawEntries.forEach(print);
   db = await Db.fromStringStream(Stream.fromIterable(rawEntries));
   idb = IDb.fromDb(db);
 

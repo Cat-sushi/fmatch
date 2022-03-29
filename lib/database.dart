@@ -2,6 +2,7 @@
 // All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
@@ -24,13 +25,13 @@ class Preprocessed {
   Preprocessed(this.letType, this.terms);
 }
 
-class Db {
-  final Map<String, Preprocessed> map = {};
+class Db extends MapBase<String, Preprocessed> {
+  final Map<String, Preprocessed> _map = {};
   Db();
   Db.fromIDb(IDb idb) {
     var entryTermTable = <String, Map<int, String>>{};
     var entryLetPosition = <String, int>{};
-    for (var me in idb.map.entries) {
+    for (var me in idb.entries) {
       var isLet = me.key.isLet;
       var os = me.value.occurrences;
       for (var o in os) {
@@ -62,21 +63,32 @@ class Db {
       } else {
         throw Exception();
       }
-      map[rawEntry] = Preprocessed(letType, terms);
+      this[rawEntry] = Preprocessed(letType, terms);
     }
-    assert(map.length >= 2);
+    assert(length >= 2);
   }
   static Future<Db> fromStringStream(Stream<String> entries) async {
     var ret = Db();
     await entries.where((var entry) => entry != '').forEach((var entry) {
       var rawEntry = normalizeAndCapitalize(entry, true);
-      if (!ret.map.containsKey(rawEntry)) {
-        ret.map[rawEntry] = preprocess(rawEntry, true);
+      if (!ret.containsKey(rawEntry)) {
+        ret[rawEntry] = preprocess(rawEntry, true);
       }
     });
-    assert(ret.map.length >= 2);
+    assert(ret.length >= 2);
     return ret;
   }
+
+  @override
+  Preprocessed? operator[](Object? key) => _map[key];
+  @override
+  operator[]=(String key, Preprocessed value) => _map[key] = value;
+  @override
+  Iterable<String> get keys => _map.keys;
+  @override
+  void clear() => _map.clear();
+  @override
+  Preprocessed? remove(Object? key) => _map.remove(key);
 
   static Future<Db> readList(String path) async {
     var plainEntries = readCsvLines(path)
@@ -90,12 +102,12 @@ class Db {
     var f = File(path);
     f.writeAsBytesSync([0xEF, 0xBB, 0xBF]);
     var fs = f.openWrite(mode: FileMode.append, encoding: utf8);
-    var keys = map.keys.toList(growable: false);
+    var keys = this.keys.toList(growable: false);
     keys.sort();
     for (var key in keys) {
       csvLine.write(quoteCsvCell(key));
       csvLine.write(r',');
-      var v = map[key]!;
+      var v = this[key]!;
       csvLine.write(v.letType.toString().substring(8));
       for (var t in v.terms) {
         csvLine.write(r',');
@@ -190,18 +202,18 @@ class JsonChankSink implements Sink<List<int>> {
   }
 }
 
-class IDb {
-  final map = <IDbEntryKey, IDbEntryValue>{};
+class IDb extends MapBase<IDbEntryKey, IDbEntryValue>{
+  final _map = <IDbEntryKey, IDbEntryValue>{};
   late final List<MapEntry<IDbEntryKey, IDbEntryValue>> list;
   late final List<int> indeces;
   late final int maxTermLength;
   IDb();
   IDb.fromDb(Db db) {
     var tmpMap = <IDbEntryKey, IDbEntryValue>{};
-    var dbKeys = db.map.keys.toList(growable: false);
+    var dbKeys = db.keys.toList(growable: false);
     dbKeys.sort();
     for (var dbKey in dbKeys) {
-      var dbValue = db.map[dbKey]!;
+      var dbValue = db[dbKey]!;
       var termCount = dbValue.terms.length;
       for (var i = 0; i < termCount; i++) {
         var term = dbValue.terms[i];
@@ -229,10 +241,21 @@ class IDb {
         }
       }
       value.df = df;
-      map[mentry.key] = IDbEntryValue.of(value);
+      this[mentry.key] = IDbEntryValue.of(value);
     }
     _list();
   }
+
+  @override
+  IDbEntryValue? operator[](Object? key) => _map[key];
+  @override
+  operator[]=(IDbEntryKey key, IDbEntryValue value) => _map[key] = value;
+  @override
+  Iterable<IDbEntryKey> get keys => _map.keys;
+  @override
+  void clear() => _map.clear();
+  @override
+  IDbEntryValue? remove(Object? key) => _map.remove(key);
 
   static Future<IDb> read(String path) async {
     var ret = IDb();
@@ -240,7 +263,7 @@ class IDb {
     var fs = File(path).openRead().transform<String>(utf8.decoder);
     var json = (await decoder.bind(fs).first)! as List;
     for(var me in json) {
-      ret.map[IDbEntryKey.fromJson(me['key'] as Map<String, dynamic>)] =
+      ret[IDbEntryKey.fromJson(me['key'] as Map<String, dynamic>)] =
           IDbEntryValue.fromJson(me['value'] as Map<String, dynamic>);
     }
     ret._list();
@@ -248,7 +271,7 @@ class IDb {
   }
 
   void _list() {
-    list = map.entries
+    list = entries
         .where((e) => !(e.key.isLet ||
             (e.key.term.length < Settings.termPartialMatchingMinLetters &&
                 e.key.term.length < Settings.termMatchingMinLetters)))
@@ -289,10 +312,10 @@ class IDb {
   }
 
   List<Map<String, dynamic>> toJson() {
-    var mapKeys = map.keys.toList(growable: false);
+    var mapKeys = keys.toList(growable: false);
     mapKeys.sort();
     return mapKeys
-        .map((mk) => {'key': mk.toJson(), 'value': map[mk]!.toJson()})
+        .map((mk) => {'key': mk.toJson(), 'value': this[mk]!.toJson()})
         .toList(growable: false);
   }
 }

@@ -11,7 +11,7 @@ import 'configs.dart';
 import 'database.dart';
 import 'preprocess.dart';
 
-final nd = db.map.length.toDouble(); // nd >= 2.0
+final nd = db.length.toDouble(); // nd >= 2.0
 final idfm = Settings.scoreIdfMagnifier;
 const dfz = 1.0;
 final tidfz = absoluteTermImportance(dfz);
@@ -329,7 +329,7 @@ List<QueryTermOccurrence> queryTermMatch(
       perfectMatching ||
       qterm.term.length < Settings.termMatchingMinLetters &&
           qterm.term.length < Settings.termPartialMatchingMinLetters) {
-    var idbv = idb.map[IDbEntryKey(qterm.term, isLet)];
+    var idbv = idb[IDbEntryKey(qterm.term, isLet)];
     if (idbv == null) {
       return <QueryTermOccurrence>[];
     }
@@ -613,7 +613,7 @@ String setRangeIndices(
     if (nextEntry == '') {
       return '';
     }
-    var etc = db.map[nextEntry]!.terms.length;
+    var etc = db[nextEntry]!.terms.length;
     matchedQueryTermCountsRef[0] = List<int>.filled(etc, 0, growable: false);
     var matchedQueryTermCounts = matchedQueryTermCountsRef[0];
     var matchedQueryTerms = 0;
@@ -711,13 +711,13 @@ List<QueryOccurrence> joinQueryTermOccurrencesRecursively(
     if (collision) {
       continue;
     }
-    var dbterm = db.map[qto.rawEntry]!.terms[qto.position];
+    var dbterm = db[qto.rawEntry]!.terms[qto.position];
     var isLet = isLetByQueryTerm(query, qti);
     tmpQueryTermsInQueryOccurrence[qti]
       ..position = qto.position
       ..partial = qto.partial
       ..termSimilarity = qto.termSimilarity
-      ..df = idb.map[IDbEntryKey(dbterm, isLet)]!.df;
+      ..df = idb[IDbEntryKey(dbterm, isLet)]!.df;
     joinQueryTermOccurrencesRecursively(
         query,
         rawEntry,
@@ -759,7 +759,7 @@ bool checkDevidedMatch(Query query, String rawEntry,
     }
     var position = me.key;
     var joinedTerm = me.value.map((var qti) => query.terms[qti].term).join(' ');
-    var dbterm = db.map[rawEntry]!.terms[position];
+    var dbterm = db[rawEntry]!.terms[position];
     var sim = similarity(dbterm, joinedTerm);
     if (sim == 0.0) {
       return false;

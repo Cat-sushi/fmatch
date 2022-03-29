@@ -26,7 +26,7 @@ Future<void> main() async {
 
   test('query 1', () {
     var q = r'abc def ghi';
-    var results = fmatch(q).matchedEntries.map((e) => e.rawEntry).toList();
+    var results = fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, [
       rawEntries[0],
       rawEntries[1],
@@ -35,7 +35,7 @@ Future<void> main() async {
   });
   test('query 2', () {
     var q = r'company';
-    var results = fmatch(q).matchedEntries.map((e) => e.rawEntry).toList();
+    var results = fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, [
       rawEntries[0],
       rawEntries[1],
@@ -43,21 +43,21 @@ Future<void> main() async {
   });
   test('query 3', () {
     var q = r'hogehoge pt';
-    var results = fmatch(q).matchedEntries.map((e) => e.rawEntry).toList();
+    var results = fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, [
       rawEntries[3],
     ]);
   });
   test('query 4', () {
     var q = r'yyy co ltd';
-    var results = fmatch(q).matchedEntries.map((e) => e.rawEntry).toList();
+    var results = fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, [
       rawEntries[4],
     ]);
   });
   test('query 5', () {
     var q = r'yyy jjj kkk co ltd';
-    var results = fmatch(q).matchedEntries.map((e) => e.rawEntry).toList();
+    var results = fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, <String>[
       rawEntries[4],
     ]);

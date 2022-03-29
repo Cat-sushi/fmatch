@@ -34,24 +34,25 @@ Future<void> batch([String path = 'lib/batch']) async {
       logSink.writeln(result.error);
       continue;
     }
-    if (result.matchedEntryCount == 0) {
-      result = QueryResult.fromMatchedEntries(
-          [MatchedEntry('', 0.0)],
+    if (result.cachedResult.matchedEntiries.isEmpty) {
+      result = QueryResult.fromCachedResult(
+          result.cachedResult,
           result.dateTime,
           result.dateTime
               .add(Duration(milliseconds: result.durationInMilliseconds)),
           result.inputString,
           result.rawQuery,
-          Preprocessed(result.letType, result.queryTerms));
+          Preprocessed(result.letType, result.queryTerms),
+        );
     }
-    for (var e in result.matchedEntries) {
+    for (var e in result.cachedResult.matchedEntiries) {
       csvLine.write(result.durationInMilliseconds);
       csvLine.write(r',');
-      csvLine.write(result.matchedEntries.length);
+      csvLine.write(result.cachedResult.matchedEntiries.length);
       csvLine.write(r',');
       csvLine.write(quoteCsvCell(result.rawQuery));
       csvLine.write(r',');
-      csvLine.write(e.score);
+      csvLine.write(e.score / result.cachedResult.capScore);
       csvLine.write(r',');
       csvLine.write(quoteCsvCell(e.rawEntry));
       csvLine.write(r',');

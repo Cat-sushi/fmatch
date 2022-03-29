@@ -53,7 +53,8 @@ class CachedQuery {
   CachedQuery.fromPreprocessed(Preprocessed preped, this.perfectMatching)
       : letType = preped.letType,
         terms = preped.terms,
-        _hashCode = Object.hashAll([preped.letType, perfectMatching, ...preped.terms]);
+        _hashCode =
+            Object.hashAll([preped.letType, perfectMatching, ...preped.terms]);
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) {
@@ -87,11 +88,13 @@ class Query {
   LetType letType;
   List<QueryTerm> terms;
   bool perfectMatching;
+  double capScore;
   Query.fromPreprocessed(Preprocessed preped, this.perfectMatching)
       : letType = preped.letType,
         terms = preped.terms
             .map((e) => QueryTerm(e, 0.0, 0.0))
-            .toList(growable: false);
+            .toList(growable: false),
+        capScore = 0;
 }
 
 class QueryTermOccurrence {
@@ -148,6 +151,16 @@ class MatchedEntry {
       };
 }
 
+class CachedResult {
+  List<MatchedEntry> matchedEntiries;
+  double capScore;
+  CachedResult(this.matchedEntiries, this.capScore);
+  Map toJson() => <String, Object>{
+    'matchedEntries': matchedEntiries.map((e) => e.toJson()).toList(),
+    'capScore': capScore,
+  };
+}
+
 class QueryResult {
   final DateTime dateTime;
   final int durationInMilliseconds;
@@ -156,11 +169,10 @@ class QueryResult {
   final LetType letType;
   final bool perfectMatching;
   final List<String> queryTerms;
-  final int matchedEntryCount;
-  final List<MatchedEntry> matchedEntries;
+  final CachedResult cachedResult;
   final String error;
-  QueryResult.fromMatchedEntries(
-    this.matchedEntries,
+  QueryResult.fromCachedResult(
+    this.cachedResult,
     DateTime start,
     DateTime end,
     this.inputString,
@@ -170,7 +182,6 @@ class QueryResult {
         durationInMilliseconds = end.difference(start).inMilliseconds,
         letType = preprocessed.letType,
         queryTerms = preprocessed.terms,
-        matchedEntryCount = matchedEntries.length,
         perfectMatching = false,
         error = '';
   QueryResult.fromQueryOccurrences(
@@ -185,10 +196,9 @@ class QueryResult {
         letType = query.letType,
         perfectMatching = query.perfectMatching,
         queryTerms = query.terms.map((e) => e.term).toList(growable: false),
-        matchedEntryCount = queryOccurrences.length,
-        matchedEntries = queryOccurrences
+        cachedResult = CachedResult(queryOccurrences
             .map((e) => MatchedEntry(e.rawEntry, e.score))
-            .toList(growable: false),
+            .toList(growable: false), query.capScore),
         error = '';
   QueryResult.fromError(this.error)
       : dateTime = DateTime.now(),
@@ -198,8 +208,7 @@ class QueryResult {
         letType = LetType.na,
         perfectMatching = false,
         queryTerms = [],
-        matchedEntryCount = 0,
-        matchedEntries = [];
+        cachedResult = CachedResult([], 0);
   Map toJson() => <String, Object>{
         'start': dateTime.toUtc().toIso8601String(),
         'durationInMilliseconds': durationInMilliseconds,
@@ -207,18 +216,16 @@ class QueryResult {
         'rawQuery': rawQuery,
         'letType': letType.toString().substring(8),
         'queyTerms': queryTerms,
-        'matchedEntryCount': matchedEntries.length,
-        'matchedEntries':
-            matchedEntries.map((e) => e.toJson()).toList(growable: false),
+        'cachedResult': cachedResult.toJson(),
         'error': error,
       };
 }
 
 class ResultCache {
   // ignore: prefer_collection_literals
-  final map = LinkedHashMap<CachedQuery, List<MatchedEntry>>();
+  final map = LinkedHashMap<CachedQuery, CachedResult>();
   ResultCache();
-  List<MatchedEntry>? operator [](CachedQuery query) {
+  CachedResult? operator [](CachedQuery query) {
     if (Settings.queryResultCacheSize == 0) {
       return null;
     }
@@ -230,7 +237,7 @@ class ResultCache {
     return rce;
   }
 
-  void operator []=(CachedQuery query, List<MatchedEntry> result) {
+  void operator []=(CachedQuery query, CachedResult result) {
     if (Settings.queryResultCacheSize == 0) {
       return;
     }
@@ -274,11 +281,11 @@ QueryResult fmatch(String inputString) {
   if (crossTransactionalWhiteList.contains(cachedQuery)) {
     return QueryResult.fromError('Safe Customer: $inputString');
   }
-  var matchedEntires = resultCache[cachedQuery];
-  if (matchedEntires != null) {
+  var cachedResult = resultCache[cachedQuery];
+  if (cachedResult != null) {
     var end = DateTime.now();
-    var ret = QueryResult.fromMatchedEntries(
-        matchedEntires, start, end, inputString, rawQuery, preprocessed);
+    var ret = QueryResult.fromCachedResult(cachedResult, start, end,
+        inputString, rawQuery, preprocessed);
     return ret;
   }
   var query = Query.fromPreprocessed(preprocessed, perfectMatching);
@@ -287,7 +294,7 @@ QueryResult fmatch(String inputString) {
   var end = DateTime.now();
   var ret = QueryResult.fromQueryOccurrences(
       sorted, start, end, inputString, rawQuery, query);
-  resultCache[cachedQuery] = ret.matchedEntries;
+  resultCache[cachedQuery] = CachedResult(ret.cachedResult.matchedEntiries, query.capScore);
   return ret;
 }
 
@@ -510,8 +517,29 @@ List<QueryTermOccurrence> reduceQueryTermOccurrences(
 
 void caliculateQueryTermWeight(Query query) {
   var total = 0.0;
+  var max = 0.0;
+  var ambg = 1.0;
   for (var qt in query.terms) {
     qt.weight = absoluteTermImportance(qt.df);
+    total += qt.weight;
+    if (query.letType == LetType.postfix && qt != query.terms.last ||
+        query.letType == LetType.prefix && qt != query.terms.first) {
+      max = qt.weight > max ? qt.weight : max;
+    }
+    var ti = absoluteTermImportance(qt.df.toDouble()) / tidfz;
+    var tsc = ti * 1.0;
+    ambg *= (1.0 - tsc);
+  }
+  query.capScore = 1.0 - ambg;
+  if (query.letType != LetType.na && query.terms.length >= 2) {
+    QueryTerm qt;
+    if (query.letType == LetType.postfix) {
+      qt = query.terms.last;
+    } else {
+      qt = query.terms.first;
+    }
+    total -= qt.weight;
+    qt.weight *= max / tidfz;
     total += qt.weight;
   }
   if (total == 0.0) {
@@ -638,14 +666,7 @@ List<QueryOccurrence> joinQueryTermOccurrencesRecursively(
     }
     var qo = QueryOccurrence(rawEntry, 0.0, tmpTmpQueryTermsInQueryOccurrence);
     caliulateScore(qo, query);
-    if (qo.score >= minScore ||
-        missedTermCount == 0 ||
-        missedTermCount == 1 &&
-            query.terms.length >= 2 &&
-            (query.letType == LetType.postfix &&
-                    qo.queryTerms.last.position == -1 ||
-                query.letType == LetType.prefix &&
-                    qo.queryTerms.first.position == -1)) {
+    if (qo.score >= minScore || missedTermCount == 0) {
       ret.add(qo);
     }
     return ret;
@@ -743,7 +764,7 @@ bool checkDevidedMatch(Query query, String rawEntry,
     if (sim == 0.0) {
       return false;
     }
-    for(var qti in me.value) {
+    for (var qti in me.value) {
       tmpQueryTermsInQueryOccurrence[qti].termSimilarity = sim;
     }
   }

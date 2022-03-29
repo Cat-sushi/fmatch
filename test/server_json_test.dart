@@ -34,8 +34,12 @@ Future<void> main() async {
     print(jsonString);
     expect(
         jsonString, endsWith(
-        '"inputString":"def co","rawQuery":"DEF CO","letType":"postfix","queyTerms":["DEF","CO"],"matchedEntryCount":4,"matchedEntries":['
-        '{"rawEntry":"DEF COMPANY","score":0.4628958000823221},{"rawEntry":"DEF GHI CO.","score":0.4628958000823221},'
-        '{"rawEntry":"COMPANY","score":0.013758139210378627},{"rawEntry":"COMPANY ABC","score":0.013758139210378627}],"error":""}'));
+          '"inputString":"def co","rawQuery":"DEF CO","letType":"postfix","queyTerms":["DEF","CO"],"cachedResult":{"matchedEntries":['
+          '{"rawEntry":"DEF COMPANY","score":0.4628958000823221},'
+          '{"rawEntry":"DEF GHI CO.","score":0.4628958000823221},'
+          '{"rawEntry":"COMPANY","score":0.006317690713281352},'
+          '{"rawEntry":"COMPANY ABC","score":0.006317690713281352}],'
+          '"capScore":0.4628958000823221},"error":""}'
+        ));
   });
 }

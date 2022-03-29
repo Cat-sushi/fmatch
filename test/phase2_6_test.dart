@@ -25,21 +25,21 @@ Future<void> main() async {
   idb = IDb.fromDb(db);
   test('Li, Li', () {
     var q = r'Li, Li';
-    var results = fmatch(q).matchedEntries.map((e) => e.rawEntry).toList();
+    var results = fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, <String>[
       preprocessed[0],
     ]);
   });
   test('OSAMA BIN LADIN', () {
     var q = r'ASAMA BIN LADEN NETWORK';
-    var results = fmatch(q).matchedEntries.map((e) => e.rawEntry).toList();
+    var results = fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, <String>[
       preprocessed[2],
     ]);
   });
   test("ANSAR AL-SHARI'A (AAS)", () {
     var q = r"ANSAR AL-SHARI'A (AAS)";
-    var results = fmatch(q).matchedEntries.map((e) => e.rawEntry).toList();
+    var results = fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, <String>[
       preprocessed[3],
     ]);

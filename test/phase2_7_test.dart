@@ -40,7 +40,7 @@ Future<void> main() async {
   idb = IDb.fromDb(db);
   test('AL AL AL', () {
     var q = r'AL AL AL';
-    var results = fmatch(q).matchedEntries.map((e) => e.rawEntry).toList();
+    var results = fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, <String>[
       preprocessed[0],
       preprocessed[2],
@@ -65,14 +65,14 @@ Future<void> main() async {
   });
   test(r'AL AL AL AL AL AL AL AL', () {
     var q = r'AL AL AL AL AL AL AL AL';
-    var results = fmatch(q).matchedEntries.map((e) => e.rawEntry).toList();
+    var results = fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, <String>[
       preprocessed[1],
     ]);
   });
   test(r'AL AL AL AL AL AL AL AL AL', () {
     var q = r'AL AL AL AL AL AL AL AL AL';
-    var results = fmatch(q).matchedEntries.map((e) => e.rawEntry).toList();
+    var results = fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, <String>[
     ]);
   });

@@ -156,9 +156,9 @@ class CachedResult {
   double capScore;
   CachedResult(this.matchedEntiries, this.capScore);
   Map toJson() => <String, Object>{
-    'matchedEntries': matchedEntiries.map((e) => e.toJson()).toList(),
-    'capScore': capScore,
-  };
+        'matchedEntries': matchedEntiries.map((e) => e.toJson()).toList(),
+        'capScore': capScore,
+      };
 }
 
 class QueryResult {
@@ -196,9 +196,11 @@ class QueryResult {
         letType = query.letType,
         perfectMatching = query.perfectMatching,
         queryTerms = query.terms.map((e) => e.term).toList(growable: false),
-        cachedResult = CachedResult(queryOccurrences
-            .map((e) => MatchedEntry(e.rawEntry, e.score))
-            .toList(growable: false), query.capScore),
+        cachedResult = CachedResult(
+            queryOccurrences
+                .map((e) => MatchedEntry(e.rawEntry, e.score))
+                .toList(growable: false),
+            query.capScore),
         error = '';
   QueryResult.fromError(this.error)
       : dateTime = DateTime.now(),
@@ -284,8 +286,8 @@ QueryResult fmatch(String inputString) {
   var cachedResult = resultCache[cachedQuery];
   if (cachedResult != null) {
     var end = DateTime.now();
-    var ret = QueryResult.fromCachedResult(cachedResult, start, end,
-        inputString, rawQuery, preprocessed);
+    var ret = QueryResult.fromCachedResult(
+        cachedResult, start, end, inputString, rawQuery, preprocessed);
     return ret;
   }
   var query = Query.fromPreprocessed(preprocessed, perfectMatching);
@@ -294,7 +296,8 @@ QueryResult fmatch(String inputString) {
   var end = DateTime.now();
   var ret = QueryResult.fromQueryOccurrences(
       sorted, start, end, inputString, rawQuery, query);
-  resultCache[cachedQuery] = CachedResult(ret.cachedResult.matchedEntiries, query.capScore);
+  resultCache[cachedQuery] =
+      CachedResult(ret.cachedResult.matchedEntiries, query.capScore);
   return ret;
 }
 

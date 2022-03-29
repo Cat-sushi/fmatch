@@ -51,7 +51,8 @@ class Db extends MapBase<String, Preprocessed> {
       var rawEntry = me.key;
       var entryTermMap = me.value;
       var entryTermCount = entryTermMap.length;
-      var terms = List<String>.generate(entryTermCount, (qti) => entryTermMap[qti]!,
+      var terms = List<String>.generate(
+          entryTermCount, (qti) => entryTermMap[qti]!,
           growable: false);
       LetType letType;
       if (entryLetPosition[rawEntry] == -1) {
@@ -80,9 +81,9 @@ class Db extends MapBase<String, Preprocessed> {
   }
 
   @override
-  Preprocessed? operator[](Object? key) => _map[key];
+  Preprocessed? operator [](Object? key) => _map[key];
   @override
-  operator[]=(String key, Preprocessed value) => _map[key] = value;
+  operator []=(String key, Preprocessed value) => _map[key] = value;
   @override
   Iterable<String> get keys => _map.keys;
   @override
@@ -202,7 +203,7 @@ class JsonChankSink implements Sink<List<int>> {
   }
 }
 
-class IDb extends MapBase<IDbEntryKey, IDbEntryValue>{
+class IDb extends MapBase<IDbEntryKey, IDbEntryValue> {
   final _map = <IDbEntryKey, IDbEntryValue>{};
   late final List<MapEntry<IDbEntryKey, IDbEntryValue>> list;
   late final List<int> indeces;
@@ -247,9 +248,9 @@ class IDb extends MapBase<IDbEntryKey, IDbEntryValue>{
   }
 
   @override
-  IDbEntryValue? operator[](Object? key) => _map[key];
+  IDbEntryValue? operator [](Object? key) => _map[key];
   @override
-  operator[]=(IDbEntryKey key, IDbEntryValue value) => _map[key] = value;
+  operator []=(IDbEntryKey key, IDbEntryValue value) => _map[key] = value;
   @override
   Iterable<IDbEntryKey> get keys => _map.keys;
   @override
@@ -262,7 +263,7 @@ class IDb extends MapBase<IDbEntryKey, IDbEntryValue>{
     var decoder = JsonDecoder();
     var fs = File(path).openRead().transform<String>(utf8.decoder);
     var json = (await decoder.bind(fs).first)! as List;
-    for(var me in json) {
+    for (var me in json) {
       ret[IDbEntryKey.fromJson(me['key'] as Map<String, dynamic>)] =
           IDbEntryValue.fromJson(me['value'] as Map<String, dynamic>);
     }
@@ -305,7 +306,8 @@ class IDb extends MapBase<IDbEntryKey, IDbEntryValue>{
   }
 
   void write(String path) {
-    var jcs = JsonChankSink.fromRaFile(File(path).openSync(mode: FileMode.write));
+    var jcs =
+        JsonChankSink.fromRaFile(File(path).openSync(mode: FileMode.write));
     var encoder = JsonUtf8Encoder('  ', null, bufferSize);
     var ccs = encoder.startChunkedConversion(jcs);
     ccs.add(this);

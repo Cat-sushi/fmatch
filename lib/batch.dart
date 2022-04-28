@@ -46,13 +46,13 @@ Future<void> batch([String path = 'lib/batch']) async {
         );
     }
     for (var e in result.cachedResult.matchedEntiries) {
-      csvLine.write(result.durationInMilliseconds);
+      csvLine.write((e.score / result.cachedResult.perfScore).toStringAsFixed(2));
+      csvLine.write(r',');
+      csvLine.write((result.durationInMilliseconds.toDouble()/1000.0).toStringAsFixed(3));
       csvLine.write(r',');
       csvLine.write(result.cachedResult.matchedEntiries.length);
       csvLine.write(r',');
       csvLine.write(quoteCsvCell(result.rawQuery));
-      csvLine.write(r',');
-      csvLine.write(e.score / result.cachedResult.capScore);
       csvLine.write(r',');
       csvLine.write(quoteCsvCell(e.rawEntry));
       csvLine.write(r',');

@@ -11,4 +11,4 @@ fallbackThresholdCombinations,1048576, 組合せ爆発防止境界 PoCで追加
 fallbackMaxQueryTerms,10, 組合せ爆発防止縮退後のクエリ単語数上限 PoCで追加
 fallbackMaxQueryTermMobility,3, 組合せ爆発防止縮退後のクエリ単語箇所数上限 PoCで追加
 queryMatchingTermOrderCoefficent,0.5, 語順の影響度 PoCで追加
-queryResultCacheSize,0, 結果キャッシュ PoCで追加
+queryResultCacheSize,100000, 結果キャッシュ PoCで追加

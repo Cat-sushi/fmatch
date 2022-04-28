@@ -39,7 +39,7 @@ Future<void> main() async {
           '{"rawEntry":"DEF GHI CO.","score":0.4628958000823221},'
           '{"rawEntry":"COMPANY","score":0.006317690713281352},'
           '{"rawEntry":"COMPANY ABC","score":0.006317690713281352}],'
-          '"capScore":0.4628958000823221},"error":""}'
+          '"perfScore":0.4628958000823221},"error":""}'
         ));
   });
 }

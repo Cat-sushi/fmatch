@@ -88,13 +88,13 @@ class Query {
   LetType letType;
   List<QueryTerm> terms;
   bool perfectMatching;
-  double capScore;
+  double perfScore;
   Query.fromPreprocessed(Preprocessed preped, this.perfectMatching)
       : letType = preped.letType,
         terms = preped.terms
             .map((e) => QueryTerm(e, 0.0, 0.0))
             .toList(growable: false),
-        capScore = 0;
+        perfScore = 0;
 }
 
 class QueryTermOccurrence {
@@ -153,11 +153,11 @@ class MatchedEntry {
 
 class CachedResult {
   List<MatchedEntry> matchedEntiries;
-  double capScore;
-  CachedResult(this.matchedEntiries, this.capScore);
+  double perfScore;
+  CachedResult(this.matchedEntiries, this.perfScore);
   Map toJson() => <String, Object>{
         'matchedEntries': matchedEntiries.map((e) => e.toJson()).toList(),
-        'capScore': capScore,
+        'perfScore': perfScore,
       };
 }
 
@@ -200,7 +200,7 @@ class QueryResult {
             queryOccurrences
                 .map((e) => MatchedEntry(e.rawEntry, e.score))
                 .toList(growable: false),
-            query.capScore),
+            query.perfScore),
         error = '';
   QueryResult.fromError(this.error)
       : dateTime = DateTime.now(),
@@ -297,7 +297,7 @@ QueryResult fmatch(String inputString) {
   var ret = QueryResult.fromQueryOccurrences(
       sorted, start, end, inputString, rawQuery, query);
   resultCache[cachedQuery] =
-      CachedResult(ret.cachedResult.matchedEntiries, query.capScore);
+      CachedResult(ret.cachedResult.matchedEntiries, query.perfScore);
   return ret;
 }
 
@@ -533,7 +533,7 @@ void caliculateQueryTermWeight(Query query) {
     var tsc = ti * 1.0;
     ambg *= (1.0 - tsc);
   }
-  query.capScore = 1.0 - ambg;
+  query.perfScore = 1.0 - ambg;
   if (query.letType != LetType.na && query.terms.length >= 2) {
     QueryTerm qt;
     if (query.letType == LetType.postfix) {

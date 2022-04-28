@@ -36,8 +36,8 @@ Future<void> main() async {
     if (l.length < 5) {
       continue;
     }
-    if(l[2] == l[4]){
-      results.add(l[2]!);
+    if(l[3] == l[4]){
+      results.add(l[3]!);
     }
   }
 

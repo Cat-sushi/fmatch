@@ -44,13 +44,13 @@ String replaceStrings(String captalized) {
   return stringReplaced;
 }
 
-class _LetReplaced {
+class LetReplaced {
   final String name;
   final LetType letType;
-  const _LetReplaced(this.name, this.letType);
+  const LetReplaced(this.name, this.letType);
 }
 
-_LetReplaced replaceLegalEntiyTypes(String stringReplaced) {
+LetReplaced replaceLegalEntiyTypes(String stringReplaced) {
   String letReplaced;
   for (var letRepl in Configs.legalEntryTypeReplacements) {
     letReplaced =
@@ -62,20 +62,20 @@ _LetReplaced replaceLegalEntiyTypes(String stringReplaced) {
       return letRepl.replacement;
     });
     if (letReplaced != stringReplaced) {
-      return _LetReplaced(letReplaced, LetType.postfix);
+      return LetReplaced(letReplaced, LetType.postfix);
     }
   }
   for (var letRepl in Configs.legalEntryTypeReplacements) {
     letReplaced =
         stringReplaced.replaceFirst(letRepl.regexpPrefix, letRepl.replacement);
     if (letReplaced != stringReplaced) {
-      return _LetReplaced(letReplaced, LetType.prefix);
+      return LetReplaced(letReplaced, LetType.prefix);
     }
   }
-  return _LetReplaced(stringReplaced, LetType.na);
+  return LetReplaced(stringReplaced, LetType.na);
 }
 
-Preprocessed wordize(_LetReplaced letReplaced) {
+Preprocessed wordize(LetReplaced letReplaced) {
   return Preprocessed(
       letReplaced.letType,
       Configs.words

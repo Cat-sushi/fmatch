@@ -80,5 +80,5 @@ Future<void> time(FutureOr<void> Function() func, String name) async {
   var start = DateTime.now();
   await func();
   var end = DateTime.now();
-  print(name + ': ' + end.difference(start).inMilliseconds.toString());
+  print('$name : ${end.difference(start).inMilliseconds}');
 }

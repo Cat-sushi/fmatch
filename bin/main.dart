@@ -13,4 +13,5 @@ Future<void> main() async {
   await time(() => Configs.read(), 'Configs.read');
   await time(() => buildDb(), 'buildDb');
   await time(() => batch(), 'batch');
+//  await time(() => batch(), 'batch');
 }

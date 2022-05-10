@@ -27,7 +27,7 @@ Future<void> main() async {
       expect(
           hasIllegalCharacter(
               'abcdefghijkＡＢＣlmnop日本語qrst	uvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789éẞ !"#\$%&\'()*+,-./;:<=>?@[\\]^_`{|}~'),
-          true);
+          false);
     });
     test('char4', () {
       expect(
@@ -181,7 +181,7 @@ Future<void> main() async {
       expect(
           hasIllegalCharacter(
               'abc亜defghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'),
-          true);
+          false);
     });
     test('char46', () {
       expect(hasIllegalCharacter('abc def ghi jkl'), false);

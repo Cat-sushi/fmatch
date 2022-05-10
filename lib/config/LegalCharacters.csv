@@ -14,7 +14,7 @@
 \p{Lu},,"				Letter, uppercase"
 \p{Ll},,"				Letter, lowercase"
 \p{M},,"				Mark"
-,(?:[々〇〻\u2E80-\u2FDF\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]|[\uD840-\uD87F][\uDC00-\uDFFF]),,"				Poc"
+(?:[々〇〻\u2E80-\u2FDF\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]|[\uD840-\uD87F][\uDC00-\uDFFF]),,"				Poc"
 ,,\p{L},,"				Poc"
 [0-9],,"				Digit (ASCII)"
 [!-/:-@\[-`\{-~],,"		Symbol (ASCII)"

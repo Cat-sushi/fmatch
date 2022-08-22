@@ -380,5 +380,5 @@ Future<void> buildDb() async {
   await time(() async {
     whiteQueries = await readWhiteQueries(
         Paths.whiteQueries);
-  }, 'readWhiteQuery');
+  }, 'readWhiteQueries');
 }

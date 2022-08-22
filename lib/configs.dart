@@ -15,7 +15,7 @@ class Paths {
   static var list = 'lib/database/list.csv';
   static var db = 'lib/database/db.csv';
   static var idb = 'lib/database/idb.json';
-  static var crossTransactionalWhiteList = 'lib/database/white_list.csv';
+  static var whiteQueries = 'lib/database/white_queries.csv';
 }
 
 class Settings {

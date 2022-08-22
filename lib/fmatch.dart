@@ -280,7 +280,7 @@ QueryResult fmatch(String inputString) {
     }
   }
   var cachedQuery = CachedQuery.fromPreprocessed(preprocessed, perfectMatching);
-  if (crossTransactionalWhiteList.contains(cachedQuery)) {
+  if (whiteQueries.contains(cachedQuery)) {
     return QueryResult.fromError('Safe Customer: $inputString');
   }
   var cachedResult = resultCache[cachedQuery];

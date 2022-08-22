@@ -11,7 +11,7 @@ import 'package:test/test.dart';
 Future<void> main() async {
   await Settings.read();
   await Configs.read();
-  crossTransactionalWhiteList = {};
+  whiteQueries = {};
   var list = [
     'aaa bbb ccc ddd eee fff ggg hhh iii jjj '
     'kkk lll mmm nnn ooo ppp qqq rrr sss ttt '

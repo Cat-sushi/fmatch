@@ -11,7 +11,7 @@ import 'package:test/test.dart';
 Future<void> main() async {
   await Settings.read();
   await Configs.read();
-  crossTransactionalWhiteList = {};
+  whiteQueries = {};
   var list = [
     r'abc def ghi co.',
     r'abc defghi company',

@@ -21,6 +21,7 @@ Future<void> batch([String path = 'lib/batch']) async {
   var lastLap = DateTime.now();
   var currentLap = lastLap;
   var csvLine = StringBuffer();
+//  var queries = <String>[];
   await for (var line in readCsvLines(batchQueryPath)) {
     if (line.isEmpty) {
       continue;
@@ -29,6 +30,10 @@ Future<void> batch([String path = 'lib/batch']) async {
     if (query == null || query == '') {
       continue;
     }
+  //   queries.add(query);
+  // }
+  // queries.shuffle();
+  // for(var query in queries){
     var result = fmatch(query);
     if (result.error != '') {
       logSink.writeln(result.error);

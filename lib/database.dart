@@ -15,7 +15,7 @@ const bufferSize = 128 * 1024;
 
 late Db db;
 late IDb idb;
-late Set<CachedQuery> crossTransactionalWhiteList;
+late Set<CachedQuery> whiteQueries;
 
 enum LetType { na, postfix, prefix }
 
@@ -322,7 +322,7 @@ class IDb extends MapBase<IDbEntryKey, IDbEntryValue> {
   }
 }
 
-Future<Set<CachedQuery>> readCrossTransactionalWhiteList(String path) async {
+Future<Set<CachedQuery>> readWhiteQueries(String path) async {
   var ret = <CachedQuery>{};
   await for (var line in readCsvLines(path)) {
     if (line.isEmpty) {
@@ -334,13 +334,13 @@ Future<Set<CachedQuery>> readCrossTransactionalWhiteList(String path) async {
     }
     if (hasIllegalCharacter(inputString)) {
       print(
-          'Illegal characters in cross transactional white list: $inputString');
+          'Illegal characters in white queries: $inputString');
       continue;
     }
     var rawQuery = normalizeAndCapitalize(inputString);
     var preprocessed = preprocess(rawQuery, true);
     if (preprocessed.terms.isEmpty) {
-      print('No valid terms in cross transactional white list: $inputString');
+      print('No valid terms in white queries: $inputString');
       continue;
     }
     ret.add(CachedQuery.fromPreprocessed(preprocessed, false));
@@ -378,7 +378,7 @@ Future<void> buildDb() async {
     await time(() => db.write(Paths.db), 'Db.write');
   }
   await time(() async {
-    crossTransactionalWhiteList = await readCrossTransactionalWhiteList(
-        Paths.crossTransactionalWhiteList);
-  }, 'readXtWhiteList');
+    whiteQueries = await readWhiteQueries(
+        Paths.whiteQueries);
+  }, 'readWhiteQuery');
 }

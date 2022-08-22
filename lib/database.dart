@@ -334,13 +334,13 @@ Future<Set<CachedQuery>> readWhiteQueries(String path) async {
     }
     if (hasIllegalCharacter(inputString)) {
       print(
-          'Illegal characters in white queries: $inputString');
+          'Illegal characters in white query: $inputString');
       continue;
     }
     var rawQuery = normalizeAndCapitalize(inputString);
     var preprocessed = preprocess(rawQuery, true);
     if (preprocessed.terms.isEmpty) {
-      print('No valid terms in white queries: $inputString');
+      print('No valid terms in white query: $inputString');
       continue;
     }
     ret.add(CachedQuery.fromPreprocessed(preprocessed, false));

@@ -2,16 +2,15 @@
 // All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:fmatch/configs.dart';
 import 'package:fmatch/database.dart';
 import 'package:fmatch/fmatch.dart';
-import 'package:fmatch/preprocess.dart';
 import 'package:test/test.dart';
 
 Future<void> main() async {
-  await Settings.read();
-  await Configs.read();
-  whiteQueries = {};
+  var matcher = FMatcher();
+  await matcher.readSettings(null);
+  await matcher.preper.readConfigs();
+  matcher.whiteQueries = {};
   var list = [
         'AL-AL',
         'MUORWEL MALUAL, MALUAL DHAL',
@@ -33,14 +32,16 @@ Future<void> main() async {
         'NASSER AL-ALI,',
         'SAYF AL-ADL,',
   ];
-  var rawEntries = list.map((e) => normalizeAndCapitalize(e)).toList();
+  var rawEntries = list.map((e) => matcher.preper.normalizeAndCapitalize(e)).toList();
   rawEntries.forEach(print);
-  var preprocessed = list.map((e) => normalizeAndCapitalize(e)).toList();
-  db = await Db.fromStringStream(Stream.fromIterable(rawEntries));
-  idb = IDb.fromDb(db);
+  var preprocessed = list.map((e) => matcher.preper.normalizeAndCapitalize(e)).toList();
+  matcher.db = await Db.fromStringStream(matcher.preper, Stream.fromIterable(rawEntries));
+  matcher.idb = IDb.fromDb(matcher.db);
+  matcher.initIdbIndices();
+  
   test('AL AL AL', () {
     var q = r'AL AL AL';
-    var results = fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = matcher.fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, <String>[
       preprocessed[0],
       preprocessed[2],
@@ -65,14 +66,14 @@ Future<void> main() async {
   });
   test(r'AL AL AL AL AL AL AL AL', () {
     var q = r'AL AL AL AL AL AL AL AL';
-    var results = fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = matcher.fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, <String>[
       preprocessed[1],
     ]);
   });
   test(r'AL AL AL AL AL AL AL AL AL', () {
     var q = r'AL AL AL AL AL AL AL AL AL';
-    var results = fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = matcher.fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, <String>[
     ]);
   });

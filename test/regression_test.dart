@@ -4,8 +4,7 @@
 
 import 'package:fmatch/batch.dart';
 import 'package:fmatch/configs.dart';
-import 'package:fmatch/database.dart';
-import 'package:fmatch/preprocess.dart';
+import 'package:fmatch/fmatch.dart';
 import 'package:fmatch/util.dart';
 import 'package:test/test.dart';
 
@@ -15,20 +14,21 @@ Future<void> main() async {
   Paths.db = '$env/db.csv';
   Paths.idb = '$env/idb.json';
 
-  await Settings.read();
-  await Configs.read();
-  await buildDb();
-  await batch(env);
+  var matcher = FMatcher();
+  await matcher.readSettings(null);
+  await matcher.preper.readConfigs();
+  await matcher.buildDb();
+  await batch(matcher, env);
 
   var queries = <String>[];
   await for (var l in readCsvLines( Paths.list)) {
     if (l.isEmpty || l[0] == null) {
       continue;
     }
-    if(hasIllegalCharacter(l[0]!)){
+    if(matcher.preper.hasIllegalCharacter(l[0]!)){
       continue;
     }
-    queries.add(normalizeAndCapitalize(l[0]!));
+    queries.add(matcher.preper.normalizeAndCapitalize(l[0]!));
   }
 
   var results = <String>[];

@@ -2,6 +2,7 @@
 // All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
 import 'dart:math';
 import 'util.dart';
 
@@ -18,28 +19,26 @@ class Paths {
   static var whiteQueries = 'lib/database/white_queries.csv';
 }
 
-class Settings {
-  static double termMatchingMinLetterRatio = 0.6666;
-  static int termMatchingMinLetters = 3;
-  static double termPartialMatchingMinLetterRatio = 0.2;
-  static int termPartialMatchingMinLetters = 2;
-  static double queryMatchingMinTermRatio = 0.5;
-  static int queryMatchingMinTerms = 1;
-  static double queryMatchingTypicalProperNounDf = 10.0;
-  static double queryMatchingMinTermOrderSimilarity = 0.4444;
-  static double scoreIdfMagnifier = 2.0;
+mixin Settings {
+  double termMatchingMinLetterRatio = 0.6666;
+  int termMatchingMinLetters = 3;
+  double termPartialMatchingMinLetterRatio = 0.2;
+  int termPartialMatchingMinLetters = 2;
+  double queryMatchingMinTermRatio = 0.5;
+  int queryMatchingMinTerms = 1;
+  double queryMatchingTypicalProperNounDf = 10.0;
+  double queryMatchingMinTermOrderSimilarity = 0.4444;
+  double scoreIdfMagnifier = 2.0;
   // 以下メンバはPoCで追加
-  static double fallbackThresholdCombinations =
-      pow(fallbackMaxQueryTermMobility + 1, fallbackMaxQueryTerms).toDouble();
-  static int fallbackMaxQueryTerms = 10;
-  static int fallbackMaxQueryTermMobility = 3;
-  static double queryMatchingTermOrderCoefficent = 0.5;
-  static int queryResultCacheSize = 10000;
-  static Future<void> read() async {
-    await readSettings(Paths.setting);
-  }
+  late double fallbackThresholdCombinations;
+  int fallbackMaxQueryTerms = 10;
+  int fallbackMaxQueryTermMobility = 3;
+  double queryMatchingTermOrderCoefficent = 0.5;
+  int queryResultCacheSize = 10000;
+  int serverCount = Platform.numberOfProcessors;
 
-  static Future<void> readSettings(String path) async {
+  Future<void> readSettings(String? path) async {
+    path ??= Paths.setting;
     await for (var l in readCsvLines(path)) {
       if (l.length < 2 || l[0] == null || l[1] == null) {
         continue;
@@ -88,10 +87,15 @@ class Settings {
         case 'queryResultCacheSize':
           queryResultCacheSize = val.toInt();
           break;
+        case 'serverCount':
+          serverCount = val.toInt();
+          break;
         default:
           break;
       }
     }
+    fallbackThresholdCombinations =
+        pow(fallbackMaxQueryTermMobility + 1, fallbackMaxQueryTerms).toDouble();
   }
 }
 
@@ -115,23 +119,21 @@ class WordReplacement {
   WordReplacement(this.regexps, this.replacement);
 }
 
-class Configs {
-  static late RegExp legalChars;
-  static late List<StringReplacement> stringRreplacements;
-  static late List<LegalEntityTypeReplacement> legalEntryTypeReplacements;
-  static late RegExp words;
-  static late List<WordReplacement> wordRreplacements;
-  static Future<void> read() async {
-    legalChars = await _readLegalCharConf(Paths.legalCaharacters);
-    stringRreplacements =
-        await _readStringReplacementConf(Paths.stringReplacement);
-    legalEntryTypeReplacements =
-        await _readLegalEntityTypesConf(Paths.legalEntryType);
-    words = await _readWordsConf(Paths.words);
-    wordRreplacements = await _readWordReplacementConf(Paths.wordReplacement);
+mixin Configs {
+  late final RegExp legalChars;
+  late final List<StringReplacement> stringRreplacements;
+  late final List<LegalEntityTypeReplacement> legalEntryTypeReplacements;
+  late final RegExp words;
+  late final List<WordReplacement> wordReplacements;
+  Future<void> readConfigs() async {
+    await _readLegalCharConf(Paths.legalCaharacters);
+    await _readStringReplacementConf(Paths.stringReplacement);
+    await _readLegalEntityTypesConf(Paths.legalEntryType);
+    await _readWordsConf(Paths.words);
+    await _readWordReplacementConf(Paths.wordReplacement);
   }
 
-  static Future<RegExp> _readLegalCharConf(String path) async {
+  Future<void> _readLegalCharConf(String path) async {
     var pattern = StringBuffer('(');
     await for (var l in readCsvLines(path)) {
       if (l.isEmpty || l[0] == null) {
@@ -148,14 +150,13 @@ class Configs {
       }
     }
     pattern.write(')*');
-    return regExp(pattern.toString());
+    legalChars = regExp(pattern.toString());
   }
 
-  static Future<List<StringReplacement>> _readStringReplacementConf(
-      String path) async {
+  Future<void> _readStringReplacementConf(String path) async {
     var pattern = StringBuffer();
     String replacement;
-    stringRreplacements = <StringReplacement>[];
+    var strRpl = <StringReplacement>[];
     await for (var l in readCsvLines(path)) {
       if (l.length < 2 || l[0] == null) {
         continue;
@@ -171,19 +172,17 @@ class Configs {
         }
         pattern.write(p);
       }
-      stringRreplacements
-          .add(StringReplacement(regExp(pattern.toString()), replacement));
+      strRpl.add(StringReplacement(regExp(pattern.toString()), replacement));
     }
-    return stringRreplacements.toList(growable: false);
+    stringRreplacements = strRpl.toList(growable: false);
   }
 
-  static Future<List<LegalEntityTypeReplacement>> _readLegalEntityTypesConf(
-      String path) async {
+  Future<void> _readLegalEntityTypesConf(String path) async {
     var pattern = StringBuffer();
     RegExp regexpPostfix;
     RegExp regexpPrefix;
     String replacement;
-    legalEntryTypeReplacements = <LegalEntityTypeReplacement>[];
+    var letRepl = <LegalEntityTypeReplacement>[];
     await for (var l in readCsvLines(path)) {
       if (l.length < 2 || l[0] == null) {
         continue;
@@ -201,15 +200,16 @@ class Configs {
         pattern.write(p);
       }
       pattern.write(r')');
-      regexpPostfix = regExp(r'(?<=\W|\b|^)' + pattern.toString() + r' ?(?<s>\(.*\))?$');
+      regexpPostfix =
+          regExp(r'(?<=\W|\b|^)' + pattern.toString() + r' ?(?<s>\(.*\))?$');
       regexpPrefix = regExp(r'^' + pattern.toString() + r'(?=\W|\b|$)');
-      legalEntryTypeReplacements.add(
+      letRepl.add(
           LegalEntityTypeReplacement(regexpPostfix, regexpPrefix, replacement));
     }
-    return legalEntryTypeReplacements.toList(growable: false);
+    legalEntryTypeReplacements = letRepl.toList(growable: false);
   }
 
-  static Future<RegExp> _readWordsConf(String path) async {
+  Future<void> _readWordsConf(String path) async {
     var pattern = StringBuffer();
     await for (var l in readCsvLines(path)) {
       if (l.isEmpty || l[0] == null) {
@@ -225,14 +225,13 @@ class Configs {
         pattern.write(p);
       }
     }
-    return regExp(pattern.toString());
+    words = regExp(pattern.toString());
   }
 
-  static Future<List<WordReplacement>> _readWordReplacementConf(
-      String path) async {
+  Future<void> _readWordReplacementConf(String path) async {
     var pattern = StringBuffer();
     String toString;
-    wordRreplacements = <WordReplacement>[];
+    var wordRpl = <WordReplacement>[];
     await for (var l in readCsvLines(path)) {
       if (l.length < 2 || l[0] == null) {
         continue;
@@ -250,9 +249,8 @@ class Configs {
         pattern.write(p);
         pattern.write(r'$');
       }
-      wordRreplacements
-          .add(WordReplacement(regExp(pattern.toString()), toString));
+      wordRpl.add(WordReplacement(regExp(pattern.toString()), toString));
     }
-    return wordRreplacements.toList(growable: false);
+    wordReplacements = wordRpl.toList(growable: false);
   }
 }

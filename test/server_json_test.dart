@@ -4,16 +4,15 @@
 
 import 'dart:convert';
 
-import 'package:fmatch/configs.dart';
 import 'package:fmatch/database.dart';
 import 'package:fmatch/fmatch.dart';
-import 'package:fmatch/preprocess.dart';
 import 'package:test/test.dart';
 
 Future<void> main() async {
-  await Settings.read();
-  await Configs.read();
-  whiteQueries = {};
+  var matcher = FMatcher();
+  await matcher.readSettings(null);
+  await matcher.preper.readConfigs();
+  matcher.whiteQueries = {};
   var list = [
     r'company',
     r'company abc',
@@ -23,14 +22,15 @@ Future<void> main() async {
     r'mno <*co*>',
     r'pqr <*co*> stu',
   ];
-  var rawEntries = list.map((e) => normalizeAndCapitalize(e)).toList();
+  var rawEntries = list.map((e) => matcher.preper.normalizeAndCapitalize(e)).toList();
   rawEntries.forEach(print);
-  db = await Db.fromStringStream(Stream.fromIterable(rawEntries));
-  idb = IDb.fromDb(db);
+  matcher.db = await Db.fromStringStream(matcher.preper, Stream.fromIterable(rawEntries));
+  matcher.idb = IDb.fromDb(matcher.db);
+  matcher.initIdbIndices();
 
   test('query 1', () {
     var q = r'def co';
-    var jsonString = JsonEncoder().convert(fmatch(q));
+    var jsonString = JsonEncoder().convert(matcher.fmatch(q));
     print(jsonString);
     expect(
         jsonString, endsWith(

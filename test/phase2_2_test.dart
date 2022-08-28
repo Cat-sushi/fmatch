@@ -2,16 +2,15 @@
 // All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:fmatch/configs.dart';
 import 'package:fmatch/database.dart';
 import 'package:fmatch/fmatch.dart';
-import 'package:fmatch/preprocess.dart';
 import 'package:test/test.dart';
 
 Future<void> main() async {
-  await Settings.read();
-  await Configs.read();
-  whiteQueries = {};
+  var matcher = FMatcher();
+  await matcher.readSettings(null);
+  await matcher.preper.readConfigs();
+  matcher.whiteQueries = {};
   var list = [
     r'company',
     r'company abc',
@@ -28,14 +27,15 @@ Future<void> main() async {
     'ddd ddd ddd ddd ddd ddd ddd ddd ddd ddd '
     'eee eee eee eee eee eee eee eee eee eee',
   ];
-  var rawEntries = list.map((e) => normalizeAndCapitalize(e)).toList();
+  var rawEntries = list.map((e) => matcher.preper.normalizeAndCapitalize(e)).toList();
   rawEntries.forEach(print);
-  db = await Db.fromStringStream(Stream.fromIterable(rawEntries));
-  idb = IDb.fromDb(db);
+  matcher.db = await Db.fromStringStream(matcher.preper, Stream.fromIterable(rawEntries));
+  matcher.idb = IDb.fromDb(matcher.db);
+  matcher.initIdbIndices();
 
   test('query 1', () {
     var q = r'co';
-    var r = fmatch(q);
+    var r = matcher.fmatch(q);
     var results = r.cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, [
       rawEntries[0],
@@ -46,7 +46,7 @@ Future<void> main() async {
   });
   test('query 2', () {
     var q = r'def';
-    var r = fmatch(q);
+    var r = matcher.fmatch(q);
     var results = r.cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, [
       rawEntries[2],
@@ -55,7 +55,7 @@ Future<void> main() async {
   });
   test('query 3', () {
     var q = r'def co.';
-    var r = fmatch(q);
+    var r = matcher.fmatch(q);
     var results = r.cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, [
       rawEntries[2],
@@ -66,7 +66,7 @@ Future<void> main() async {
   });
   test('query 4', () {
     var q = r'def ghi co.';
-    var r = fmatch(q);
+    var r = matcher.fmatch(q);
     var results = r.cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, [
       rawEntries[3],
@@ -75,7 +75,7 @@ Future<void> main() async {
   });
   test('query 5', () {
     var q = r'abc co.';
-    var r = fmatch(q);
+    var r = matcher.fmatch(q);
     var results = r.cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, [
       rawEntries[1],
@@ -86,7 +86,7 @@ Future<void> main() async {
   });
   test('query 6', () {
     var q = r'ghi def co.';
-    var r = fmatch(q);
+    var r = matcher.fmatch(q);
     var results = r.cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, [
       rawEntries[3],
@@ -95,7 +95,7 @@ Future<void> main() async {
   });
   test('query 7', () {
     var q = r'zzz zzz zzz';
-    var r = fmatch(q);
+    var r = matcher.fmatch(q);
     var results = r.cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, [
       rawEntries[8],
@@ -103,13 +103,13 @@ Future<void> main() async {
   });
   test('query 8', () {
     var q = r'zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz';
-    var r = fmatch(q);
+    var r = matcher.fmatch(q);
     var results = r.cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, <String>[]); // 組み合わせ爆発防止対策によりヒットせず
   });
   test('query 9', () {
     var q = r'zzz zzz zzzz aaa aaa aaa bbb bbb ccc ccc ccc ddd ddd ddd eee eee eee';
-    var r = fmatch(q);
+    var r = matcher.fmatch(q);
     var results = r.cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, [
       rawEntries[8],
@@ -117,7 +117,7 @@ Future<void> main() async {
   });
   test('query 10', () {
     var q = r'zzz zzz aaa aaa bbb bbb ccc ccc ddd ddd eee eee';
-    var r = fmatch(q);
+    var r = matcher.fmatch(q);
     var results = r.cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, [
       rawEntries[8],
@@ -125,7 +125,7 @@ Future<void> main() async {
   });
   test('query 11', () {
     var q = r'zzj zzi zzh zzg zzf zze zzd zzc zzb zza';
-    var r = fmatch(q);
+    var r = matcher.fmatch(q);
     var results = r.cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, [
       rawEntries[7],
@@ -133,17 +133,17 @@ Future<void> main() async {
   });
   test('query 12', () {
     var q = r'zzz zzz zzz zzz zzz zzz zzz zzz zzz';
-    var r = fmatch(q);
+    var r = matcher.fmatch(q);
     expect(r.queryTerms.length, 9);
   });
   test('query 13', () {
     var q = r'zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz';
-    var r = fmatch(q);
+    var r = matcher.fmatch(q);
     expect(r.queryTerms.length, 10);
   });
   test('query 14', () {
     var q = r'zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz';
-    var r = fmatch(q);
+    var r = matcher.fmatch(q);
     expect(r.queryTerms.length, 10);
   });
 }

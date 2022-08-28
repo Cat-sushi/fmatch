@@ -12,3 +12,4 @@ fallbackMaxQueryTerms,10, 組合せ爆発防止縮退後のクエリ単語数上
 fallbackMaxQueryTermMobility,3, 組合せ爆発防止縮退後のクエリ単語箇所数上限 PoCで追加
 queryMatchingTermOrderCoefficent,0.5, 語順の影響度 PoCで追加
 queryResultCacheSize,100000, 結果キャッシュ PoCで追加
+,serverCount,4, サーバースレッド数 デフォルトはコア数

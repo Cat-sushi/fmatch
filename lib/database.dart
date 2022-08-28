@@ -6,16 +6,11 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
-import 'configs.dart';
 import 'fmatch.dart';
 import 'preprocess.dart';
 import 'util.dart';
 
 const bufferSize = 128 * 1024;
-
-late Db db;
-late IDb idb;
-late Set<CachedQuery> whiteQueries;
 
 enum LetType { na, postfix, prefix }
 
@@ -68,12 +63,13 @@ class Db extends MapBase<String, Preprocessed> {
     }
     assert(length >= 2);
   }
-  static Future<Db> fromStringStream(Stream<String> entries) async {
+  static Future<Db> fromStringStream(
+      Preprocessor preper, Stream<String> entries) async {
     var ret = Db();
     await entries.where((var entry) => entry != '').forEach((var entry) {
-      var rawEntry = normalizeAndCapitalize(entry, true);
+      var rawEntry = preper.normalizeAndCapitalize(entry, true);
       if (!ret.containsKey(rawEntry)) {
-        ret[rawEntry] = preprocess(rawEntry, true);
+        ret[rawEntry] = preper.preprocess(rawEntry, true);
       }
     });
     assert(ret.length >= 2);
@@ -91,11 +87,11 @@ class Db extends MapBase<String, Preprocessed> {
   @override
   Preprocessed? remove(Object? key) => _map.remove(key);
 
-  static Future<Db> readList(String path) async {
+  static Future<Db> readList(Preprocessor preper, String path) async {
     var plainEntries = readCsvLines(path)
         .where((l) => l.isNotEmpty && l[0] != null)
         .map((l) => l[0]!);
-    return Db.fromStringStream(plainEntries);
+    return Db.fromStringStream(preper, plainEntries);
   }
 
   Future<void> write(String path) async {
@@ -206,8 +202,6 @@ class JsonChankSink implements Sink<List<int>> {
 class IDb extends MapBase<IDbEntryKey, IDbEntryValue> {
   final _map = <IDbEntryKey, IDbEntryValue>{};
   late final List<MapEntry<IDbEntryKey, IDbEntryValue>> list;
-  late final List<int> indeces;
-  late final int maxTermLength;
   IDb();
   IDb.fromDb(Db db) {
     var tmpMap = <IDbEntryKey, IDbEntryValue>{};
@@ -244,7 +238,6 @@ class IDb extends MapBase<IDbEntryKey, IDbEntryValue> {
       value.df = df;
       this[mentry.key] = IDbEntryValue.of(value);
     }
-    _list();
   }
 
   @override
@@ -267,42 +260,7 @@ class IDb extends MapBase<IDbEntryKey, IDbEntryValue> {
       ret[IDbEntryKey.fromJson(me['key'] as Map<String, dynamic>)] =
           IDbEntryValue.fromJson(me['value'] as Map<String, dynamic>);
     }
-    ret._list();
     return ret;
-  }
-
-  void _list() {
-    list = entries
-        .where((e) => !(e.key.isLet ||
-            (e.key.term.length < Settings.termPartialMatchingMinLetters &&
-                e.key.term.length < Settings.termMatchingMinLetters)))
-        .toList(growable: false);
-    list.sort((a, b) {
-      var ta = a.key.term;
-      var tb = b.key.term;
-      if (ta.length < tb.length) {
-        return -1;
-      } else if (ta.length > tb.length) {
-        return 1;
-      } else {
-        return ta.compareTo(tb);
-      }
-    });
-    maxTermLength = list.last.key.term.length;
-    indeces = List<int>.filled(maxTermLength + 2, 0, growable: false);
-    var lastLen = 0;
-    for (var i = 0; i < list.length; i++) {
-      var l = list[i].key.term.length;
-      if (l == lastLen) {
-        continue;
-      }
-      for (var j = lastLen + 1; j <= l; j++) {
-        indeces[j] = i;
-      }
-      indeces[l] = i;
-      lastLen = l;
-    }
-    indeces.last = list.length;
   }
 
   void write(String path) {
@@ -322,7 +280,7 @@ class IDb extends MapBase<IDbEntryKey, IDbEntryValue> {
   }
 }
 
-Future<Set<CachedQuery>> readWhiteQueries(String path) async {
+Future<Set<CachedQuery>> readWhiteQueries(Preprocessor preper, String path) async {
   var ret = <CachedQuery>{};
   await for (var line in readCsvLines(path)) {
     if (line.isEmpty) {
@@ -332,13 +290,12 @@ Future<Set<CachedQuery>> readWhiteQueries(String path) async {
     if (inputString == null || inputString == '') {
       continue;
     }
-    if (hasIllegalCharacter(inputString)) {
-      print(
-          'Illegal characters in white query: $inputString');
+    if (preper.hasIllegalCharacter(inputString)) {
+      print('Illegal characters in white query: $inputString');
       continue;
     }
-    var rawQuery = normalizeAndCapitalize(inputString);
-    var preprocessed = preprocess(rawQuery, true);
+    var rawQuery = preper.normalizeAndCapitalize(inputString);
+    var preprocessed = preper.preprocess(rawQuery, true);
     if (preprocessed.terms.isEmpty) {
       print('No valid terms in white query: $inputString');
       continue;
@@ -346,39 +303,4 @@ Future<Set<CachedQuery>> readWhiteQueries(String path) async {
     ret.add(CachedQuery.fromPreprocessed(preprocessed, false));
   }
   return ret;
-}
-
-Future<void> buildDb() async {
-  var idbFile = File(Paths.idb);
-  var idbFileExists = idbFile.existsSync();
-  late DateTime idbTimestamp;
-  if (idbFileExists) {
-    idbTimestamp = File(Paths.idb).lastModifiedSync();
-  }
-  if (!idbFileExists ||
-      File(Paths.list).lastModifiedSync().isAfter(idbTimestamp) ||
-      File(Paths.legalCaharacters).lastModifiedSync().isAfter(idbTimestamp) ||
-      File(Paths.stringReplacement).lastModifiedSync().isAfter(idbTimestamp) ||
-      File(Paths.legalEntryType).lastModifiedSync().isAfter(idbTimestamp) ||
-      File(Paths.words).lastModifiedSync().isAfter(idbTimestamp) ||
-      File(Paths.wordReplacement).lastModifiedSync().isAfter(idbTimestamp)) {
-    await time(() async {
-      db = await Db.readList(Paths.list);
-    }, 'Db.readList');
-    await time(() async {
-      idb = IDb.fromDb(db);
-    }, 'IDb.fromDb');
-    await time(() => db.write(Paths.db), 'Db.write');
-    await time(() => idb.write(Paths.idb), 'IDb.write');
-  } else {
-    await time(() async {
-      idb = await IDb.read(Paths.idb);
-    }, 'IDb.read');
-    await time(() => db = Db.fromIDb(idb), 'Db.fromIDb');
-    await time(() => db.write(Paths.db), 'Db.write');
-  }
-  await time(() async {
-    whiteQueries = await readWhiteQueries(
-        Paths.whiteQueries);
-  }, 'readWhiteQueries');
 }

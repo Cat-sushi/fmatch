@@ -2,16 +2,18 @@
 // All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:fmatch/batch.dart';
+import 'dart:io';
+
 import 'package:fmatch/fmatch.dart';
+import 'package:fmatch/pbatch.dart';
 import 'package:fmatch/util.dart';
 
-Future<void> main() async {
-  print('Start Batch');
+void main(List<String> arguments) async {
   var matcher = FMatcher();
+  print('Start Parallel Batch');
   await time(() => matcher.readSettings(null), 'settings.read');
   await time(() => matcher.preper.readConfigs(), 'Configs.read');
   await time(() => matcher.buildDb(), 'buildDb');
-  await time(() => batch(matcher), 'batch');
-//  await time(() => batch(), 'batch');
+  await time(() => pbatch(matcher), 'pbatch');
+  exit(0);
 }

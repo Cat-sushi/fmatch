@@ -5,8 +5,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:fmatch/configs.dart';
-import 'package:fmatch/database.dart';
 import 'package:fmatch/fmatch.dart';
 import 'package:fmatch/util.dart';
 
@@ -14,10 +12,11 @@ String _host = InternetAddress.loopbackIPv4.host;
 
 Future main() async {
   print('Start Server');
-  await time(() => Settings.read(), 'Settings.read');
-  await time(() => Configs.read(), 'Configs.read');
-  await time(() => buildDb(), 'buildDb');
-  print('Min Score: $minScore');
+  var matcher = FMatcher();
+  await time(() => matcher.readSettings(null), 'settings.read');
+  await time(() => matcher.preper.readConfigs(), 'Configs.read');
+  await time(() => matcher.buildDb(), 'buildDb');
+  print('Min Score: ${matcher.minScore}');
 
   var josonEncoderWithIdent = JsonEncoder.withIndent('  ');
 
@@ -30,7 +29,8 @@ Future main() async {
       try {
         var content = await utf8.decoder.bind(req).join();
         var inputStrings = jsonDecode(content) as List<String>;
-        var results = inputStrings.map((q) => fmatch(q)).toList(growable: false);
+        var results =
+            inputStrings.map((q) => matcher.fmatch(q)).toList(growable: false);
         var responseContent = jsonEncode(results);
         req.response
           ..statusCode = HttpStatus.ok
@@ -40,11 +40,11 @@ Future main() async {
           ..statusCode = HttpStatus.internalServerError
           ..write('Exception during file I/O: $e.');
       }
-    // } else if(req.method == 'GET' && contentType?.mimeType == 'application/text') {
-    } else if(req.method == 'GET') {
+      // } else if(req.method == 'GET' && contentType?.mimeType == 'application/text') {
+    } else if (req.method == 'GET') {
       try {
         var inputString = req.uri.queryParameters['q'];
-        var result = fmatch(inputString!);
+        var result = matcher.fmatch(inputString!);
         var responseContent = josonEncoderWithIdent.convert([result]);
         req.response
           ..statusCode = HttpStatus.ok

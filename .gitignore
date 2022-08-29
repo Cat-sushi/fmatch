@@ -27,3 +27,5 @@ test/phase2-7_test.dart
 test/env0/list.csv
 test/env0/Log.txt
 test/env0/results.csv
+bin/batch
+bin/pbatch

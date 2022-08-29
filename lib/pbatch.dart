@@ -1,4 +1,4 @@
-// Copyright (c) 2020, Yako.
+// Copyright (c) 2023, Yako.
 // All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,7 +6,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:math';
+
+import 'package:async/async.dart';
 
 import 'package:fmatch/batch.dart';
 import 'package:fmatch/fmatch.dart';
@@ -32,7 +33,7 @@ Future<void> pbatch(FMatcher matcher, [String path = 'lib/batch']) async {
   lc = 0;
   lastLap = DateTime.now();
   currentLap = lastLap;
-  var queries = await openQueryListStream(batchQueryPath).toList();
+  var queries = StreamQueue<String>(openQueryListStream(batchQueryPath));
   final servers = <Server>[];
   for (var id = 0; id < matcher.serverCount; id++) {
     var server = Server(matcher);
@@ -74,17 +75,14 @@ class Server {
 
 class Dispatcher {
   final List<Server> servers;
-  final List<String> queries;
+  final StreamQueue<String> queries;
   final results = <QueryResult?>[];
-  final Iterator<String> queryIterator;
   var ixS = 0;
   var ixO = 0;
-  var receivedLast = false;
-  Dispatcher(this.servers, this.queries) : queryIterator = queries.iterator;
+  Dispatcher(this.servers, this.queries);
   Future<void> dispatch() async {
-    final m = min<int>(servers.length, queries.length);
     var futures = <Future>[];
-    for (var id = 0; id < m; id++) {
+    for (var id = 0; id < servers.length; id++) {
       futures.add(sendReceve(servers[id]));
     }
     await Future.wait<void>(futures);
@@ -93,33 +91,25 @@ class Dispatcher {
   }
 
   Future<void> sendReceve(Server server) async {
-    queryIterator.moveNext();
-    while (true) {
+    while (await queries.hasNext) {
       var ix = ixS;
       ixS++;
-      var query = queryIterator.current;
       results.add(null);
+      var query = await queries.next;
       server.csp.send(query);
       var result = await server.crb.first as QueryResult;
-      if (queryIterator.moveNext()) {
-        printResultInOrder(ix, result);
-      } else {
-        receivedLast = true;
-        printResultInOrder(ix, result);
-        break;
-      }
+      results[ix] = result;
+      printResultsInOrder();
     }
     server.csp.send(null);
   }
 
-  Future<void> printResultInOrder(int ix, QueryResult result) async {
-    results[ix] = result;
+  void printResultsInOrder() {
     for (; ixO < ixS; ixO++) {
       var result = results[ixO];
       if (result == null) {
         return;
       }
-
       if (result.error != '') {
         logSink.writeln(result.error);
         continue;
@@ -130,10 +120,7 @@ class Dispatcher {
         currentLap = DateTime.now();
         print('$lc: ${currentLap.difference(lastLap).inMilliseconds}');
         lastLap = currentLap;
-        // await resultSink.flush();
-        // await logSink.flush();
       }
-
       results[ixO] = null;
     }
   }

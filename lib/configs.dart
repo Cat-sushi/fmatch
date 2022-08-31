@@ -7,12 +7,12 @@ import 'dart:math';
 import 'util.dart';
 
 class Paths {
-  static var setting = 'lib/config/Settings.csv';
-  static var legalCaharacters = 'lib/config/LegalCharacters.csv';
-  static var stringReplacement = 'lib/config/StringReplacement.csv';
-  static var legalEntryType = 'lib/config/LegalEntityTypes.csv';
-  static var words = 'lib/config/Words.csv';
-  static var wordReplacement = 'lib/config/WordReplacement.csv';
+  static var setting = 'lib/config/settings.csv';
+  static var legalCaharacters = 'lib/config/legal_characters.csv';
+  static var stringReplacement = 'lib/config/string_replacement.csv';
+  static var legalEntryType = 'lib/config/legal_entity_types.csv';
+  static var words = 'lib/config/words.csv';
+  static var wordReplacement = 'lib/config/word_replacement.csv';
   static var list = 'lib/database/list.csv';
   static var db = 'lib/database/db.csv';
   static var idb = 'lib/database/idb.json';

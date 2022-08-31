@@ -1,4 +1,4 @@
-// Copyright (c) 2023, Yako.
+// Copyright (c) 2022, Yako.
 // All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16,11 +16,9 @@ late File resultFile;
 late IOSink resultSink;
 late IOSink logSink;
 late int lc;
+late DateTime startTime;
 late DateTime currentLap;
 late DateTime lastLap;
-
-late DateTime startTime;
-late DateTime endTime;
 
 Future<void> pbatch(FMatcher matcher, [String path = 'lib/batch']) async {
   var batchQueryPath = '$path/queries.csv';
@@ -31,7 +29,8 @@ Future<void> pbatch(FMatcher matcher, [String path = 'lib/batch']) async {
   resultSink = resultFile.openWrite(mode: FileMode.append, encoding: utf8);
   logSink = File(batchLogPath).openWrite(encoding: utf8);
   lc = 0;
-  lastLap = DateTime.now();
+  startTime = DateTime.now();
+  lastLap = startTime;
   currentLap = lastLap;
   var queries = StreamQueue<String>(openQueryListStream(batchQueryPath));
   final servers = <Server>[];
@@ -46,16 +45,17 @@ Future<void> pbatch(FMatcher matcher, [String path = 'lib/batch']) async {
 class Server {
   final FMatcher matcher;
   final ReceivePort crp;
-  late final Stream crb;
+  late final StreamIterator<dynamic> cri;
   late final SendPort csp;
   late final Isolate isolate;
   Server(this.matcher) : crp = ReceivePort() {
-    crb = crp.asBroadcastStream();
+    cri = StreamIterator<dynamic>(crp);
   }
   Future<void> spawn(int id) async {
     isolate = await Isolate.spawn<List<dynamic>>(
         main, <dynamic>[crp.sendPort, matcher]);
-    csp = await crb.first as SendPort;
+    await cri.moveNext();
+    csp = cri.current as SendPort;
   }
 
   static Future<void> main(List<dynamic> message) async {
@@ -76,7 +76,8 @@ class Server {
 class Dispatcher {
   final List<Server> servers;
   final StreamQueue<String> queries;
-  final results = <QueryResult?>[];
+  final results = <int, QueryResult>{};
+  var maxResultsLength = 0;
   var ixS = 0;
   var ixO = 0;
   Dispatcher(this.servers, this.queries);
@@ -86,6 +87,7 @@ class Dispatcher {
       futures.add(sendReceve(servers[id]));
     }
     await Future.wait<void>(futures);
+    print('Max result buffer length: $maxResultsLength');
     await logSink.close();
     await resultSink.close();
   }
@@ -94,11 +96,13 @@ class Dispatcher {
     while (await queries.hasNext) {
       var ix = ixS;
       ixS++;
-      results.add(null);
       var query = await queries.next;
       server.csp.send(query);
-      var result = await server.crb.first as QueryResult;
+      await server.cri.moveNext();
+      var result = server.cri.current as QueryResult;
       results[ix] = result;
+      maxResultsLength =
+          results.length > maxResultsLength ? results.length : maxResultsLength;
       printResultsInOrder();
     }
     server.csp.send(null);
@@ -118,10 +122,11 @@ class Dispatcher {
       ++lc;
       if ((lc % 100) == 0) {
         currentLap = DateTime.now();
-        print('$lc: ${currentLap.difference(lastLap).inMilliseconds}');
+        print(
+            '$lc: ${currentLap.difference(lastLap).inMilliseconds}  ${currentLap.difference(startTime).inMilliseconds}');
         lastLap = currentLap;
       }
-      results[ixO] = null;
+      results.remove(ixO);
     }
   }
 }

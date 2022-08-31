@@ -18,7 +18,8 @@ Future<void> batch(FMatcher matcher, [String path = 'lib/batch']) async {
   var resultSink = resultFile.openWrite(mode: FileMode.append, encoding: utf8);
   var logSink = File(batchLogPath).openWrite(encoding: utf8);
   var lc = 0;
-  var lastLap = DateTime.now();
+  var startTime = DateTime.now();
+  var lastLap = startTime;
   var currentLap = lastLap;
 
   await for (var query in openQueryListStream(batchQueryPath)) {
@@ -31,7 +32,8 @@ Future<void> batch(FMatcher matcher, [String path = 'lib/batch']) async {
     ++lc;
     if ((lc % 100) == 0) {
       currentLap = DateTime.now();
-      print('$lc: ${currentLap.difference(lastLap).inMilliseconds}');
+      print(
+          '$lc: ${currentLap.difference(lastLap).inMilliseconds} ${currentLap.difference(startTime).inMilliseconds}');
       lastLap = currentLap;
       await resultSink.flush();
       await logSink.flush();

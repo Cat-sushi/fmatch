@@ -1,10 +1,10 @@
-// Copyright (c) 2020, Yako.
+// Copyright (c) 2022, Yako.
 // All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:fmatch/batch.dart';
 import 'package:fmatch/configs.dart';
 import 'package:fmatch/fmatch.dart';
+import 'package:fmatch/pbatch.dart';
 import 'package:fmatch/util.dart';
 import 'package:test/test.dart';
 
@@ -18,7 +18,7 @@ Future<void> main() async {
   await matcher.readSettings(null);
   await matcher.preper.readConfigs();
   await matcher.buildDb();
-  await batch(matcher, env);
+  await pbatch(matcher, env);
 
   var queries = <String>[];
   await for (var l in readCsvLines( Paths.list)) {

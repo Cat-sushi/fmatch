@@ -33,11 +33,11 @@ Future<void> main() async {
 
   var results = <String>[];
   await for (var l in readCsvLines('$env/results.csv')) {
-    if (l.length < 5) {
+    if (l.length < 7) {
       continue;
     }
-    if(l[4] == l[5]){
-      results.add(l[4]!);
+    if(l[5] == l[6]){
+      results.add(l[5]!);
     }
   }
 

@@ -5,12 +5,12 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:isolate';
 
 import 'package:async/async.dart';
 
 import 'package:fmatch/batch.dart';
 import 'package:fmatch/fmatch.dart';
+import 'package:fmatch/server.dart';
 
 late File resultFile;
 late IOSink resultSink;
@@ -23,7 +23,7 @@ late DateTime lastLap;
 Future<void> pbatch(FMatcher matcher, [String path = 'lib/batch']) async {
   var batchQueryPath = '$path/queries.csv';
   var batchResultPath = '$path/results.csv';
-  var batchLogPath = '$path/Log.txt';
+  var batchLogPath = '$path/log.txt';
   var resultFile = File(batchResultPath);
   resultFile.writeAsBytesSync([0xEF, 0xBB, 0xBF]);
   resultSink = resultFile.openWrite(mode: FileMode.append, encoding: utf8);
@@ -42,37 +42,6 @@ Future<void> pbatch(FMatcher matcher, [String path = 'lib/batch']) async {
   await Dispatcher(servers, queries).dispatch();
 }
 
-class Server {
-  final FMatcher matcher;
-  final ReceivePort crp;
-  late final StreamIterator<dynamic> cri;
-  late final SendPort csp;
-  late final Isolate isolate;
-  Server(this.matcher) : crp = ReceivePort() {
-    cri = StreamIterator<dynamic>(crp);
-  }
-  Future<void> spawn(int id) async {
-    isolate = await Isolate.spawn<List<dynamic>>(
-        main, <dynamic>[crp.sendPort, matcher]);
-    await cri.moveNext();
-    csp = cri.current as SendPort;
-  }
-
-  static Future<void> main(List<dynamic> message) async {
-    var ssp = message[0] as SendPort;
-    var matcher = message[1] as FMatcher;
-    final srp = ReceivePort();
-    ssp.send(srp.sendPort);
-    await for (dynamic query in srp) {
-      if (query == null) {
-        break;
-      }
-      var result = matcher.fmatch(query as String);
-      ssp.send(result);
-    }
-  }
-}
-
 class Dispatcher {
   final List<Server> servers;
   final StreamQueue<String> queries;
@@ -84,7 +53,7 @@ class Dispatcher {
   Future<void> dispatch() async {
     var futures = <Future>[];
     for (var id = 0; id < servers.length; id++) {
-      futures.add(sendReceve(servers[id]));
+      futures.add(sendReceve(id));
     }
     await Future.wait<void>(futures);
     print('Max result buffer length: $maxResultsLength');
@@ -92,7 +61,8 @@ class Dispatcher {
     await resultSink.close();
   }
 
-  Future<void> sendReceve(Server server) async {
+  Future<void> sendReceve(int id) async {
+    var server = servers[id];
     while (await queries.hasNext) {
       var ix = ixS;
       ixS++;
@@ -100,12 +70,13 @@ class Dispatcher {
       server.csp.send(query);
       await server.cri.moveNext();
       var result = server.cri.current as QueryResult;
+      result.serverId = id;
       results[ix] = result;
       maxResultsLength =
           results.length > maxResultsLength ? results.length : maxResultsLength;
       printResultsInOrder();
     }
-    server.csp.send(null);
+    servers[id].csp.send(null);
   }
 
   void printResultsInOrder() {
@@ -123,7 +94,7 @@ class Dispatcher {
       if ((lc % 100) == 0) {
         currentLap = DateTime.now();
         print(
-            '$lc: ${currentLap.difference(lastLap).inMilliseconds}  ${currentLap.difference(startTime).inMilliseconds}');
+            '$lc: ${currentLap.difference(lastLap).inMilliseconds} ${currentLap.difference(startTime).inMilliseconds}');
         lastLap = currentLap;
       }
       results.remove(ixO);

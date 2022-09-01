@@ -238,6 +238,7 @@ class IDb extends MapBase<IDbEntryKey, IDbEntryValue> {
       value.df = df;
       this[mentry.key] = IDbEntryValue.of(value);
     }
+    initList();
   }
 
   @override
@@ -260,7 +261,23 @@ class IDb extends MapBase<IDbEntryKey, IDbEntryValue> {
       ret[IDbEntryKey.fromJson(me['key'] as Map<String, dynamic>)] =
           IDbEntryValue.fromJson(me['value'] as Map<String, dynamic>);
     }
+    ret.initList();
     return ret;
+  }
+
+  void initList() {
+    list = entries.where((e) => !e.key.isLet).toList(growable: false);
+    list.sort((a, b) {
+      var ta = a.key.term;
+      var tb = b.key.term;
+      if (ta.length < tb.length) {
+        return -1;
+      } else if (ta.length > tb.length) {
+        return 1;
+      } else {
+        return ta.compareTo(tb);
+      }
+    });
   }
 
   void write(String path) {
@@ -280,7 +297,8 @@ class IDb extends MapBase<IDbEntryKey, IDbEntryValue> {
   }
 }
 
-Future<Set<CachedQuery>> readWhiteQueries(Preprocessor preper, String path) async {
+Future<Set<CachedQuery>> readWhiteQueries(
+    Preprocessor preper, String path) async {
   var ret = <CachedQuery>{};
   await for (var line in readCsvLines(path)) {
     if (line.isEmpty) {

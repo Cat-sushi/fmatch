@@ -12,7 +12,7 @@ import 'util.dart';
 Future<void> batch(FMatcher matcher, [String path = 'lib/batch']) async {
   var batchQueryPath = '$path/queries.csv';
   var batchResultPath = '$path/results.csv';
-  var batchLogPath = '$path/Log.txt';
+  var batchLogPath = '$path/log.txt';
   var resultFile = File(batchResultPath);
   resultFile.writeAsBytesSync([0xEF, 0xBB, 0xBF]);
   var resultSink = resultFile.openWrite(mode: FileMode.append, encoding: utf8);
@@ -70,12 +70,14 @@ String formatOutput(int ix, QueryResult result) {
     );
   }
   for (var e in result.cachedResult.matchedEntiries) {
-    csvLine.write(ix);
+    csvLine.write(result.serverId);
     csvLine.write(r',');
     csvLine.write(
         (result.durationInMilliseconds.toDouble() / 1000.0).toStringAsFixed(3));
     csvLine.write(r',');
-    csvLine.write((e.score / result.cachedResult.perfScore).toStringAsFixed(2));
+    csvLine.write(ix);
+    csvLine.write(r',');
+    csvLine.write((e.score / result.cachedResult.perfectScore).toStringAsFixed(2));
     csvLine.write(r',');
     csvLine.write(result.cachedResult.matchedEntiries.length);
     csvLine.write(r',');

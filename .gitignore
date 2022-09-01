@@ -13,8 +13,9 @@ doc/api/
 .vscode/
 .VSCodeCounter
 git_ignore/
-bin/fbatch
-bin/fserver
+bin/batch
+bin/pbatch
+bin/web_server
 lib/batch
 lib/database
 test/env0/db.csv

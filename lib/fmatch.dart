@@ -63,13 +63,13 @@ class Query {
   LetType letType;
   List<QueryTerm> terms;
   bool perfectMatching;
-  double perfScore;
+  double perfectScore;
   Query.fromPreprocessed(Preprocessed preped, this.perfectMatching)
       : letType = preped.letType,
         terms = preped.terms
             .map((e) => QueryTerm(e, 0.0, 0.0))
             .toList(growable: false),
-        perfScore = 0;
+        perfectScore = 0;
 }
 
 class QueryTermOccurrence {
@@ -120,6 +120,9 @@ class MatchedEntry {
   final String rawEntry;
   final double score;
   MatchedEntry(this.rawEntry, this.score);
+  MatchedEntry.fromJson(Map<String, dynamic> json)
+      : rawEntry = json['rawEntry'] as String,
+        score = json['score'] as double;
   Map toJson() => <String, Object>{
         'rawEntry': rawEntry,
         'score': score,
@@ -127,16 +130,23 @@ class MatchedEntry {
 }
 
 class CachedResult {
+  double perfectScore;
   List<MatchedEntry> matchedEntiries;
-  double perfScore;
-  CachedResult(this.matchedEntiries, this.perfScore);
+  CachedResult(this.perfectScore, this.matchedEntiries);
+  CachedResult.fromJson(Map<String, dynamic> json)
+      : perfectScore = json['perfectScore'] as double,
+        matchedEntiries = (json['matchedEntiries'] as List<dynamic>)
+            .map<MatchedEntry>(
+                (dynamic e) => MatchedEntry.fromJson(e as Map<String, dynamic>))
+            .toList();
   Map toJson() => <String, Object>{
-        'matchedEntries': matchedEntiries.map((e) => e.toJson()).toList(),
-        'perfScore': perfScore,
+        'perfectScore': perfectScore,
+        'matchedEntiries': matchedEntiries.map((e) => e.toJson()).toList(),
       };
 }
 
 class QueryResult {
+  int serverId = 0;
   final DateTime dateTime;
   final int durationInMilliseconds;
   final String inputString;
@@ -172,10 +182,10 @@ class QueryResult {
         perfectMatching = query.perfectMatching,
         queryTerms = query.terms.map((e) => e.term).toList(growable: false),
         cachedResult = CachedResult(
+            query.perfectScore,
             queryOccurrences
                 .map((e) => MatchedEntry(e.rawEntry, e.score))
-                .toList(growable: false),
-            query.perfScore),
+                .toList(growable: false)),
         error = '';
   QueryResult.fromError(this.error)
       : dateTime = DateTime.now(),
@@ -185,14 +195,33 @@ class QueryResult {
         letType = LetType.na,
         perfectMatching = false,
         queryTerms = [],
-        cachedResult = CachedResult([], 0);
+        cachedResult = CachedResult(0, []);
+  QueryResult.fromJson(Map<String, dynamic> json)
+      : serverId = json['serverId'] as int,
+        dateTime = DateTime.parse(json['start'] as String),
+        durationInMilliseconds = json['durationInMilliseconds'] as int,
+        inputString = json['inputString'] as String,
+        rawQuery = json['rawQuery'] as String,
+        letType = json['letType'] as String == LetType.na.name
+            ? LetType.na
+            : (json['letType'] as String == LetType.postfix.name
+                ? LetType.postfix
+                : LetType.prefix),
+        perfectMatching = json['perfectMatching'] == 'true' ? true : false,
+        queryTerms = (json['queryTerms'] as List)
+            .map<String>((dynamic e) => e as String)
+            .toList(),
+        cachedResult =
+            CachedResult.fromJson(json['cachedResult'] as Map<String, dynamic>),
+        error = json['error'] as String;
   Map toJson() => <String, Object>{
+        'serverId': serverId,
         'start': dateTime.toUtc().toIso8601String(),
         'durationInMilliseconds': durationInMilliseconds,
         'inputString': inputString,
         'rawQuery': rawQuery,
         'letType': letType.toString().substring(8),
-        'queyTerms': queryTerms,
+        'queryTerms': queryTerms,
         'cachedResult': cachedResult.toJson(),
         'error': error,
       };
@@ -233,7 +262,7 @@ class RangeIndices {
 }
 
 class FMatcher with Settings {
-  late final preper = Preprocessor();
+  final preper = Preprocessor();
   late final Db db;
   late final IDb idb;
   late final Set<CachedQuery> whiteQueries;
@@ -242,13 +271,12 @@ class FMatcher with Settings {
   static const dfz = 1.0;
   late final idfm = scoreIdfMagnifier;
   late final double tidfz = absoluteTermImportance(dfz);
-  late final double dfx =
-      min<double>(queryMatchingTypicalProperNounDf, nd);
+  late final double dfx = min<double>(queryMatchingTypicalProperNounDf, nd);
   late final tix = absoluteTermImportance(dfx) / tidfz;
   late final tsox = queryMatchingMinTermOrderSimilarity;
   late final minScore = (1.0 - (1.0 - tix)) * tsox;
-  final levenshtein = Levenshtein();
-  final _perfMatchTerm = RegExp(r'^"(.+)"$');
+  static final levenshtein = Levenshtein();
+  static final _perfMatchTerm = RegExp(r'^"(.+)"$');
 
   late final List<int> idbIndicesOfTermLength;
   late final int maxTermLength;
@@ -291,38 +319,40 @@ class FMatcher with Settings {
   }
 
   void initIdbIndices() {
-    idb.list = idb.entries
-        .where((e) => !(e.key.isLet ||
-            (e.key.term.length < termPartialMatchingMinLetters &&
-                e.key.term.length < termMatchingMinLetters)))
-        .toList(growable: false);
-    idb.list.sort((a, b) {
-      var ta = a.key.term;
-      var tb = b.key.term;
-      if (ta.length < tb.length) {
-        return -1;
-      } else if (ta.length > tb.length) {
-        return 1;
-      } else {
-        return ta.compareTo(tb);
-      }
-    });
     maxTermLength = idb.list.last.key.term.length;
     idbIndicesOfTermLength =
         List<int>.filled(maxTermLength + 2, 0, growable: false);
-    var lastLen = 0;
-    for (var i = 0; i < idb.list.length; i++) {
-      var l = idb.list[i].key.term.length;
-      if (l == lastLen) {
+    var nextLen = idb.list.first.key.term.length;
+    var firstIx = 0;
+    var ix = 0;
+    for (var ln = 0; ln <= maxTermLength; ln++) {
+      if (ln <= nextLen) {
+        idbIndicesOfTermLength[ln] = firstIx;
         continue;
       }
-      for (var j = lastLen + 1; j <= l; j++) {
-        idbIndicesOfTermLength[j] = i;
+      for (; ix < idb.list.length; ix++) {
+        var idbeln = idb.list[ix].key.term.length;
+        if (idbeln >= ln) {
+          idbIndicesOfTermLength[ln] = ix;
+          nextLen = idbeln;
+          firstIx = ix;
+          break;
+        }
       }
-      idbIndicesOfTermLength[l] = i;
-      lastLen = l;
     }
-    idbIndicesOfTermLength.last = idb.list.length;
+    idbIndicesOfTermLength[maxTermLength + 1] = idb.list.length;
+    // for (var i = 0; i < idb.list.length; i++) {
+    //   var l = idb.list[i].key.term.length;
+    //   if (l == lastLen) {
+    //     idbIndicesOfTermLength[l + 1] = i + 1;
+    //     continue;
+    //   }
+    //   for (var j = lastLen + 1; j <= l; j++) {
+    //     idbIndicesOfTermLength[j] = i;
+    //   }
+    //   lastLen = l;
+    // }
+    // idbIndicesOfTermLength.last = idb.list.length;
   }
 
   double absoluteTermImportance(double df) =>
@@ -334,8 +364,7 @@ class FMatcher with Settings {
       query.letType == LetType.prefix && qti == 0;
 
   int maxMissedTermCount(int qtc) {
-    var minMatchedTC =
-        (qtc.toDouble() * queryMatchingMinTermRatio).ceil();
+    var minMatchedTC = (qtc.toDouble() * queryMatchingMinTermRatio).ceil();
     minMatchedTC = max<int>(minMatchedTC, queryMatchingMinTerms);
     minMatchedTC = min<int>(minMatchedTC, qtc);
     return qtc - minMatchedTC;
@@ -385,7 +414,7 @@ class FMatcher with Settings {
     var ret = QueryResult.fromQueryOccurrences(
         sorted, start, end, inputString, rawQuery, query);
     resultCache[cachedQuery] =
-        CachedResult(ret.cachedResult.matchedEntiries, query.perfScore);
+        CachedResult(query.perfectScore, ret.cachedResult.matchedEntiries);
     return ret;
   }
 
@@ -559,8 +588,7 @@ class FMatcher with Settings {
       tqti[query.terms[i]] = i;
     }
     tqts.sort((a, b) => a.df.compareTo(b.df));
-    tqts =
-        tqts.sublist(0, fallbackMaxQueryTerms).toList(growable: false);
+    tqts = tqts.sublist(0, fallbackMaxQueryTerms).toList(growable: false);
     tqts.sort((a, b) => tqti[a]!.compareTo(tqti[b]!));
     var tLetType = LetType.na;
     for (var e in tqts) {
@@ -621,7 +649,7 @@ class FMatcher with Settings {
       var tsc = ti * 1.0;
       ambg *= (1.0 - tsc);
     }
-    query.perfScore = 1.0 - ambg;
+    query.perfectScore = 1.0 - ambg;
     if (query.letType != LetType.na && query.terms.length >= 2) {
       QueryTerm qt;
       if (query.letType == LetType.postfix) {
@@ -907,8 +935,8 @@ class FMatcher with Settings {
           query.letType == LetType.prefix && qti == 0) {
         distance = 0.0;
       } else {
-        distance = (e.sequenceNo - qsqsno).abs() *
-            queryMatchingTermOrderCoefficent;
+        distance =
+            (e.sequenceNo - qsqsno).abs() * queryMatchingTermOrderCoefficent;
         qsqsno++;
       }
       var normDistance = distance.toDouble() * query.terms[qti].weight;

@@ -30,7 +30,8 @@ const a = [
 ];
 
 void main() {
-  var f = File('lib/batch/queries_triple.csv').openSync(mode: FileMode.writeOnly);
+  var f =
+      File('lib/batch/queries_triple.csv').openSync(mode: FileMode.writeOnly);
   for (var i = 0; i < 26; i++) {
     f.writeStringSync('",${a[i]},"\n');
   }

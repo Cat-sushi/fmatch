@@ -22,9 +22,11 @@ Future<void> main() async {
     r'mno <*co*>',
     r'pqr <*co*> stu',
   ];
-  var rawEntries = list.map((e) => matcher.preper.normalizeAndCapitalize(e)).toList();
+  var rawEntries =
+      list.map((e) => matcher.preper.normalizeAndCapitalize(e)).toList();
   rawEntries.forEach(print);
-  matcher.db = await Db.fromStringStream(matcher.preper, Stream.fromIterable(rawEntries));
+  matcher.db = await Db.fromStringStream(
+      matcher.preper, Stream.fromIterable(rawEntries));
   matcher.idb = IDb.fromDb(matcher.db);
   matcher.initIdbIndices();
 
@@ -33,13 +35,24 @@ Future<void> main() async {
     var jsonString = JsonEncoder().convert(matcher.fmatch(q));
     print(jsonString);
     expect(
-        jsonString, endsWith(
-          '"inputString":"def co","rawQuery":"DEF CO","letType":"postfix","queyTerms":["DEF","CO"],"cachedResult":{"matchedEntries":['
-          '{"rawEntry":"DEF COMPANY","score":0.4628958000823221},'
-          '{"rawEntry":"DEF GHI CO.","score":0.4628958000823221},'
-          '{"rawEntry":"COMPANY","score":0.006317690713281352},'
-          '{"rawEntry":"COMPANY ABC","score":0.006317690713281352}],'
-          '"perfScore":0.4628958000823221},"error":""}'
-        ));
+        jsonString,
+        endsWith(
+            '"inputString":"def co","rawQuery":"DEF CO","letType":"postfix","queryTerms":["DEF","CO"],'
+            '"cachedResult":{"perfectScore":0.4628958000823221,"matchedEntiries":['
+            '{"rawEntry":"DEF COMPANY","score":0.4628958000823221},'
+            '{"rawEntry":"DEF GHI CO.","score":0.4628958000823221},'
+            '{"rawEntry":"COMPANY","score":0.006317690713281352},'
+            '{"rawEntry":"COMPANY ABC","score":0.006317690713281352}]},"error":""}'));
+  });
+  test('query 2', () {
+    var q = r'def co';
+    var jsonString = JsonEncoder().convert(matcher.fmatch(q));
+    print(jsonString);
+    var decorder = JsonDecoder();
+    var resultJson = decorder.convert(jsonString) as Map<String, dynamic>;
+    print(resultJson);
+    var result = QueryResult.fromJson(resultJson);
+    var jsonString2 = JsonEncoder().convert(result);
+    expect(jsonString, equals(jsonString2));
   });
 }

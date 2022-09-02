@@ -20,7 +20,6 @@ Future<void> main() async {
   var preprocessed = list.map((e) => matcher.preper.normalizeAndCapitalize(e)).toList();
   matcher.db = await Db.fromStringStream(matcher.preper, Stream.fromIterable(rawEntries));
   matcher.idb = IDb.fromDb(matcher.db);
-  matcher.initIdbIndices();
 
   test('ab', () {
     var q = r'ab';

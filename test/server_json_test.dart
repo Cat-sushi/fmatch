@@ -28,7 +28,6 @@ Future<void> main() async {
   matcher.db = await Db.fromStringStream(
       matcher.preper, Stream.fromIterable(rawEntries));
   matcher.idb = IDb.fromDb(matcher.db);
-  matcher.initIdbIndices();
 
   test('query 1', () {
     var q = r'def co';

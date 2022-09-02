@@ -32,8 +32,8 @@ Future<void> batch(FMatcher matcher, [String path = 'lib/batch']) async {
     ++lc;
     if ((lc % 100) == 0) {
       currentLap = DateTime.now();
-      print(
-          '$lc: ${currentLap.difference(lastLap).inMilliseconds} ${currentLap.difference(startTime).inMilliseconds}');
+      print('$lc: ${currentLap.difference(lastLap).inMilliseconds} '
+          '${currentLap.difference(startTime).inMilliseconds}');
       lastLap = currentLap;
       await resultSink.flush();
       await logSink.flush();
@@ -77,7 +77,8 @@ String formatOutput(int ix, QueryResult result) {
     csvLine.write(r',');
     csvLine.write(ix);
     csvLine.write(r',');
-    csvLine.write((e.score / result.cachedResult.perfectScore).toStringAsFixed(2));
+    csvLine
+        .write((e.score / result.cachedResult.perfectScore).toStringAsFixed(2));
     csvLine.write(r',');
     csvLine.write(result.cachedResult.matchedEntiries.length);
     csvLine.write(r',');

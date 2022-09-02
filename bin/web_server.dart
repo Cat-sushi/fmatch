@@ -1,4 +1,4 @@
-// Copyright (c) 2020, Yako.
+// Copyright (c) 2020, 2022 Yako.
 // All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -49,21 +49,6 @@ Future main() async {
         ..statusCode = HttpStatus.methodNotAllowed
         ..write('Unsupported request: ${req.method}.');
       await response.close();
-      // try {
-      //   var content = await utf8.decoder.bind(req).join();
-      //   commandQueue.add(Command(req, content));
-      //   var inputStrings = jsonDecode(content) as List<String>;
-      //   var results =
-      //       inputStrings.map((q) => matcher.fmatch(q)).toList(growable: false);
-      //   var responseContent = jsonEncode(results);
-      //   req.response
-      //     ..statusCode = HttpStatus.ok
-      //     ..write(responseContent);
-      // } catch (e) {
-      //   response
-      //     ..statusCode = HttpStatus.internalServerError
-      //     ..write('Exception during file I/O: $e.');
-      // }
     } else if (req.method == 'GET') {
       try {
         var inputString = req.uri.queryParameters['q']!;
@@ -71,7 +56,7 @@ Future main() async {
       } catch (e) {
         response
           ..statusCode = HttpStatus.internalServerError
-          ..write('hogehoge: $e.');
+          ..write('Parameter missing: $e.');
         await response.close();
       }
     } else {
@@ -100,5 +85,4 @@ Future<void> sendReceive(int id) async {
       ..write(responseContent);
     await response.close();
   }
-  print('Server $id exited');
 }

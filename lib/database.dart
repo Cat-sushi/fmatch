@@ -1,4 +1,4 @@
-// Copyright (c) 2020, Yako.
+// Copyright (c) 2020, 2022 Yako.
 // All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12,7 +12,14 @@ import 'util.dart';
 
 const bufferSize = 128 * 1024;
 
-enum LetType { na, postfix, prefix }
+enum LetType {
+  na,
+  postfix,
+  prefix;
+
+  factory LetType.fromJson(String json) => LetType.values.byName(json);
+  String toJson() => name;
+}
 
 class Preprocessed {
   final LetType letType;
@@ -165,19 +172,19 @@ class IDbTermOccurrence {
 }
 
 class IDbEntryValue {
-  late final int df;
-  late final List<IDbTermOccurrence> occurrences;
-  IDbEntryValue() : occurrences = [];
-  IDbEntryValue.of(IDbEntryValue o)
-      : df = o.df,
-        occurrences = o.occurrences.toList(growable: false);
-  IDbEntryValue.fromJson(Map<String, dynamic> json) {
-    df = json['df'] as int;
-    occurrences = (json['occurrences'] as List)
-        .map((dynamic e) =>
-            IDbTermOccurrence.fromJson(e as Map<String, dynamic>))
-        .toList(growable: false);
-  }
+  final int df;
+  final List<IDbTermOccurrence> occurrences;
+  IDbEntryValue()
+      : df = 0,
+        occurrences = [];
+  IDbEntryValue.of(this.df, IDbEntryValue o)
+      : occurrences = o.occurrences.toList(growable: false);
+  IDbEntryValue.fromJson(Map<String, dynamic> json)
+      : df = json['df'] as int,
+        occurrences = (json['occurrences'] as List)
+            .map((dynamic e) =>
+                IDbTermOccurrence.fromJson(e as Map<String, dynamic>))
+            .toList(growable: false);
   Map<String, dynamic> toJson() => <String, dynamic>{
         'df': df,
         'occurrences':
@@ -201,7 +208,9 @@ class JsonChankSink implements Sink<List<int>> {
 
 class IDb extends MapBase<IDbEntryKey, IDbEntryValue> {
   final _map = <IDbEntryKey, IDbEntryValue>{};
+  late final int maxTermLength;
   late final List<MapEntry<IDbEntryKey, IDbEntryValue>> list;
+  late final List<int> listIndicesOfTermLength;
   IDb();
   IDb.fromDb(Db db) {
     var tmpMap = <IDbEntryKey, IDbEntryValue>{};
@@ -235,10 +244,9 @@ class IDb extends MapBase<IDbEntryKey, IDbEntryValue> {
           df++;
         }
       }
-      value.df = df;
-      this[mentry.key] = IDbEntryValue.of(value);
+      this[mentry.key] = IDbEntryValue.of(df, value);
     }
-    initList();
+    _initList();
   }
 
   @override
@@ -261,11 +269,11 @@ class IDb extends MapBase<IDbEntryKey, IDbEntryValue> {
       ret[IDbEntryKey.fromJson(me['key'] as Map<String, dynamic>)] =
           IDbEntryValue.fromJson(me['value'] as Map<String, dynamic>);
     }
-    ret.initList();
+    ret._initList();
     return ret;
   }
 
-  void initList() {
+  void _initList() {
     list = entries.where((e) => !e.key.isLet).toList(growable: false);
     list.sort((a, b) {
       var ta = a.key.term;
@@ -278,6 +286,36 @@ class IDb extends MapBase<IDbEntryKey, IDbEntryValue> {
         return ta.compareTo(tb);
       }
     });
+    _initListIndices();
+  }
+
+  void _initListIndices() {
+    // `l` of `listIndicesOfTermLength[l]` is the length of the terms
+    // `listIndicesOfTermLength[l] == listIndicesOfTermLength[l+1]` unless term with length `l` exists
+    // `listIndicesOfTermLength[0]` isn't used
+    // `listIndicesOfTermLength[maxTermLength + 1]` is index of `list.last` + 1
+    maxTermLength = list.last.key.term.length;
+    listIndicesOfTermLength =
+        List<int>.filled(maxTermLength + 2, 0, growable: false);
+    var nextLen = list.first.key.term.length;
+    var firstIx = 0;
+    var ix = 0;
+    for (var ln = 0; ln <= maxTermLength; ln++) {
+      if (ln <= nextLen) {
+        listIndicesOfTermLength[ln] = firstIx;
+        continue;
+      }
+      for (; ix < list.length; ix++) {
+        var idbeln = list[ix].key.term.length;
+        if (idbeln >= ln) {
+          listIndicesOfTermLength[ln] = ix;
+          nextLen = idbeln;
+          firstIx = ix;
+          break;
+        }
+      }
+    }
+    listIndicesOfTermLength[maxTermLength + 1] = list.length;
   }
 
   void write(String path) {

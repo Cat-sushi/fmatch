@@ -30,3 +30,4 @@ test/env0/Log.txt
 test/env0/results.csv
 bin/batch
 bin/pbatch
+bin/process_results

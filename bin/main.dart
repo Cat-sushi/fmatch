@@ -13,5 +13,4 @@ Future<void> main() async {
   await time(() => matcher.preper.readConfigs(), 'Configs.read');
   await time(() => matcher.buildDb(), 'buildDb');
   await time(() => batch(matcher), 'batch');
-//  await time(() => batch(), 'batch');
 }

@@ -93,8 +93,8 @@ class Dispatcher {
       ++lc;
       if ((lc % 100) == 0) {
         currentLap = DateTime.now();
-        print(
-            '$lc: ${currentLap.difference(lastLap).inMilliseconds} ${currentLap.difference(startTime).inMilliseconds}');
+        print('$lc: ${currentLap.difference(lastLap).inMilliseconds} '
+            '${currentLap.difference(startTime).inMilliseconds}');
         lastLap = currentLap;
       }
       results.remove(ixO);

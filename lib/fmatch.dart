@@ -1,4 +1,4 @@
-// Copyright (c) 2020, Yako.
+// Copyright (c) 2020, 2022 Yako.
 // All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -107,7 +107,7 @@ class QueryTermInQueryOccurrnece {
         partial = o.partial;
 }
 
-class QueryOccurrence with Comparable<QueryOccurrence> {
+class QueryOccurrence implements Comparable<QueryOccurrence> {
   final String rawEntry;
   double score;
   final List<QueryTermInQueryOccurrnece> queryTerms;
@@ -202,11 +202,7 @@ class QueryResult {
         durationInMilliseconds = json['durationInMilliseconds'] as int,
         inputString = json['inputString'] as String,
         rawQuery = json['rawQuery'] as String,
-        letType = json['letType'] as String == LetType.na.name
-            ? LetType.na
-            : (json['letType'] as String == LetType.postfix.name
-                ? LetType.postfix
-                : LetType.prefix),
+        letType = LetType.fromJson(json['letType'] as String),
         perfectMatching = json['perfectMatching'] == 'true' ? true : false,
         queryTerms = (json['queryTerms'] as List)
             .map<String>((dynamic e) => e as String)
@@ -220,7 +216,7 @@ class QueryResult {
         'durationInMilliseconds': durationInMilliseconds,
         'inputString': inputString,
         'rawQuery': rawQuery,
-        'letType': letType.toString().substring(8),
+        'letType': letType.toJson(),
         'queryTerms': queryTerms,
         'cachedResult': cachedResult.toJson(),
         'error': error,
@@ -278,9 +274,6 @@ class FMatcher with Settings {
   static final levenshtein = Levenshtein();
   static final _perfMatchTerm = RegExp(r'^"(.+)"$');
 
-  late final List<int> idbIndicesOfTermLength;
-  late final int maxTermLength;
-
   Future<void> buildDb() async {
     var idbFile = File(Paths.idb);
     var idbFileExists = idbFile.existsSync();
@@ -315,44 +308,6 @@ class FMatcher with Settings {
     await time(() async {
       whiteQueries = await readWhiteQueries(preper, Paths.whiteQueries);
     }, 'readWhiteQueries');
-    initIdbIndices();
-  }
-
-  void initIdbIndices() {
-    maxTermLength = idb.list.last.key.term.length;
-    idbIndicesOfTermLength =
-        List<int>.filled(maxTermLength + 2, 0, growable: false);
-    var nextLen = idb.list.first.key.term.length;
-    var firstIx = 0;
-    var ix = 0;
-    for (var ln = 0; ln <= maxTermLength; ln++) {
-      if (ln <= nextLen) {
-        idbIndicesOfTermLength[ln] = firstIx;
-        continue;
-      }
-      for (; ix < idb.list.length; ix++) {
-        var idbeln = idb.list[ix].key.term.length;
-        if (idbeln >= ln) {
-          idbIndicesOfTermLength[ln] = ix;
-          nextLen = idbeln;
-          firstIx = ix;
-          break;
-        }
-      }
-    }
-    idbIndicesOfTermLength[maxTermLength + 1] = idb.list.length;
-    // for (var i = 0; i < idb.list.length; i++) {
-    //   var l = idb.list[i].key.term.length;
-    //   if (l == lastLen) {
-    //     idbIndicesOfTermLength[l + 1] = i + 1;
-    //     continue;
-    //   }
-    //   for (var j = lastLen + 1; j <= l; j++) {
-    //     idbIndicesOfTermLength[j] = i;
-    //   }
-    //   lastLen = l;
-    // }
-    // idbIndicesOfTermLength.last = idb.list.length;
   }
 
   double absoluteTermImportance(double df) =>
@@ -462,11 +417,11 @@ class FMatcher with Settings {
     var occurrences = <QueryTermOccurrence>[];
     var lqt = qterm.term.length.toDouble();
     var ls = (lqt * termMatchingMinLetterRatio).ceil();
-    var ixs = idbIndicesOfTermLength[ls];
+    var ixs = idb.listIndicesOfTermLength[ls];
     var le1 = (lqt / termPartialMatchingMinLetterRatio).truncate();
     var le2 = (lqt / termMatchingMinLetterRatio).truncate();
-    var le = min<int>(max<int>(le1, le2), maxTermLength);
-    var ixe = idbIndicesOfTermLength[le + 1];
+    var le = min<int>(max<int>(le1, le2), idb.maxTermLength);
+    var ixe = idb.listIndicesOfTermLength[le + 1];
     for (var i = ixs; i < ixe; i++) {
       var idbe = idb.list[i];
       bool partial;

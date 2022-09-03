@@ -12,6 +12,8 @@ doc/api/
 # Other
 .vscode/
 .VSCodeCounter
+.gitignore
+pubspec.lock
 git_ignore/
 bin/batch
 bin/pbatch

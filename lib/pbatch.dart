@@ -8,9 +8,9 @@ import 'dart:io';
 
 import 'package:async/async.dart';
 
-import 'package:fmatch/batch.dart';
-import 'package:fmatch/fmatch.dart';
-import 'package:fmatch/server.dart';
+import 'batch.dart';
+import 'fmatch.dart';
+import 'server.dart';
 
 late File resultFile;
 late IOSink resultSink;

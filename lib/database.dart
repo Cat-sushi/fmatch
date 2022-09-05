@@ -82,11 +82,11 @@ class Db {
     return ret;
   }
 
-  Preprocessed? operator [](Object? key) => _map[key];
+  Preprocessed? operator [](String key) => _map[key];
   operator []=(String key, Preprocessed value) => _map[key] = value;
   Iterable<String> get keys => _map.keys;
   int get length => _map.length;
-  bool containsKey(Object? key) => _map.containsKey(key);
+  bool containsKey(String key) => _map.containsKey(key);
 
   static Future<Db> readList(Preprocessor preper, String path) async {
     var plainEntries = readCsvLines(path)
@@ -243,7 +243,7 @@ class IDb {
     _initList();
   }
 
-  IDbEntryValue? operator [](Object? key) => _map[key];
+  IDbEntryValue? operator [](IDbEntryKey key) => _map[key];
   operator []=(IDbEntryKey key, IDbEntryValue value) => _map[key] = value;
   Iterable<MapEntry<IDbEntryKey, IDbEntryValue>> get entries => _map.entries;
   Iterable<IDbEntryKey> get keys => _map.keys;

@@ -2,7 +2,6 @@
 // All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
@@ -27,7 +26,7 @@ class Preprocessed {
   Preprocessed(this.letType, this.terms);
 }
 
-class Db extends MapBase<String, Preprocessed> {
+class Db {
   final Map<String, Preprocessed> _map = {};
   Db();
   Db.fromIDb(IDb idb) {
@@ -83,16 +82,11 @@ class Db extends MapBase<String, Preprocessed> {
     return ret;
   }
 
-  @override
   Preprocessed? operator [](Object? key) => _map[key];
-  @override
   operator []=(String key, Preprocessed value) => _map[key] = value;
-  @override
   Iterable<String> get keys => _map.keys;
-  @override
-  void clear() => _map.clear();
-  @override
-  Preprocessed? remove(Object? key) => _map.remove(key);
+  int get length => _map.length;
+  bool containsKey(Object? key) => _map.containsKey(key);
 
   static Future<Db> readList(Preprocessor preper, String path) async {
     var plainEntries = readCsvLines(path)

@@ -18,11 +18,11 @@ late DateTime lastLap;
 
 class Server {
   final FMatcher matcher;
-  final ReceivePort crp;
+  final crp = ReceivePort();
   late final StreamIterator<dynamic> cri;
   late final SendPort csp;
   late final Isolate isolate;
-  Server(this.matcher) : crp = ReceivePort() {
+  Server(this.matcher) {
     cri = StreamIterator<dynamic>(crp);
   }
   Future<void> spawn(int id) async {

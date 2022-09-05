@@ -206,7 +206,7 @@ class JsonChankSink implements Sink<List<int>> {
   }
 }
 
-class IDb extends MapBase<IDbEntryKey, IDbEntryValue> {
+class IDb {
   final _map = <IDbEntryKey, IDbEntryValue>{};
   late final int maxTermLength;
   late final List<MapEntry<IDbEntryKey, IDbEntryValue>> list;
@@ -249,16 +249,10 @@ class IDb extends MapBase<IDbEntryKey, IDbEntryValue> {
     _initList();
   }
 
-  @override
   IDbEntryValue? operator [](Object? key) => _map[key];
-  @override
   operator []=(IDbEntryKey key, IDbEntryValue value) => _map[key] = value;
-  @override
+  Iterable<MapEntry<IDbEntryKey, IDbEntryValue>> get entries => _map.entries;
   Iterable<IDbEntryKey> get keys => _map.keys;
-  @override
-  void clear() => _map.clear();
-  @override
-  IDbEntryValue? remove(Object? key) => _map.remove(key);
 
   static Future<IDb> read(String path) async {
     var ret = IDb();

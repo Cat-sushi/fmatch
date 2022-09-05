@@ -32,8 +32,8 @@ mixin Settings {
   // 以下メンバはPoCで追加
   late double fallbackThresholdCombinations =
       pow(fallbackMaxQueryTermMobility + 1, fallbackMaxQueryTerms).toDouble();
-  int fallbackMaxQueryTerms = 10;
-  int fallbackMaxQueryTermMobility = 3;
+  int fallbackMaxQueryTerms = 6;
+  int fallbackMaxQueryTermMobility = 6;
   double queryMatchingTermOrderCoefficent = 0.5;
   int queryResultCacheSize = 10000;
   int serverCount = Platform.numberOfProcessors;

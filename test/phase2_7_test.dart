@@ -74,6 +74,7 @@ Future<void> main() async {
     var q = r'AL AL AL AL AL AL AL AL AL';
     var results = matcher.fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, <String>[
+      preprocessed[1],
     ]);
   });
 }

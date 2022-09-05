@@ -104,7 +104,9 @@ Future<void> main() async {
     var q = r'zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz';
     var r = matcher.fmatch(q);
     var results = r.cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
-    expect(results, <String>[]); // 組み合わせ爆発防止対策によりヒットせず
+    expect(results, [
+      rawEntries[8],
+    ]);
   });
   test('query 9', () {
     var q = r'zzz zzz zzzz aaa aaa aaa bbb bbb ccc ccc ccc ddd ddd ddd eee eee eee';
@@ -131,18 +133,18 @@ Future<void> main() async {
     ]);
   });
   test('query 12', () {
-    var q = r'zzz zzz zzz zzz zzz zzz zzz zzz zzz';
+    var q = r'zzz zzz zzz zzz zzz';
     var r = matcher.fmatch(q);
-    expect(r.queryTerms.length, 9);
+    expect(r.queryTerms.length, 5);
   });
   test('query 13', () {
-    var q = r'zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz';
+    var q = r'zzz zzz zzz zzz zzz zzz';
     var r = matcher.fmatch(q);
-    expect(r.queryTerms.length, 10);
+    expect(r.queryTerms.length, 6);
   });
   test('query 14', () {
-    var q = r'zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz zzz';
+    var q = r'zzz zzz zzz zzz zzz zzz zzz';
     var r = matcher.fmatch(q);
-    expect(r.queryTerms.length, 10);
+    expect(r.queryTerms.length, 6);
   });
 }

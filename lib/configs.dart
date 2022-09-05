@@ -30,7 +30,8 @@ mixin Settings {
   double queryMatchingMinTermOrderSimilarity = 0.4444;
   double scoreIdfMagnifier = 2.0;
   // 以下メンバはPoCで追加
-  late double fallbackThresholdCombinations;
+  late double fallbackThresholdCombinations =
+      pow(fallbackMaxQueryTermMobility + 1, fallbackMaxQueryTerms).toDouble();
   int fallbackMaxQueryTerms = 10;
   int fallbackMaxQueryTermMobility = 3;
   double queryMatchingTermOrderCoefficent = 0.5;
@@ -94,8 +95,6 @@ mixin Settings {
           break;
       }
     }
-    fallbackThresholdCombinations =
-        pow(fallbackMaxQueryTermMobility + 1, fallbackMaxQueryTerms).toDouble();
   }
 }
 

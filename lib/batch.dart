@@ -78,7 +78,7 @@ String formatOutput(int ix, QueryResult result) {
     csvLine.write(ix);
     csvLine.write(r',');
     csvLine
-        .write((e.score / result.cachedResult.perfectScore).toStringAsFixed(2));
+        .write((e.score / result.cachedResult.queryScore).toStringAsFixed(2));
     csvLine.write(r',');
     csvLine.write(result.cachedResult.matchedEntiries.length);
     csvLine.write(r',');

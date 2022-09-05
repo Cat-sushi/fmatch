@@ -63,13 +63,13 @@ class Query {
   LetType letType;
   List<QueryTerm> terms;
   bool perfectMatching;
-  double perfectScore;
+  double queryScore;
   Query.fromPreprocessed(Preprocessed preped, this.perfectMatching)
       : letType = preped.letType,
         terms = preped.terms
             .map((e) => QueryTerm(e, 0.0, 0.0))
             .toList(growable: false),
-        perfectScore = 0;
+        queryScore = 0;
 }
 
 class QueryTermOccurrence {
@@ -130,17 +130,17 @@ class MatchedEntry {
 }
 
 class CachedResult {
-  double perfectScore;
+  double queryScore;
   List<MatchedEntry> matchedEntiries;
-  CachedResult(this.perfectScore, this.matchedEntiries);
+  CachedResult(this.queryScore, this.matchedEntiries);
   CachedResult.fromJson(Map<String, dynamic> json)
-      : perfectScore = json['perfectScore'] as double,
+      : queryScore = json['queryScore'] as double,
         matchedEntiries = (json['matchedEntiries'] as List<dynamic>)
             .map<MatchedEntry>(
                 (dynamic e) => MatchedEntry.fromJson(e as Map<String, dynamic>))
             .toList();
   Map toJson() => <String, Object>{
-        'perfectScore': perfectScore,
+        'queryScore': queryScore,
         'matchedEntiries': matchedEntiries.map((e) => e.toJson()).toList(),
       };
 }
@@ -182,7 +182,7 @@ class QueryResult {
         perfectMatching = query.perfectMatching,
         queryTerms = query.terms.map((e) => e.term).toList(growable: false),
         cachedResult = CachedResult(
-            query.perfectScore,
+            query.queryScore,
             queryOccurrences
                 .map((e) => MatchedEntry(e.rawEntry, e.score))
                 .toList(growable: false)),
@@ -369,7 +369,7 @@ class FMatcher with Settings {
     var ret = QueryResult.fromQueryOccurrences(
         sorted, start, end, inputString, rawQuery, query);
     resultCache[cachedQuery] =
-        CachedResult(query.perfectScore, ret.cachedResult.matchedEntiries);
+        CachedResult(query.queryScore, ret.cachedResult.matchedEntiries);
     return ret;
   }
 
@@ -604,7 +604,7 @@ class FMatcher with Settings {
       var tsc = ti * 1.0;
       ambg *= (1.0 - tsc);
     }
-    query.perfectScore = 1.0 - ambg;
+    query.queryScore = 1.0 - ambg;
     if (query.letType != LetType.na && query.terms.length >= 2) {
       QueryTerm qt;
       if (query.letType == LetType.postfix) {

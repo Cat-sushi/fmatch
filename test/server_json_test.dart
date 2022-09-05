@@ -37,7 +37,7 @@ Future<void> main() async {
         jsonString,
         endsWith(
             '"inputString":"def co","rawQuery":"DEF CO","letType":"postfix","queryTerms":["DEF","CO"],'
-            '"cachedResult":{"perfectScore":0.4628958000823221,"matchedEntiries":['
+            '"cachedResult":{"queryScore":0.4628958000823221,"matchedEntiries":['
             '{"rawEntry":"DEF COMPANY","score":0.4628958000823221},'
             '{"rawEntry":"DEF GHI CO.","score":0.4628958000823221},'
             '{"rawEntry":"COMPANY","score":0.006317690713281352},'

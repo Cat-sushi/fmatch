@@ -442,7 +442,13 @@ class FMatcher with Settings {
       occurrences.addAll(os);
     }
     occurrences = occurrences.toList(growable: false);
-    occurrences.sort((a, b) => a.rawEntry.compareTo(b.rawEntry));
+    occurrences.sort((a, b) {
+     var c = a.rawEntry.compareTo(b.rawEntry);
+     if(c != 0){
+      return c;
+     }
+     return b.termSimilarity.compareTo(a.termSimilarity);
+    });
     return occurrences;
   }
 
@@ -574,7 +580,6 @@ class FMatcher with Settings {
         continue;
       }
       if (ose.length > fallbackMaxQueryTermMobility) {
-        ose.sort((a, b) => -a.termSimilarity.compareTo(b.termSimilarity));
         ose = ose.sublist(0, fallbackMaxQueryTermMobility);
       }
       ret.addAll(ose);

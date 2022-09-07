@@ -310,11 +310,37 @@ class FMatcher with Settings {
     }, 'readWhiteQueries');
   }
 
+  static Future<Set<CachedQuery>> readWhiteQueries(
+      Preprocessor preper, String path) async {
+    var ret = <CachedQuery>{};
+    await for (var line in readCsvLines(path)) {
+      if (line.isEmpty) {
+        continue;
+      }
+      var inputString = line[0];
+      if (inputString == null || inputString == '') {
+        continue;
+      }
+      if (preper.hasIllegalCharacter(inputString)) {
+        print('Illegal characters in white query: $inputString');
+        continue;
+      }
+      var rawQuery = preper.normalizeAndCapitalize(inputString);
+      var preprocessed = preper.preprocess(rawQuery, true);
+      if (preprocessed.terms.isEmpty) {
+        print('No valid terms in white query: $inputString');
+        continue;
+      }
+      ret.add(CachedQuery.fromPreprocessed(preprocessed, false));
+    }
+    return ret;
+  }
+
   double absoluteTermImportance(double df) =>
       pow(log(nd / min<double>(max<double>(df, 1.0), nd)) / ln10, idfm)
           .toDouble();
 
-  bool isLetByQueryTerm(Query query, int qti) =>
+  static bool isLetByQueryTerm(Query query, int qti) =>
       query.letType == LetType.postfix && qti == query.terms.length - 1 ||
       query.letType == LetType.prefix && qti == 0;
 

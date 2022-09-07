@@ -5,26 +5,10 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'fmatch.dart';
 import 'preprocess.dart';
 import 'util.dart';
 
 const bufferSize = 128 * 1024;
-
-enum LetType {
-  na,
-  postfix,
-  prefix;
-
-  factory LetType.fromJson(String json) => LetType.values.byName(json);
-  String toJson() => name;
-}
-
-class Preprocessed {
-  final LetType letType;
-  final List<String> terms;
-  Preprocessed(this.letType, this.terms);
-}
 
 class Db {
   final Map<String, Preprocessed> _map = {};
@@ -321,30 +305,4 @@ class IDb {
         .map((mk) => {'key': mk.toJson(), 'value': this[mk]!.toJson()})
         .toList(growable: false);
   }
-}
-
-Future<Set<CachedQuery>> readWhiteQueries(
-    Preprocessor preper, String path) async {
-  var ret = <CachedQuery>{};
-  await for (var line in readCsvLines(path)) {
-    if (line.isEmpty) {
-      continue;
-    }
-    var inputString = line[0];
-    if (inputString == null || inputString == '') {
-      continue;
-    }
-    if (preper.hasIllegalCharacter(inputString)) {
-      print('Illegal characters in white query: $inputString');
-      continue;
-    }
-    var rawQuery = preper.normalizeAndCapitalize(inputString);
-    var preprocessed = preper.preprocess(rawQuery, true);
-    if (preprocessed.terms.isEmpty) {
-      print('No valid terms in white query: $inputString');
-      continue;
-    }
-    ret.add(CachedQuery.fromPreprocessed(preprocessed, false));
-  }
-  return ret;
 }

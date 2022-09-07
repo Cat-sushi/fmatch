@@ -5,8 +5,22 @@
 import 'package:unorm_dart/unorm_dart.dart' as unorm;
 
 import 'configs.dart';
-import 'database.dart';
 import 'util.dart';
+
+enum LetType {
+  na,
+  postfix,
+  prefix;
+
+  factory LetType.fromJson(String json) => LetType.values.byName(json);
+  String toJson() => name;
+}
+
+class Preprocessed {
+  final LetType letType;
+  final List<String> terms;
+  Preprocessed(this.letType, this.terms);
+}
 
 class LetReplaced {
   final String name;

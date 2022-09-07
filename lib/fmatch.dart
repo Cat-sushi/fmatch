@@ -443,11 +443,15 @@ class FMatcher with Settings {
     }
     occurrences = occurrences.toList(growable: false);
     occurrences.sort((a, b) {
-     var c = a.rawEntry.compareTo(b.rawEntry);
-     if(c != 0){
-      return c;
-     }
-     return b.termSimilarity.compareTo(a.termSimilarity);
+      var c = a.rawEntry.compareTo(b.rawEntry);
+      if (c != 0) {
+        return c;
+      }
+      c = b.termSimilarity.compareTo(a.termSimilarity);
+      if (c != 0) {
+        return c;
+      }
+      return a.position.compareTo(b.position);
     });
     return occurrences;
   }

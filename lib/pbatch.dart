@@ -20,7 +20,7 @@ late DateTime startTime;
 late DateTime currentLap;
 late DateTime lastLap;
 
-Future<void> pbatch(FMatcher matcher, [String path = 'lib/batch']) async {
+Future<void> pbatch(FMatcher matcher, [String path = 'batch']) async {
   var batchQueryPath = '$path/queries.csv';
   var batchResultPath = '$path/results.csv';
   var batchLogPath = '$path/log.txt';

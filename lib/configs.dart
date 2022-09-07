@@ -7,16 +7,16 @@ import 'dart:math';
 import 'util.dart';
 
 class Paths {
-  static var setting = 'lib/config/settings.csv';
-  static var legalCaharacters = 'lib/config/legal_characters.csv';
-  static var stringReplacement = 'lib/config/string_replacement.csv';
-  static var legalEntryType = 'lib/config/legal_entity_types.csv';
-  static var words = 'lib/config/words.csv';
-  static var wordReplacement = 'lib/config/word_replacement.csv';
-  static var list = 'lib/database/list.csv';
-  static var db = 'lib/database/db.csv';
-  static var idb = 'lib/database/idb.json';
-  static var whiteQueries = 'lib/database/white_queries.csv';
+  static var setting = 'config/settings.csv';
+  static var legalCaharacters = 'config/legal_characters.csv';
+  static var stringReplacement = 'config/string_replacement.csv';
+  static var legalEntryType = 'config/legal_entity_types.csv';
+  static var words = 'config/words.csv';
+  static var wordReplacement = 'config/word_replacement.csv';
+  static var list = 'database/list.csv';
+  static var db = 'database/db.csv';
+  static var idb = 'database/idb.json';
+  static var whiteQueries = 'database/white_queries.csv';
 }
 
 mixin Settings {

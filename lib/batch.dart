@@ -9,7 +9,7 @@ import 'fmatch.dart';
 import 'preprocess.dart';
 import 'util.dart';
 
-Future<void> batch(FMatcher matcher, [String path = 'lib/batch']) async {
+Future<void> batch(FMatcher matcher, [String path = 'batch']) async {
   var batchQueryPath = '$path/queries.csv';
   var batchResultPath = '$path/results.csv';
   var batchLogPath = '$path/log.txt';

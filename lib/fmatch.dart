@@ -20,45 +20,6 @@ class QueryTerm {
   QueryTerm(this.term, this.df, this.weight);
 }
 
-class CachedQuery {
-  final LetType letType;
-  final List<String> terms;
-  final bool perfectMatching;
-  final int _hashCode;
-  CachedQuery.fromPreprocessed(Preprocessed preped, this.perfectMatching)
-      : letType = preped.letType,
-        terms = preped.terms,
-        _hashCode =
-            Object.hashAll([preped.letType, perfectMatching, ...preped.terms]);
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) {
-      return true;
-    }
-    if (other is! CachedQuery) {
-      return false;
-    }
-    if (letType != other.letType) {
-      return false;
-    }
-    if (perfectMatching != other.perfectMatching) {
-      return false;
-    }
-    if (terms.length != other.terms.length) {
-      return false;
-    }
-    for (var i = 0; i < terms.length; i++) {
-      if (terms[i] != other.terms[i]) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  @override
-  int get hashCode => _hashCode;
-}
-
 class Query {
   LetType letType;
   List<QueryTerm> terms;
@@ -156,19 +117,14 @@ class QueryResult {
   final List<String> queryTerms;
   final CachedResult cachedResult;
   final String error;
-  QueryResult.fromCachedResult(
-    this.cachedResult,
-    DateTime start,
-    DateTime end,
-    this.inputString,
-    this.rawQuery,
-    Preprocessed preprocessed,
-  )   : dateTime = start,
+  QueryResult.fromCachedResult(this.cachedResult, DateTime start, DateTime end,
+      this.inputString, this.rawQuery, Preprocessed preprocessed,
+      [this.error = ''])
+      : dateTime = start,
         durationInMilliseconds = end.difference(start).inMilliseconds,
         letType = preprocessed.letType,
         queryTerms = preprocessed.terms,
-        perfectMatching = false,
-        error = '';
+        perfectMatching = false;
   QueryResult.fromQueryOccurrences(
     List<QueryOccurrence> queryOccurrences,
     DateTime start,
@@ -261,7 +217,6 @@ class FMatcher with Settings {
   final preper = Preprocessor();
   late final Db db;
   late final IDb idb;
-  late final Set<CachedQuery> whiteQueries;
   late final resultCache = ResultCache(queryResultCacheSize);
   late final nd = db.length.toDouble(); // nd >= 2.0
   static const dfz = 1.0;
@@ -305,35 +260,7 @@ class FMatcher with Settings {
       await time(() => db = Db.fromIDb(idb), 'Db.fromIDb');
       await time(() => db.write(Paths.db), 'Db.write');
     }
-    await time(() async {
-      whiteQueries = await readWhiteQueries(preper, Paths.whiteQueries);
-    }, 'readWhiteQueries');
-  }
-
-  static Future<Set<CachedQuery>> readWhiteQueries(
-      Preprocessor preper, String path) async {
-    var ret = <CachedQuery>{};
-    await for (var line in readCsvLines(path)) {
-      if (line.isEmpty) {
-        continue;
-      }
-      var inputString = line[0];
-      if (inputString == null || inputString == '') {
-        continue;
-      }
-      if (preper.hasIllegalCharacter(inputString)) {
-        print('Illegal characters in white query: $inputString');
-        continue;
-      }
-      var rawQuery = preper.normalizeAndCapitalize(inputString);
-      var preprocessed = preper.preprocess(rawQuery, true);
-      if (preprocessed.terms.isEmpty) {
-        print('No valid terms in white query: $inputString');
-        continue;
-      }
-      ret.add(CachedQuery.fromPreprocessed(preprocessed, false));
-    }
-    return ret;
+    preper.initWhiteQueries();
   }
 
   double absoluteTermImportance(double df) =>
@@ -378,22 +305,39 @@ class FMatcher with Settings {
     }
     var cachedQuery =
         CachedQuery.fromPreprocessed(preprocessed, perfectMatching);
-    if (whiteQueries.contains(cachedQuery)) {
-      return QueryResult.fromError('Safe Customer: $inputString');
+    if (preper.whiteQueries.contains(cachedQuery)) {
+      return QueryResult.fromCachedResult(
+        CachedResult(0, []),
+        start,
+        DateTime.now(),
+        inputString,
+        rawQuery,
+        preprocessed,
+        'Safe Customer: ${preprocessed.terms.join(' ')}',
+      );
     }
     var cachedResult = resultCache[cachedQuery];
     if (cachedResult != null) {
-      var end = DateTime.now();
-      var ret = QueryResult.fromCachedResult(
-          cachedResult, start, end, inputString, rawQuery, preprocessed);
-      return ret;
+      return QueryResult.fromCachedResult(
+        cachedResult,
+        start,
+        DateTime.now(),
+        inputString,
+        rawQuery,
+        preprocessed,
+      );
     }
     var query = Query.fromPreprocessed(preprocessed, perfectMatching);
     var resultUnsorted = matchWithoutSort(query);
     var sorted = sortAndDedupResults(resultUnsorted);
-    var end = DateTime.now();
     var ret = QueryResult.fromQueryOccurrences(
-        sorted, start, end, inputString, rawQuery, query);
+      sorted,
+      start,
+      DateTime.now(),
+      inputString,
+      rawQuery,
+      query,
+    );
     resultCache[cachedQuery] =
         CachedResult(query.queryScore, ret.cachedResult.matchedEntiries);
     return ret;

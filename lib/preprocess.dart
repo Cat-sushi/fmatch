@@ -28,7 +28,65 @@ class LetReplaced {
   const LetReplaced(this.name, this.letType);
 }
 
+class CachedQuery {
+  final LetType letType;
+  final List<String> terms;
+  final bool perfectMatching;
+  final int _hashCode;
+  CachedQuery.fromPreprocessed(Preprocessed preped, this.perfectMatching)
+      : letType = preped.letType,
+        terms = preped.terms,
+        _hashCode =
+            Object.hashAll([preped.letType, perfectMatching, ...preped.terms]);
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+    if (other is! CachedQuery) {
+      return false;
+    }
+    if (letType != other.letType) {
+      return false;
+    }
+    if (perfectMatching != other.perfectMatching) {
+      return false;
+    }
+    if (terms.length != other.terms.length) {
+      return false;
+    }
+    for (var i = 0; i < terms.length; i++) {
+      if (terms[i] != other.terms[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @override
+  int get hashCode => _hashCode;
+}
+
 class Preprocessor with Configs {
+  late final Set<CachedQuery> whiteQueries;
+
+  void initWhiteQueries(){
+    whiteQueries = <CachedQuery>{};
+    for (var inputString in rawWhiteQueries) {
+      if (hasIllegalCharacter(inputString)) {
+        print('Illegal characters in white query: $inputString');
+        continue;
+      }
+      var rawQuery = normalizeAndCapitalize(inputString);
+      var preprocessed = preprocess(rawQuery, true);
+      if (preprocessed.terms.isEmpty) {
+        print('No valid terms in white query: $inputString');
+        continue;
+      }
+      whiteQueries.add(CachedQuery.fromPreprocessed(preprocessed, false));
+    }
+  }
+
   bool hasIllegalCharacter(String name) {
     var m = legalChars.firstMatch(name);
     if (m == null) {

@@ -10,7 +10,7 @@ Future<void> main() async {
   var matcher = FMatcher();
   await matcher.readSettings(null);
   await matcher.preper.readConfigs();
-  matcher.whiteQueries = {};
+  matcher.preper.initWhiteQueries();
   var list = [
     r'LI, LI',
     r'AL-LAJNA AL-KHAYRIYYA LIL MUNASARA AL-AQSA',

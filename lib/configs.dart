@@ -13,10 +13,10 @@ class Paths {
   static var legalEntryType = 'config/legal_entity_types.csv';
   static var words = 'config/words.csv';
   static var wordReplacement = 'config/word_replacement.csv';
+  static var whiteQueries = 'config/white_queries.csv';
   static var list = 'database/list.csv';
   static var db = 'database/db.csv';
   static var idb = 'database/idb.json';
-  static var whiteQueries = 'database/white_queries.csv';
 }
 
 mixin Settings {
@@ -124,12 +124,14 @@ mixin Configs {
   late final List<LegalEntityTypeReplacement> legalEntryTypeReplacements;
   late final RegExp words;
   late final List<WordReplacement> wordReplacements;
+  late final List<String> rawWhiteQueries;
   Future<void> readConfigs() async {
     await _readLegalCharConf(Paths.legalCaharacters);
     await _readStringReplacementConf(Paths.stringReplacement);
     await _readLegalEntityTypesConf(Paths.legalEntryType);
     await _readWordsConf(Paths.words);
     await _readWordReplacementConf(Paths.wordReplacement);
+    await _readWhiteQueries(Paths.whiteQueries);
   }
 
   Future<void> _readLegalCharConf(String path) async {
@@ -251,5 +253,19 @@ mixin Configs {
       wordRpl.add(WordReplacement(regExp(pattern.toString()), toString));
     }
     wordReplacements = wordRpl.toList(growable: false);
+  }
+
+  Future<void>_readWhiteQueries(String path) async {
+    rawWhiteQueries = <String>[];
+    await for (var line in readCsvLines(path)) {
+      if (line.isEmpty) {
+        continue;
+      }
+      var inputString = line[0];
+      if (inputString == null || inputString == '') {
+        continue;
+      }
+      rawWhiteQueries.add(inputString);
+    }
   }
 }

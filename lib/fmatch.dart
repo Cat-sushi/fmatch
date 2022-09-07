@@ -442,7 +442,10 @@ class FMatcher with Settings {
     }
     var occurrences = <QueryTermOccurrence>[];
     var lqt = qterm.term.length.toDouble();
-    var ls = (lqt * termMatchingMinLetterRatio).ceil();
+    var ls1 = (lqt * termMatchingMinLetterRatio).ceil();
+    var ls2 = (lqt * termPartialMatchingMinLetterRatio).ceil();
+    var ls3 = min<int>(termMatchingMinLetters, termPartialMatchingMinLetters);
+    var ls = min<int>(max<int>(min<int>(ls1, ls2), ls3), idb.maxTermLength);
     var ixs = idb.listIndicesOfTermLength[ls];
     var le1 = (lqt / termPartialMatchingMinLetterRatio).truncate();
     var le2 = (lqt / termMatchingMinLetterRatio).truncate();

@@ -4,11 +4,11 @@ import 'package:fmatch/util.dart';
 Future<void> main() async {
   var sb = StringBuffer();
   var f1 =
-      File('lib/batch/results_4c.csv').openSync(mode: FileMode.writeOnly);
+      File('batch/results_4c.csv').openSync(mode: FileMode.writeOnly);
   var f2 =
-      File('lib/batch/results_4q.csv').openSync(mode: FileMode.writeOnly);
+      File('batch/results_4q.csv').openSync(mode: FileMode.writeOnly);
   var lastIx = -1;
-  await for (var l in readCsvLines('lib/batch/results.csv')) {
+  await for (var l in readCsvLines('batch/results.csv')) {
     sb.clear();
     sb.write('${l[2]},${l[3]},${l[4]},${quoteCsvCell(l[5]!)},${quoteCsvCell(l[6]!)},${l[7]!}');
     l.sublist(8).map((e)=>',${quoteCsvCell(e!)}').forEach((e) => sb.write(e));

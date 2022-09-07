@@ -23,10 +23,7 @@ batch
 database
 test/env0/db.csv
 test/env0/idb.json
-test/env0/list.csv
 test/env0/Log.txt
-test/env0/queries.csv
-test/env0/white_list.csv
 test/env0/results.csv
 test/env0/queries.csv
 test/env1/db.csv

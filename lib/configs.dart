@@ -29,7 +29,6 @@ mixin Settings {
   double queryMatchingTypicalProperNounDf = 10.0;
   double queryMatchingMinTermOrderSimilarity = 0.4444;
   double scoreIdfMagnifier = 2.0;
-  // 以下メンバはPoCで追加
   late double fallbackThresholdCombinations =
       pow(fallbackMaxQueryTermMobility + 1, fallbackMaxQueryTerms).toDouble();
   int fallbackMaxQueryTerms = 6;

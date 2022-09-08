@@ -57,8 +57,6 @@ Stream<List<String?>> readCsvLines(String filepath) async* {
   }
   if (row != '') {
     print('Illegal CSV line: $row');
-    // エラー終了まではしない
-    // 本来ならログを出力
   }
 }
 

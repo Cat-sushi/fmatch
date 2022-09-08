@@ -3,18 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 import 'dart:isolate';
 
 import 'package:fmatch/fmatch.dart';
-
-late File resultFile;
-late IOSink resultSink;
-late IOSink logSink;
-late int lc;
-late DateTime startTime;
-late DateTime currentLap;
-late DateTime lastLap;
 
 class Server {
   final FMatcher matcher;

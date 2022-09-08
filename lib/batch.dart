@@ -23,13 +23,13 @@ Future<void> batch(FMatcher matcher, [String path = 'batch']) async {
   var currentLap = lastLap;
 
   await for (var query in openQueryListStream(batchQueryPath)) {
+    ++lc;
     var result = matcher.fmatch(query);
     if (result.error != '') {
       logSink.writeln(result.error);
       continue;
     }
     resultSink.write(formatOutput(lc, result));
-    ++lc;
     if ((lc % 100) == 0) {
       currentLap = DateTime.now();
       print('$lc: ${currentLap.difference(lastLap).inMilliseconds} '

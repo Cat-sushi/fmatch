@@ -10,7 +10,6 @@ Future<void> main() async {
   var matcher = FMatcher();
   await matcher.readSettings(null);
   await matcher.preper.readConfigs();
-  matcher.preper.initWhiteQueries();
 
   var list = [
     r'abc def ghi co.',

@@ -15,7 +15,6 @@ import 'server.dart';
 late File resultFile;
 late IOSink resultSink;
 late IOSink logSink;
-late int lc;
 late DateTime startTime;
 late DateTime currentLap;
 late DateTime lastLap;
@@ -28,7 +27,6 @@ Future<void> pbatch(FMatcher matcher, [String path = 'batch']) async {
   resultFile.writeAsBytesSync([0xEF, 0xBB, 0xBF]);
   resultSink = resultFile.openWrite(mode: FileMode.append, encoding: utf8);
   logSink = File(batchLogPath).openWrite(encoding: utf8);
-  lc = 0;
   startTime = DateTime.now();
   lastLap = startTime;
   currentLap = lastLap;
@@ -89,11 +87,10 @@ class Dispatcher {
         logSink.writeln(result.error);
         continue;
       }
-      resultSink.write(formatOutput(lc, result));
-      ++lc;
-      if ((lc % 100) == 0) {
+      resultSink.write(formatOutput(ixO + 1, result));
+      if (((ixO + 1) % 100) == 0) {
         currentLap = DateTime.now();
-        print('$lc: ${currentLap.difference(lastLap).inMilliseconds} '
+        print('${ixO + 1}: ${currentLap.difference(lastLap).inMilliseconds} '
             '${currentLap.difference(startTime).inMilliseconds}');
         lastLap = currentLap;
       }

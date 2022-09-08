@@ -70,7 +70,9 @@ class CachedQuery {
 class Preprocessor with Configs {
   late final Set<CachedQuery> whiteQueries;
 
-  void initWhiteQueries(){
+  @override
+  Future<void> readConfigs() async{
+    await super.readConfigs();
     whiteQueries = <CachedQuery>{};
     for (var inputString in rawWhiteQueries) {
       if (hasIllegalCharacter(inputString)) {
@@ -85,6 +87,7 @@ class Preprocessor with Configs {
       }
       whiteQueries.add(CachedQuery.fromPreprocessed(preprocessed, false));
     }
+    rawWhiteQueries.clear();
   }
 
   bool hasIllegalCharacter(String name) {

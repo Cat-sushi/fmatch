@@ -260,7 +260,6 @@ class FMatcher with Settings {
       await time(() => db = Db.fromIDb(idb), 'Db.fromIDb');
       await time(() => db.write(Paths.db), 'Db.write');
     }
-    preper.initWhiteQueries();
   }
 
   double absoluteTermImportance(double df) =>

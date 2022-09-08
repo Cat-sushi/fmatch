@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:async/async.dart';
 
 import 'package:fmatch/fmatch.dart';
+import 'package:fmatch/pbatch.dart';
 import 'package:fmatch/server.dart';
 import 'package:fmatch/util.dart';
 
@@ -36,7 +37,7 @@ Future main() async {
 
   for (var id = 0; id < matcher.serverCount; id++) {
     servers.add(Server(matcher)..spawn(id));
-    sendReceive(id);
+    sendReceiveResponse(id);
   }
 
   var httpServer = await HttpServer.bind(_host, 4049);
@@ -44,12 +45,7 @@ Future main() async {
     var contentType = req.headers.contentType;
     var response = req.response;
 
-    if (req.method == 'POST' && contentType?.mimeType == 'application/json') {
-      response
-        ..statusCode = HttpStatus.methodNotAllowed
-        ..write('Unsupported request: ${req.method}.');
-      await response.close();
-    } else if (req.method == 'GET') {
+    if (req.method == 'GET') {
       try {
         var inputString = req.uri.queryParameters['q']!;
         commandStreamController.add(Command(req, inputString));
@@ -59,6 +55,12 @@ Future main() async {
           ..write('Parameter missing: $e.');
         await response.close();
       }
+    } else if (req.method == 'POST' &&
+        contentType?.mimeType == 'application/json') {
+      response
+        ..statusCode = HttpStatus.methodNotAllowed
+        ..write('Unsupported request: ${req.method}.');
+      await response.close();
     } else {
       response
         ..statusCode = HttpStatus.methodNotAllowed
@@ -68,7 +70,7 @@ Future main() async {
   }
 }
 
-Future<void> sendReceive(int id) async {
+Future<void> sendReceiveResponse(int id) async {
   var server = servers[id];
   while (await commandStreamQueue.hasNext) {
     var command = await commandStreamQueue.next;
@@ -79,10 +81,31 @@ Future<void> sendReceive(int id) async {
     await server.cri.moveNext();
     var result = server.cri.current as QueryResult;
     result.serverId = id;
-    var responseContent = josonEncoderWithIdent.convert([result]);
+    var responseContent = josonEncoderWithIdent.convert(result);
     req.response
       ..statusCode = HttpStatus.ok
       ..write(responseContent);
     await response.close();
   }
+}
+
+Future<void> pbatch(FMatcher matcher, HttpRequest request) async {
+  var batchResultPath = 'batch/results.csv';
+  var batchLogPath = 'batch/log.txt';
+  var resultFile = File(batchResultPath);
+  resultFile.writeAsBytesSync([0xEF, 0xBB, 0xBF]);
+  resultSink = resultFile.openWrite(mode: FileMode.append, encoding: utf8);
+  logSink = File(batchLogPath).openWrite(encoding: utf8);
+  startTime = DateTime.now();
+  lastLap = startTime;
+  currentLap = lastLap;
+  var queries = StreamQueue<String>(Stream.fromIterable([]) /* request.transform<String>() */);
+  // queries = StreamQueue<String>((await request.first);
+  final servers = <Server>[];
+  for (var id = 0; id < matcher.serverCount; id++) {
+    var server = Server(matcher);
+    await server.spawn(id);
+    servers.add(server);
+  }
+  await Dispatcher(servers, queries).dispatch();
 }

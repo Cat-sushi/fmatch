@@ -92,7 +92,7 @@ class CacheClient implements ResultCache {
   }
 
   @override
-  void put(CachedQuery query, CachedResult result){
+  void put(CachedQuery query, CachedResult result) {
     ccsp.send([query, result]);
   }
 }

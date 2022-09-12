@@ -91,16 +91,21 @@ class MatchedEntry {
 }
 
 class CachedResult {
+  CachedQuery cachedQuery;
   double queryScore;
   List<MatchedEntry> matchedEntiries;
-  CachedResult(this.queryScore, this.matchedEntiries);
+  CachedResult(this.cachedQuery, this.queryScore, this.matchedEntiries);
   CachedResult.fromJson(Map<String, dynamic> json)
-      : queryScore = json['queryScore'] as double,
-        matchedEntiries = (json['matchedEntiries'] as List<dynamic>)
-            .map<MatchedEntry>(
-                (dynamic e) => MatchedEntry.fromJson(e as Map<String, dynamic>))
-            .toList();
+      : this(
+          CachedQuery.fromJson(json['cachedQuery'] as Map<String, dynamic>),
+          json['queryScore'] as double,
+          (json['matchedEntiries'] as List<dynamic>)
+              .map<MatchedEntry>((dynamic e) =>
+                  MatchedEntry.fromJson(e as Map<String, dynamic>))
+              .toList(),
+        );
   Map toJson() => <String, Object>{
+        'cachedQuery': cachedQuery,
         'queryScore': queryScore,
         'matchedEntiries': matchedEntiries.map((e) => e.toJson()).toList(),
       };
@@ -112,19 +117,13 @@ class QueryResult {
   final int durationInMilliseconds;
   final String inputString;
   final String rawQuery;
-  final LetType letType;
-  final bool perfectMatching;
-  final List<String> queryTerms;
   final CachedResult cachedResult;
   final String error;
   QueryResult.fromCachedResult(this.cachedResult, DateTime start, DateTime end,
       this.inputString, this.rawQuery, Preprocessed preprocessed,
       [this.error = ''])
       : dateTime = start,
-        durationInMilliseconds = end.difference(start).inMilliseconds,
-        letType = preprocessed.letType,
-        queryTerms = preprocessed.terms,
-        perfectMatching = false;
+        durationInMilliseconds = end.difference(start).inMilliseconds;
   QueryResult.fromQueryOccurrences(
     List<QueryOccurrence> queryOccurrences,
     DateTime start,
@@ -134,10 +133,11 @@ class QueryResult {
     Query query,
   )   : dateTime = start,
         durationInMilliseconds = end.difference(start).inMilliseconds,
-        letType = query.letType,
-        perfectMatching = query.perfectMatching,
-        queryTerms = query.terms.map((e) => e.term).toList(growable: false),
         cachedResult = CachedResult(
+            CachedQuery(
+                query.letType,
+                query.terms.map((e) => e.term).toList(growable: false),
+                query.perfectMatching),
             query.queryScore,
             queryOccurrences
                 .map((e) => MatchedEntry(e.rawEntry, e.score))
@@ -148,21 +148,13 @@ class QueryResult {
         durationInMilliseconds = 0,
         inputString = '',
         rawQuery = '',
-        letType = LetType.na,
-        perfectMatching = false,
-        queryTerms = [],
-        cachedResult = CachedResult(0, []);
+        cachedResult = CachedResult(CachedQuery(LetType.na, [], false), 0, []);
   QueryResult.fromJson(Map<String, dynamic> json)
       : serverId = json['serverId'] as int,
         dateTime = DateTime.parse(json['start'] as String),
         durationInMilliseconds = json['durationInMilliseconds'] as int,
         inputString = json['inputString'] as String,
         rawQuery = json['rawQuery'] as String,
-        letType = LetType.fromJson(json['letType'] as String),
-        perfectMatching = json['perfectMatching'] == 'true' ? true : false,
-        queryTerms = (json['queryTerms'] as List)
-            .map<String>((dynamic e) => e as String)
-            .toList(),
         cachedResult =
             CachedResult.fromJson(json['cachedResult'] as Map<String, dynamic>),
         error = json['error'] as String;
@@ -172,8 +164,6 @@ class QueryResult {
         'durationInMilliseconds': durationInMilliseconds,
         'inputString': inputString,
         'rawQuery': rawQuery,
-        'letType': letType.toJson(),
-        'queryTerms': queryTerms,
         'cachedResult': cachedResult.toJson(),
         'error': error,
       };
@@ -306,7 +296,7 @@ class FMatcher with Settings {
         CachedQuery.fromPreprocessed(preprocessed, perfectMatching);
     if (preper.whiteQueries.contains(cachedQuery)) {
       return QueryResult.fromCachedResult(
-        CachedResult(0, []),
+        CachedResult(cachedQuery, 0, []),
         start,
         DateTime.now(),
         inputString,
@@ -337,8 +327,7 @@ class FMatcher with Settings {
       rawQuery,
       query,
     );
-    resultCache.put(cachedQuery,
-        CachedResult(query.queryScore, ret.cachedResult.matchedEntiries));
+    resultCache.put(cachedQuery, ret.cachedResult);
     return ret;
   }
 

@@ -134,16 +134,16 @@ Future<void> main() async {
   test('query 12', () async {
     var q = r'zzz zzz zzz zzz zzz';
     var r = await matcher.fmatch(q);
-    expect(r.queryTerms.length, 5);
+    expect(r.cachedResult.cachedQuery.terms.length, 5);
   });
   test('query 13', () async {
     var q = r'zzz zzz zzz zzz zzz zzz';
     var r = await matcher.fmatch(q);
-    expect(r.queryTerms.length, 6);
+    expect(r.cachedResult.cachedQuery.terms.length, 6);
   });
   test('query 14', () async {
     var q = r'zzz zzz zzz zzz zzz zzz zzz';
     var r = await matcher.fmatch(q);
-    expect(r.queryTerms.length, 6);
+    expect(r.cachedResult.cachedQuery.terms.length, 6);
   });
 }

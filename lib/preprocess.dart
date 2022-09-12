@@ -33,11 +33,23 @@ class CachedQuery {
   final List<String> terms;
   final bool perfectMatching;
   final int _hashCode;
-  CachedQuery.fromPreprocessed(Preprocessed preped, this.perfectMatching)
-      : letType = preped.letType,
-        terms = preped.terms,
-        _hashCode =
-            Object.hashAll([preped.letType, perfectMatching, ...preped.terms]);
+  CachedQuery(this.letType, this.terms, this.perfectMatching)
+      : _hashCode = Object.hashAll([letType, perfectMatching, ...terms]);
+  CachedQuery.fromPreprocessed(Preprocessed preped, bool perfectMatching)
+      : this(preped.letType, preped.terms, perfectMatching);
+  CachedQuery.fromJson(Map<String, dynamic> json)
+      : this(
+          LetType.fromJson(json['letType'] as String),
+          (json['terms'] as List<dynamic>)
+              .map<String>((dynamic e) => e as String)
+              .toList(growable: false),
+          json['perfectMatching'] as String == 'true' ? true : false,
+        );
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'letType': letType.toJson(),
+        'terms': [...terms],
+        'perfectMatching': perfectMatching ? 'true' : 'false'
+      };
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) {
@@ -71,7 +83,7 @@ class Preprocessor with Configs {
   late final Set<CachedQuery> whiteQueries;
 
   @override
-  Future<void> readConfigs() async{
+  Future<void> readConfigs() async {
     await super.readConfigs();
     whiteQueries = <CachedQuery>{};
     for (var inputString in rawWhiteQueries) {

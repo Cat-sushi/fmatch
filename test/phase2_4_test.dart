@@ -251,32 +251,32 @@ Future<void> main() async {
   test('CO-Sol Canada Inc.', () async {
     var q = r'CO-Sol Canada Inc.';
     var r = await matcher.fmatch(q);
-    expect(r.queryTerms, ['CO-SOL','CANADA','INC']);
+    expect(r.cachedResult.cachedQuery.terms, ['CO-SOL','CANADA','INC']);
   });
   test('Re-Teck Co., Ltd.', () async {
     var q = r'Re-Teck Co., Ltd.';
     var r = await matcher.fmatch(q);
-    expect(r.queryTerms, ['RE-TECK','CO_LTD']);
+    expect(r.cachedResult.cachedQuery.terms, ['RE-TECK','CO_LTD']);
   });
   test('A&D Company, Limited', () async {
     var q = r'A&D Company, Limited';
     var r = await matcher.fmatch(q);
-    expect(r.queryTerms, ['A&D', 'CO_LTD']);
+    expect(r.cachedResult.cachedQuery.terms, ['A&D', 'CO_LTD']);
   });
   test('HONG CO TECHNOLOGY COMPANY LIMITED', () async {
     var q = r'HONG CO TECHNOLOGY COMPANY LIMITED';
     var r = await matcher.fmatch(q);
-    expect(r.queryTerms, ['HONG','CO','TECHNOLOGY','CO_LTD']);
+    expect(r.cachedResult.cachedQuery.terms, ['HONG','CO','TECHNOLOGY','CO_LTD']);
   });
   test('MUJI U.S.A. Limited', () async {
     var q = r'MUJI U.S.A. Limited';
     var r = await matcher.fmatch(q);
-    expect(r.queryTerms, ['MUJI','USA','LTD']);
+    expect(r.cachedResult.cachedQuery.terms, ['MUJI','USA','LTD']);
   });
   test('Terna S.p.A', () async {
     var q = r'Terna S.p.A';
     var r = await matcher.fmatch(q);
-    expect(r.queryTerms, ['TERNA','SPA']);
+    expect(r.cachedResult.cachedQuery.terms, ['TERNA','SPA']);
   });
   test('BANK OF KESHAVARZI', () async {
     var q = r'BANK OF KESHAVARZI';

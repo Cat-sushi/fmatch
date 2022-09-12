@@ -22,23 +22,23 @@ Future<void> main() async {
   matcher.db = await Db.fromStringStream(matcher.preper, Stream.fromIterable(rawEntries));
   matcher.idb = IDb.fromDb(matcher.db);
 
-  test('Li, Li', () {
+  test('Li, Li', () async {
     var q = r'Li, Li';
-    var results = matcher.fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, <String>[
       preprocessed[0],
     ]);
   });
-  test('OSAMA BIN LADIN', () {
+  test('OSAMA BIN LADIN', () async {
     var q = r'ASAMA BIN LADEN NETWORK';
-    var results = matcher.fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, <String>[
       preprocessed[2],
     ]);
   });
-  test("ANSAR AL-SHARI'A (AAS)", () {
+  test("ANSAR AL-SHARI'A (AAS)", () async {
     var q = r"ANSAR AL-SHARI'A (AAS)";
-    var results = matcher.fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, <String>[
       preprocessed[3],
     ]);

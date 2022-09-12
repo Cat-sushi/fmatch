@@ -20,168 +20,168 @@ Future<void> main() async {
   matcher.db = await Db.fromStringStream(matcher.preper, Stream.fromIterable(rawEntries));
   matcher.idb = IDb.fromDb(matcher.db);
 
-  test('ab', () {
+  test('ab', () async {
     var q = r'ab';
-    var results = matcher.fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, <String>[
     ]);
   });
-  test('abcd', () {
+  test('abcd', () async {
     var q = r'abcd';
-    var results = matcher.fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, <String>[
       preprocessed[0],
     ]);
   });
-  test('abcde', () {
+  test('abcde', () async {
     var q = r'abcde';
-    var results = matcher.fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, <String>[
     ]);
   });
-  test('de', () {
+  test('de', () async {
     var q = r'de';
-    var results = matcher.fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, <String>[
     ]);
   });
-  test('def', () {
+  test('def', () async {
     var q = r'def';
-    var results = matcher.fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, <String>[
       preprocessed[0],
     ]);
   });
-  test('defgh', () {
+  test('defgh', () async {
     var q = r'defgh';
-    var results = matcher.fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, <String>[
       preprocessed[0],
     ]);
   });
-  test('defghi', () {
+  test('defghi', () async {
     var q = r'defghi';
-    var results = matcher.fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, <String>[
       preprocessed[0],
     ]);
   });
-  test('hij', () {
+  test('hij', () async {
     var q = r'hij';
-    var results = matcher.fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, <String>[
     ]);
   });
-  test('hijk', () {
+  test('hijk', () async {
     var q = r'hijk';
-    var results = matcher.fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, <String>[
       preprocessed[0],
     ]);
   });
-  test('hijklm', () {
+  test('hijklm', () async {
     var q = r'hijklm';
-    var results = matcher.fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, <String>[
       preprocessed[0],
     ]);
   });
-  test('hijklmn', () {
+  test('hijklmn', () async {
     var q = r'hijklmn';
-    var results = matcher.fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, <String>[
       preprocessed[0],
     ]);
   });
-  test('hijklmno', () {
+  test('hijklmno', () async {
     var q = r'hijklmno';
-    var results = matcher.fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, <String>[
     ]);
   });
-  test('mno', () {
+  test('mno', () async {
     var q = r'mno';
-    var results = matcher.fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, <String>[
     ]);
   });
-  test('mnop', () {
+  test('mnop', () async {
     var q = r'mnop';
-    var results = matcher.fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, <String>[
       preprocessed[0],
     ]);
   });
-  test('mnopq', () {
+  test('mnopq', () async {
     var q = r'mnopq';
-    var results = matcher.fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, <String>[
       preprocessed[0],
     ]);
   });
-  test('mnopqrs', () {
+  test('mnopqrs', () async {
     var q = r'mnopqrs';
-    var results = matcher.fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, <String>[
       preprocessed[0],
     ]);
   });
-  test('mnopqrst', () {
+  test('mnopqrst', () async {
     var q = r'mnopqrst';
-    var results = matcher.fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, <String>[
       preprocessed[0],
     ]);
   });
-  test('mnopqrstu', () {
+  test('mnopqrstu', () async {
     var q = r'mnopqrstu';
-    var results = matcher.fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, <String>[
       preprocessed[0],
     ]);
   });
-  test('mnopqrstuv', () {
+  test('mnopqrstuv', () async {
     var q = r'mnopqrstuv';
-    var results = matcher.fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, <String>[
     ]);
   });
-  test('ab c', () {
+  test('ab c', () async {
     var q = r'ab c';
-    var results = matcher.fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, <String>[
     ]);
   });
-  test('ab bc', () {
+  test('ab bc', () async {
     var q = r'ab bc';
-    var results = matcher.fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, <String>[
     ]);
   });
-  test('de fg', () {
+  test('de fg', () async {
     var q = r'de fg';
-    var results = matcher.fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, <String>[
       preprocessed[0],
     ]);
   });
-  test('hi jkl', () {
+  test('hi jkl', () async {
     var q = r'hi jkl';
-    var results = matcher.fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, <String>[
       preprocessed[0],
     ]);
   });
-  test('hi kl', () {
+  test('hi kl', () async {
     var q = r'hi kl';
-    var results = matcher.fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, <String>[
       preprocessed[0],
     ]);
   });
-  test('hij jkl', () {
+  test('hij jkl', () async {
     var q = r'hij jkl';
-    var results = matcher.fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, <String>[
       preprocessed[0],
     ]);

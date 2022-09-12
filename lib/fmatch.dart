@@ -180,30 +180,30 @@ class QueryResult {
 }
 
 class ResultCache {
-  final int queryResultCacheSize;
+  final int _queryResultCacheSize;
   // ignore: prefer_collection_literals
-  final map = LinkedHashMap<CachedQuery, CachedResult>();
-  ResultCache(this.queryResultCacheSize);
-  CachedResult? operator [](CachedQuery query) {
-    if (queryResultCacheSize == 0) {
+  final _map = LinkedHashMap<CachedQuery, CachedResult>();
+  ResultCache(int size) : _queryResultCacheSize = size;
+  Future<CachedResult?> get(CachedQuery query) async {
+    if (_queryResultCacheSize == 0) {
       return null;
     }
-    var rce = map.remove(query);
+    var rce = _map.remove(query);
     if (rce == null) {
       return null;
     }
-    map[query] = rce;
+    _map[query] = rce;
     return rce;
   }
 
-  void operator []=(CachedQuery query, CachedResult result) {
-    if (queryResultCacheSize == 0) {
+  void put(CachedQuery query, CachedResult result) {
+    if (_queryResultCacheSize == 0) {
       return;
     }
-    map.remove(query);
-    map[query] = result;
-    if (map.length > queryResultCacheSize) {
-      map.remove(map.keys.first);
+    _map.remove(query);
+    _map[query] = result;
+    if (_map.length > _queryResultCacheSize) {
+      _map.remove(_map.keys.first);
     }
   }
 }
@@ -217,7 +217,7 @@ class FMatcher with Settings {
   final preper = Preprocessor();
   late final Db db;
   late final IDb idb;
-  late final resultCache = ResultCache(queryResultCacheSize);
+  late var resultCache = ResultCache(queryResultCacheSize);
   late final nd = db.length.toDouble(); // nd >= 2.0
   static const dfz = 1.0;
   late final idfm = scoreIdfMagnifier;
@@ -277,7 +277,7 @@ class FMatcher with Settings {
     return qtc - minMatchedTC;
   }
 
-  QueryResult fmatch(String inputString) {
+  Future<QueryResult> fmatch(String inputString) async {
     var start = DateTime.now();
     if (preper.hasIllegalCharacter(inputString)) {
       return QueryResult.fromError('Illegal characters in query: $inputString');
@@ -315,7 +315,7 @@ class FMatcher with Settings {
         'Safe Customer: ${preprocessed.terms.join(' ')}',
       );
     }
-    var cachedResult = resultCache[cachedQuery];
+    var cachedResult = await resultCache.get(cachedQuery);
     if (cachedResult != null) {
       return QueryResult.fromCachedResult(
         cachedResult,
@@ -337,8 +337,8 @@ class FMatcher with Settings {
       rawQuery,
       query,
     );
-    resultCache[cachedQuery] =
-        CachedResult(query.queryScore, ret.cachedResult.matchedEntiries);
+    resultCache.put(cachedQuery,
+        CachedResult(query.queryScore, ret.cachedResult.matchedEntiries));
     return ret;
   }
 

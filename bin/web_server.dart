@@ -9,7 +9,7 @@ import 'dart:io';
 import 'package:async/async.dart';
 
 import 'package:fmatch/fmatch.dart';
-import 'package:fmatch/pbatch.dart';
+// import 'package:fmatch/pbatch.dart';
 import 'package:fmatch/server.dart';
 import 'package:fmatch/util.dart';
 
@@ -30,13 +30,16 @@ var servers = <Server>[];
 Future main() async {
   print('Start Server');
   await time(() => matcher.readSettings(null), 'Settings.read');
-  matcher.queryResultCacheSize = 0;
   await time(() => matcher.preper.readConfigs(), 'Configs.read');
   await time(() => matcher.buildDb(), 'buildDb');
   print('Min Score: ${matcher.minScore}');
 
+  final cacheServer = CacheServer();
+  await cacheServer.spawn(matcher.queryResultCacheSize);
   for (var id = 0; id < matcher.serverCount; id++) {
-    servers.add(Server(matcher)..spawn(id));
+    var server = Server(matcher, cacheServer);
+    await server.spawn(id);
+    servers.add(server);
     sendReceiveResponse(id);
   }
 
@@ -89,23 +92,23 @@ Future<void> sendReceiveResponse(int id) async {
   }
 }
 
-Future<void> pbatch(FMatcher matcher, HttpRequest request) async {
-  var batchResultPath = 'batch/results.csv';
-  var batchLogPath = 'batch/log.txt';
-  var resultFile = File(batchResultPath);
-  resultFile.writeAsBytesSync([0xEF, 0xBB, 0xBF]);
-  resultSink = resultFile.openWrite(mode: FileMode.append, encoding: utf8);
-  logSink = File(batchLogPath).openWrite(encoding: utf8);
-  startTime = DateTime.now();
-  lastLap = startTime;
-  currentLap = lastLap;
-  var queries = StreamQueue<String>(Stream.fromIterable([]) /* request.transform<String>() */);
-  // queries = StreamQueue<String>((await request.first);
-  final servers = <Server>[];
-  for (var id = 0; id < matcher.serverCount; id++) {
-    var server = Server(matcher);
-    await server.spawn(id);
-    servers.add(server);
-  }
-  await Dispatcher(servers, queries).dispatch();
-}
+// Future<void> pbatch(FMatcher matcher, HttpRequest request) async {
+//   var batchResultPath = 'batch/results.csv';
+//   var batchLogPath = 'batch/log.txt';
+//   var resultFile = File(batchResultPath);
+//   resultFile.writeAsBytesSync([0xEF, 0xBB, 0xBF]);
+//   resultSink = resultFile.openWrite(mode: FileMode.append, encoding: utf8);
+//   logSink = File(batchLogPath).openWrite(encoding: utf8);
+//   startTime = DateTime.now();
+//   lastLap = startTime;
+//   currentLap = lastLap;
+//   var queries = StreamQueue<String>(Stream.fromIterable([]) /* request.transform<String>() */);
+//   // queries = StreamQueue<String>((await request.first);
+//   final servers = <Server>[];
+//   for (var id = 0; id < matcher.serverCount; id++) {
+//     var server = Server(matcher);
+//     await server.spawn(id);
+//     servers.add(server);
+//   }
+//   await Dispatcher(servers, queries).dispatch();
+// }

@@ -21,39 +21,39 @@ Future<void> main() async {
   matcher.db = await Db.fromStringStream(matcher.preper, Stream.fromIterable(rawEntries));
   matcher.idb = IDb.fromDb(matcher.db);
 
-  test('query 1', () {
+  test('query 1', () async {
     var q = r'aaa bbb ccc ddd eee fff ggg hhh iii';
-    var r = matcher.fmatch(q);
+    var r = await matcher.fmatch(q);
     expect(r.queryTerms.length, 9);
   });
-  test('query 2', () {
+  test('query 2', () async {
     var q = r'aaa bbb ccc ddd eee fff ggg hhh iii jjj';
-    var r = matcher.fmatch(q);
+    var r = await matcher.fmatch(q);
     expect(r.queryTerms.length, 10);
   });
-  test('query 3', () {
+  test('query 3', () async {
     var q = r'aaa bbb ccc ddd eee fff ggg hhh iii jjj '
     'kkk';
-    var r = matcher.fmatch(q);
+    var r = await matcher.fmatch(q);
     expect(r.queryTerms.length, 11);
   });
-  test('query 4', () {
+  test('query 4', () async {
     var q = r'aaa bbb ccc ddd eee fff ggg hhh iii jjj '
     'kkk lll mmm nnn ooo ppp qqq rrr sss';
-    var r = matcher.fmatch(q);
+    var r = await matcher.fmatch(q);
     expect(r.queryTerms.length, 19);
   });
-  test('query 5', () {
+  test('query 5', () async {
     var q = r'aaa bbb ccc ddd eee fff ggg hhh iii jjj '
     'kkk lll mmm nnn ooo ppp qqq rrr sss ttt';
-    var r = matcher.fmatch(q);
+    var r = await matcher.fmatch(q);
     expect(r.queryTerms.length, 20);
   });
-  test('query 6', () {
+  test('query 6', () async {
     var q = r'aaa bbb ccc ddd eee fff ggg hhh iii jjj '
     'kkk lll mmm nnn ooo ppp qqq rrr sss ttt '
     'uuu';
-    var r = matcher.fmatch(q);
+    var r = await matcher.fmatch(q);
     expect(r.queryTerms.length, 21);
   });
 }

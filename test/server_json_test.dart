@@ -28,9 +28,9 @@ Future<void> main() async {
       matcher.preper, Stream.fromIterable(rawEntries));
   matcher.idb = IDb.fromDb(matcher.db);
 
-  test('query 1', () {
+  test('query 1', () async {
     var q = r'def co';
-    var jsonString = JsonEncoder().convert(matcher.fmatch(q));
+    var jsonString = JsonEncoder().convert(await matcher.fmatch(q));
     print(jsonString);
     expect(
         jsonString,
@@ -42,9 +42,9 @@ Future<void> main() async {
             '{"rawEntry":"COMPANY","score":0.006317690713281352},'
             '{"rawEntry":"COMPANY ABC","score":0.006317690713281352}]},"error":""}'));
   });
-  test('query 2', () {
+  test('query 2', () async {
     var q = r'def co';
-    var jsonString = JsonEncoder().convert(matcher.fmatch(q));
+    var jsonString = JsonEncoder().convert(await matcher.fmatch(q));
     print(jsonString);
     var decorder = JsonDecoder();
     var resultJson = decorder.convert(jsonString) as Map<String, dynamic>;

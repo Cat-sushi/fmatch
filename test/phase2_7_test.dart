@@ -37,9 +37,9 @@ Future<void> main() async {
   matcher.db = await Db.fromStringStream(matcher.preper, Stream.fromIterable(rawEntries));
   matcher.idb = IDb.fromDb(matcher.db);
   
-  test('AL AL AL', () {
+  test('AL AL AL', () async {
     var q = r'AL AL AL';
-    var results = matcher.fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, <String>[
       preprocessed[0],
       preprocessed[2],
@@ -62,16 +62,16 @@ Future<void> main() async {
       preprocessed[18],
     ]);
   });
-  test(r'AL AL AL AL AL AL AL AL', () {
+  test(r'AL AL AL AL AL AL AL AL', () async {
     var q = r'AL AL AL AL AL AL AL AL';
-    var results = matcher.fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, <String>[
       preprocessed[1],
     ]);
   });
-  test(r'AL AL AL AL AL AL AL AL AL', () {
+  test(r'AL AL AL AL AL AL AL AL AL', () async {
     var q = r'AL AL AL AL AL AL AL AL AL';
-    var results = matcher.fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, <String>[
     ]);
   });

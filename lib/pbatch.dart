@@ -19,6 +19,8 @@ late DateTime startTime;
 late DateTime currentLap;
 late DateTime lastLap;
 
+CacheServer? cacheServer;
+
 Future<void> pbatch(FMatcher matcher, [String path = 'batch']) async {
   var batchQueryPath = '$path/queries.csv';
   var batchResultPath = '$path/results.csv';
@@ -31,9 +33,13 @@ Future<void> pbatch(FMatcher matcher, [String path = 'batch']) async {
   lastLap = startTime;
   currentLap = lastLap;
   var queries = StreamQueue<String>(openQueryListStream(batchQueryPath));
+  if(cacheServer == null){
+    cacheServer = CacheServer();
+    await cacheServer!.spawn(matcher.queryResultCacheSize);
+  }
   final servers = <Server>[];
   for (var id = 0; id < matcher.serverCount; id++) {
-    var server = Server(matcher);
+    var server = Server(matcher, cacheServer!);
     await server.spawn(id);
     servers.add(server);
   }

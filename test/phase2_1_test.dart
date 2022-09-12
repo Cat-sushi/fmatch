@@ -23,40 +23,40 @@ Future<void> main() async {
   matcher.db = await Db.fromStringStream(matcher.preper, Stream.fromIterable(rawEntries));
   matcher.idb = IDb.fromDb(matcher.db);
 
-  test('query 1', () {
+  test('query 1', () async {
     var q = r'abc def ghi';
-    var results = matcher.fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, [
       rawEntries[0],
       rawEntries[1],
       rawEntries[2],
     ]);
   });
-  test('query 2', () {
+  test('query 2', () async {
     var q = r'company';
-    var results = matcher.fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, [
       rawEntries[0],
       rawEntries[1],
     ]);
   });
-  test('query 3', () {
+  test('query 3', () async {
     var q = r'hogehoge pt';
-    var results = matcher.fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, [
       rawEntries[3],
     ]);
   });
-  test('query 4', () {
+  test('query 4', () async {
     var q = r'yyy co ltd';
-    var results = matcher.fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, [
       rawEntries[4],
     ]);
   });
-  test('query 5', () {
+  test('query 5', () async {
     var q = r'yyy jjj kkk co ltd';
-    var results = matcher.fmatch(q).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
     expect(results, <String>[
       rawEntries[4],
     ]);

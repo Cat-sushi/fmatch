@@ -9,6 +9,7 @@ import 'util.dart';
 class Paths {
   static var setting = 'config/settings.csv';
   static var legalCaharacters = 'config/legal_characters.csv';
+  static var characterReplacement = 'config/character_replacement.csv';
   static var stringReplacement = 'config/string_replacement.csv';
   static var legalEntryType = 'config/legal_entity_types.csv';
   static var words = 'config/words.csv';
@@ -119,6 +120,7 @@ class WordReplacement {
 
 mixin Configs {
   late final RegExp legalChars;
+  late final Map<String, String> characterRreplacements;
   late final List<StringReplacement> stringRreplacements;
   late final List<LegalEntityTypeReplacement> legalEntryTypeReplacements;
   late final RegExp words;
@@ -126,6 +128,7 @@ mixin Configs {
   late final List<String> rawWhiteQueries;
   Future<void> readConfigs() async {
     await _readLegalCharConf(Paths.legalCaharacters);
+    await _readCharacterReplacementConf(Paths.characterReplacement);
     await _readStringReplacementConf(Paths.stringReplacement);
     await _readLegalEntityTypesConf(Paths.legalEntryType);
     await _readWordsConf(Paths.words);
@@ -151,6 +154,27 @@ mixin Configs {
     }
     pattern.write(')*');
     legalChars = regExp(pattern.toString());
+  }
+
+  Future<void> _readCharacterReplacementConf(String path) async {
+    characterRreplacements = {};
+    await for (var l in readCsvLines(path)) {
+      var replacement = l.removeAt(0);
+      if (replacement == null) {
+        continue;
+      }
+      for (var p in l) {
+        if (p == '' || p == null) {
+          break;
+        }
+        var r = characterRreplacements[p];
+        if(r != null && r != replacement) {
+          print('error $r $replacement $p');
+          continue;
+        }
+        characterRreplacements[p] = replacement;
+      }
+    }
   }
 
   Future<void> _readStringReplacementConf(String path) async {

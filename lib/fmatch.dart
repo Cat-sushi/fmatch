@@ -229,6 +229,9 @@ class FMatcher with Settings {
     if (!idbFileExists ||
         File(Paths.list).lastModifiedSync().isAfter(idbTimestamp) ||
         File(Paths.legalCaharacters).lastModifiedSync().isAfter(idbTimestamp) ||
+        File(Paths.characterReplacement)
+            .lastModifiedSync()
+            .isAfter(idbTimestamp) ||
         File(Paths.stringReplacement)
             .lastModifiedSync()
             .isAfter(idbTimestamp) ||

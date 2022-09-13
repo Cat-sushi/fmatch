@@ -43,12 +43,12 @@ class CachedQuery {
           (json['terms'] as List<dynamic>)
               .map<String>((dynamic e) => e as String)
               .toList(growable: false),
-          json['perfectMatching'] as String == 'true' ? true : false,
+          json['perfectMatching'] as bool,
         );
   Map<String, dynamic> toJson() => <String, dynamic>{
         'letType': letType.toJson(),
         'terms': [...terms],
-        'perfectMatching': perfectMatching ? 'true' : 'false'
+        'perfectMatching': perfectMatching ? true : false
       };
   @override
   bool operator ==(Object other) {
@@ -124,14 +124,22 @@ class Preprocessor with Configs {
   }
 
   Preprocessed preprocess(String capitalized, [bool canonRegistering = false]) {
-    var stringReplaced = replaceStrings(capitalized);
+    var characterReplaced = replaceCharacters(capitalized);
+    var stringReplaced = replaceStrings(characterReplaced);
     var letReplaced = replaceLegalEntiyTypes(stringReplaced);
     var wordized = wordize(letReplaced);
     return replaceWords(wordized, canonRegistering);
   }
 
-  String replaceStrings(String captalized) {
-    var stringReplaced = captalized;
+  String replaceCharacters(String capitalized) {
+    return capitalized.runes.map((r) {
+      var c = String.fromCharCodes([r]);
+      return characterRreplacements[c] ?? c;
+    }).join();
+  }
+
+  String replaceStrings(String capitalized) {
+    var stringReplaced = capitalized;
     for (var strRepl in stringRreplacements) {
       stringReplaced =
           stringReplaced.replaceAll(strRepl.regexp, strRepl.replacement);

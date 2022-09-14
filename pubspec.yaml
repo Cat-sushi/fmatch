@@ -8,12 +8,7 @@ environment:
 
 dependencies:
   unorm_dart: ^0.2.0
-  edit_distance: ^0.5.0-nullsafety.0
   async: any
-
-dependency_overrides:
-  edit_distance:
-    path: ../third_party/edit_distance
 
 dev_dependencies:
   lints: ^2.0.0

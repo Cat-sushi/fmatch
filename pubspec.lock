@@ -64,13 +64,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.0.2"
-  edit_distance:
-    dependency: "direct main"
-    description:
-      path: "../third_party/edit_distance"
-      relative: true
-    source: path
-    version: "0.4.1-alpha.1"
   file:
     dependency: transitive
     description:

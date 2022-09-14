@@ -6,10 +6,9 @@ import 'dart:collection';
 import 'dart:io';
 import 'dart:math';
 
-import 'package:edit_distance/edit_distance.dart';
-
 import 'configs.dart';
 import 'database.dart';
+import 'levenshtein.dart';
 import 'preprocess.dart';
 import 'util.dart';
 
@@ -216,7 +215,6 @@ class FMatcher with Settings {
   late final tix = absoluteTermImportance(dfx) / tidfz;
   late final tsox = queryMatchingMinTermOrderSimilarity;
   late final minScore = (1.0 - (1.0 - tix)) * tsox;
-  static final levenshtein = Levenshtein();
   static final _perfMatchTerm = RegExp(r'^"(.+)"$');
 
   Future<void> buildDb() async {
@@ -441,7 +439,7 @@ class FMatcher with Settings {
     if (lenMin.toDouble() / lenMax < termMatchingMinLetterRatio) {
       return 0.0;
     }
-    var matched = lenMax - levenshtein.distance(dbTerm, queryTerm);
+    var matched = lenMax - distance(dbTerm, queryTerm);
     if (matched < termMatchingMinLetters) {
       return 0.0;
     }

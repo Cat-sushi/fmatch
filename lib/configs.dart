@@ -166,17 +166,25 @@ mixin Configs {
       if (replacement == null) {
         continue;
       }
+      if (replacement.runes.length != 1){
+          print('error: bad replacement $replacement');
+        continue;
+      }
       for (var p in l) {
-        if (p == '' || p == null) {
+        if (p == null || p == '') {
           break;
+        }
+        if (p.runes.length != 1) {
+          print('error: bad character $p');
+          continue;
         }
         var r = characterRreplacements[p];
         if(r != null && r != replacement) {
-          print('error $r $replacement $p');
+          print('error: conflicted replacements $r $replacement $p');
           continue;
         }
         if(r == p){
-          print('warning $r $p');
+          print('warning: useless conversion $r $p');
           continue;
         }
         characterRreplacements[p] = replacement;

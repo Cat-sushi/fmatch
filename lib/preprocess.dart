@@ -2,10 +2,11 @@
 // All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:unorm_dart/unorm_dart.dart' as unorm;
 
 import 'configs.dart';
-import 'util.dart';
 
 enum LetType {
   na,
@@ -16,9 +17,40 @@ enum LetType {
   String toJson() => name;
 }
 
+class RString implements Comparable<RString> {
+  static final cannonicalized = <String, RString>{};
+  final String string;
+  final Int32List runes;
+  factory RString(String s, [bool registering = false]) {
+    if (registering == false) {
+      return RString._(s);
+    }
+    var ret = cannonicalized[s];
+    if (ret != null) {
+      return ret;
+    }
+    return cannonicalized[s] = RString._(s);
+  }
+  RString._(this.string) : runes = Int32List.fromList(string.runes.toList());
+  int get length => runes.length;
+  @override
+  String toString() => string;
+  @override
+  int compareTo(dynamic other) => string.compareTo((other as RString).string);
+  @override
+  int get hashCode => string.hashCode;
+  @override
+  operator ==(Object? other) {
+    if (other is! RString) {
+      return false;
+    }
+    return string == other.string;
+  }
+}
+
 class Preprocessed {
   final LetType letType;
-  final List<String> terms;
+  final List<RString> terms;
   Preprocessed(this.letType, this.terms);
 }
 
@@ -36,7 +68,8 @@ class CachedQuery {
   CachedQuery(this.letType, this.terms, this.perfectMatching)
       : _hashCode = Object.hashAll([letType, perfectMatching, ...terms]);
   CachedQuery.fromPreprocessed(Preprocessed preped, bool perfectMatching)
-      : this(preped.letType, preped.terms, perfectMatching);
+      : this(preped.letType, preped.terms.map((e) => e.string).toList(),
+            perfectMatching);
   CachedQuery.fromJson(Map<String, dynamic> json)
       : this(
           LetType.fromJson(json['letType'] as String),
@@ -113,14 +146,12 @@ class Preprocessor with Configs {
   final _htSpaces = RegExp(r'^\s+|\s+$');
   final _mSpaces = RegExp(r'\s+');
 
-  String normalizeAndCapitalize(String checked,
-      [bool canonRegistering = false]) {
+  String normalizeAndCapitalize(String checked) {
     var uNormalized = unorm.nfkd(checked);
     var uwNormalized = uNormalized.replaceAll(_htSpaces, '');
     var normalized = uwNormalized.replaceAll(_mSpaces, ' ');
     var capitalized = normalized.toUpperCase();
-    var canonicalized = canonicalize(capitalized, canonRegistering);
-    return canonicalized;
+    return capitalized;
   }
 
   Preprocessed preprocess(String capitalized, [bool canonRegistering = false]) {
@@ -177,7 +208,7 @@ class Preprocessor with Configs {
         letReplaced.letType,
         words
             .allMatches(letReplaced.name)
-            .map((m) => m.group(0)!)
+            .map((m) => RString(m.group(0)!))
             .toList(growable: false));
   }
 
@@ -207,7 +238,7 @@ class Preprocessor with Configs {
     var replaceds = <String>[];
     var letType = wordized.letType;
     for (var i = 0; i < wordized.terms.length; i++) {
-      var term = wordized.terms[i];
+      var term = wordized.terms[i].string;
       var replaced = term;
       for (var repl in wordReplacements) {
         replaced = term.replaceAllMapped(
@@ -224,9 +255,12 @@ class Preprocessor with Configs {
         }
         continue;
       }
-      replaceds.add(canonicalize(replaced, canonRegisting));
+      replaceds.add(replaced);
     }
-    replaceds = replaceds.toList(growable: false);
-    return Preprocessed(letType, replaceds);
+    return Preprocessed(
+        letType,
+        replaceds
+            .map((e) => RString(e, canonRegisting))
+            .toList(growable: false));
   }
 }

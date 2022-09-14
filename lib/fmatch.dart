@@ -13,7 +13,7 @@ import 'preprocess.dart';
 import 'util.dart';
 
 class QueryTerm {
-  String term;
+  RString term;
   double df;
   double weight;
   QueryTerm(this.term, this.df, this.weight);
@@ -135,12 +135,12 @@ class QueryResult {
         cachedResult = CachedResult(
             CachedQuery(
                 query.letType,
-                query.terms.map((e) => e.term).toList(growable: false),
+                query.terms.map((e) => e.term.string).toList(growable: false),
                 query.perfectMatching),
             query.queryScore,
             queryOccurrences
                 .map((e) => MatchedEntry(e.rawEntry, e.score))
-                .toList(growable: false)),
+                .toList()),
         error = '';
   QueryResult.fromError(this.error)
       : dateTime = DateTime.now(),
@@ -282,7 +282,7 @@ class FMatcher with Settings {
       preprocessed = preper.preprocess(perfMatchTermMatcher[1]!);
       if (preprocessed.letType != LetType.na ||
           preprocessed.terms.length != 1 ||
-          preprocessed.terms[0] != perfMatchTermMatcher[1]) {
+          preprocessed.terms[0].string != perfMatchTermMatcher[1]) {
         return QueryResult.fromError(
             'Query is not suitable for perfect matching: $inputString');
       }
@@ -418,7 +418,7 @@ class FMatcher with Settings {
     return occurrences;
   }
 
-  double similarity(String dbTerm, String queryTerm) {
+  double similarity(RString dbTerm, RString queryTerm) {
     var lenDt = dbTerm.length;
     var lenQt = queryTerm.length;
     int lenMax;
@@ -450,7 +450,7 @@ class FMatcher with Settings {
     return sim;
   }
 
-  double partialSimilarity(String dbTerm, String queryTerm) {
+  double partialSimilarity(RString dbTerm, RString queryTerm) {
     var dtlen = dbTerm.length;
     var qtlen = queryTerm.length;
     if (dtlen < qtlen) {
@@ -463,7 +463,7 @@ class FMatcher with Settings {
     if (sim < termPartialMatchingMinLetterRatio) {
       return 0.0;
     }
-    if (!dbTerm.contains(queryTerm)) {
+    if (!dbTerm.string.contains(queryTerm.string)) {
       return 0.0;
     }
     return sim;
@@ -802,7 +802,7 @@ class FMatcher with Settings {
       }
       var position = me.key;
       var joinedTerm =
-          me.value.map((var qti) => query.terms[qti].term).join(' ');
+          RString(me.value.map((var qti) => query.terms[qti].term).join(' '));
       var dbterm = db[rawEntry]!.terms[position];
       var sim = similarity(dbterm, joinedTerm);
       if (sim == 0.0) {

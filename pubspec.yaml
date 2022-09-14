@@ -7,8 +7,8 @@ environment:
   sdk: '>=2.18.0-0 <3.0.0'
 
 dependencies:
+  async: ^2.9.0
   unorm_dart: ^0.2.0
-  async: any
 
 dev_dependencies:
   lints: ^2.0.0

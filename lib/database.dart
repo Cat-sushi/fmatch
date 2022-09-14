@@ -14,7 +14,7 @@ class Db {
   final Map<String, Preprocessed> _map = {};
   Db();
   Db.fromIDb(IDb idb) {
-    var entryTermTable = <String, Map<int, String>>{};
+    var entryTermTable = <String, Map<int, RString>>{};
     var entryLetPosition = <String, int>{};
     for (var me in idb.entries) {
       var isLet = me.key.isLet;
@@ -23,7 +23,7 @@ class Db {
         var rawEntry = o.rawEntry;
         var position = o.position;
         if (!entryTermTable.containsKey(rawEntry)) {
-          entryTermTable[rawEntry] = <int, String>{};
+          entryTermTable[rawEntry] = <int, RString>{};
           entryLetPosition[rawEntry] = -1;
         }
         entryTermTable[rawEntry]![position] = me.key.term;
@@ -36,7 +36,7 @@ class Db {
       var rawEntry = me.key;
       var entryTermMap = me.value;
       var entryTermCount = entryTermMap.length;
-      var terms = List<String>.generate(
+      var terms = List<RString>.generate(
           entryTermCount, (qti) => entryTermMap[qti]!,
           growable: false);
       LetType letType;
@@ -57,7 +57,7 @@ class Db {
       Preprocessor preper, Stream<String> entries) async {
     var ret = Db();
     await entries.where((var entry) => entry != '').forEach((var entry) {
-      var rawEntry = preper.normalizeAndCapitalize(entry, true);
+      var rawEntry = canonicalize(preper.normalizeAndCapitalize(entry));
       if (!ret.containsKey(rawEntry)) {
         ret[rawEntry] = preper.preprocess(rawEntry, true);
       }
@@ -93,7 +93,7 @@ class Db {
       csvLine.write(v.letType.toString().substring(8));
       for (var t in v.terms) {
         csvLine.write(r',');
-        csvLine.write(quoteCsvCell(t));
+        csvLine.write(quoteCsvCell(t.string));
       }
       csvLine.write('\r\n');
       if (csvLine.length > bufferSize) {
@@ -107,7 +107,7 @@ class Db {
 }
 
 class IDbEntryKey implements Comparable<IDbEntryKey> {
-  final String term;
+  final RString term;
   final bool isLet;
   final int _hashCode;
   @override
@@ -123,6 +123,8 @@ class IDbEntryKey implements Comparable<IDbEntryKey> {
   }
 
   @override
+  String toString() => term.string;
+  @override
   bool operator ==(dynamic other) =>
       identical(this, other) ||
       other is IDbEntryKey && term == other.term && isLet == other.isLet;
@@ -130,9 +132,9 @@ class IDbEntryKey implements Comparable<IDbEntryKey> {
   int get hashCode => _hashCode;
   IDbEntryKey(this.term, this.isLet) : _hashCode = Object.hash(term, isLet);
   IDbEntryKey.fromJson(Map<String, dynamic> json)
-      : this(canonicalize(json['term'] as String), json['isLet'] as bool);
+      : this(RString(json['term'] as String, true), json['isLet'] as bool);
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'term': term,
+        'term': term.string,
         'isLet': isLet,
       };
 }

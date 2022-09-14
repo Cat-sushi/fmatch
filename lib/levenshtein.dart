@@ -4,10 +4,12 @@
 
 import 'dart:typed_data';
 
+import 'preprocess.dart';
+
 int _min(int a, int b) => a < b ? a : b;
 
-int distance(String s1, String s2) {
-  if (s1 == s2) {
+int distance(RString s1, RString s2) {
+  if (s1.string == s2.string) {
     return 0;
   }
 
@@ -22,14 +24,8 @@ int distance(String s1, String s2) {
     return l1;
   }
   
-  var a1 = Int32List(l1);
-  var a2 = Int32List(l2);
-  for (var i = 0; i < l1; i++){
-    a1[i] = s1.codeUnitAt(i);
-  }
-  for (var i = 0; i < l2; i++){
-    a2[i] = s2.codeUnitAt(i);
-  }
+  var r1 = s1.runes;
+  var r2 = s2.runes;
 
   var size2 = l2 + 1;
   var v0 = Int32List(size2);
@@ -44,7 +40,7 @@ int distance(String s1, String s2) {
 
     for (var j = 0; j < l2; j++) {
       int cost = 1;
-      if (a1[i] == a2[j]) {
+      if (r1[i] == r2[j]) {
         cost = 0;
       }
       v1[j + 1] = _min(v1[j] + 1, _min(v0[j + 1] + 1, v0[j] + cost));

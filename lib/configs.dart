@@ -159,6 +159,9 @@ mixin Configs {
   Future<void> _readCharacterReplacementConf(String path) async {
     characterRreplacements = {};
     await for (var l in readCsvLines(path)) {
+      if(l.length < 2){
+        continue;
+      }
       var replacement = l.removeAt(0);
       if (replacement == null) {
         continue;
@@ -170,6 +173,10 @@ mixin Configs {
         var r = characterRreplacements[p];
         if(r != null && r != replacement) {
           print('error $r $replacement $p');
+          continue;
+        }
+        if(r == p){
+          print('warning $r $p');
           continue;
         }
         characterRreplacements[p] = replacement;

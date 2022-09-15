@@ -18,18 +18,18 @@ enum LetType {
 }
 
 class RString implements Comparable<RString> {
-  static final cannonicalized = <String, RString>{};
+  static final canonicalized = <String, RString>{};
   final String string;
   final Int32List runes;
   factory RString(String s, [bool registering = false]) {
     if (registering == false) {
       return RString._(s);
     }
-    var ret = cannonicalized[s];
+    var ret = canonicalized[s];
     if (ret != null) {
       return ret;
     }
-    return cannonicalized[s] = RString._(s);
+    return canonicalized[s] = RString._(s);
   }
   RString._(this.string) : runes = Int32List.fromList(string.runes.toList());
   int get length => runes.length;
@@ -60,81 +60,7 @@ class LetReplaced {
   const LetReplaced(this.name, this.letType);
 }
 
-class CachedQuery {
-  final LetType letType;
-  final List<String> terms;
-  final bool perfectMatching;
-  final int _hashCode;
-  CachedQuery(this.letType, this.terms, this.perfectMatching)
-      : _hashCode = Object.hashAll([letType, perfectMatching, ...terms]);
-  CachedQuery.fromPreprocessed(Preprocessed preped, bool perfectMatching)
-      : this(preped.letType, preped.terms.map((e) => e.string).toList(),
-            perfectMatching);
-  CachedQuery.fromJson(Map<String, dynamic> json)
-      : this(
-          LetType.fromJson(json['letType'] as String),
-          (json['terms'] as List<dynamic>)
-              .map<String>((dynamic e) => e as String)
-              .toList(growable: false),
-          json['perfectMatching'] as bool,
-        );
-  Map<String, dynamic> toJson() => <String, dynamic>{
-        'letType': letType.toJson(),
-        'terms': [...terms],
-        'perfectMatching': perfectMatching ? true : false
-      };
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) {
-      return true;
-    }
-    if (other is! CachedQuery) {
-      return false;
-    }
-    if (letType != other.letType) {
-      return false;
-    }
-    if (perfectMatching != other.perfectMatching) {
-      return false;
-    }
-    if (terms.length != other.terms.length) {
-      return false;
-    }
-    for (var i = 0; i < terms.length; i++) {
-      if (terms[i] != other.terms[i]) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  @override
-  int get hashCode => _hashCode;
-}
-
 class Preprocessor with Configs {
-  late final Set<CachedQuery> whiteQueries;
-
-  @override
-  Future<void> readConfigs() async {
-    await super.readConfigs();
-    whiteQueries = <CachedQuery>{};
-    for (var inputString in rawWhiteQueries) {
-      if (hasIllegalCharacter(inputString)) {
-        print('Illegal characters in white query: $inputString');
-        continue;
-      }
-      var rawQuery = normalizeAndCapitalize(inputString);
-      var preprocessed = preprocess(rawQuery, true);
-      if (preprocessed.terms.isEmpty) {
-        print('No valid terms in white query: $inputString');
-        continue;
-      }
-      whiteQueries.add(CachedQuery.fromPreprocessed(preprocessed, false));
-    }
-    rawWhiteQueries.clear();
-  }
-
   bool hasIllegalCharacter(String name) {
     var m = legalChars.firstMatch(name);
     if (m == null) {
@@ -154,12 +80,12 @@ class Preprocessor with Configs {
     return capitalized;
   }
 
-  Preprocessed preprocess(String capitalized, [bool canonRegistering = false]) {
+  Preprocessed preprocess(String capitalized, [bool canonicalizing = false]) {
     var characterReplaced = replaceCharacters(capitalized);
     var stringReplaced = replaceStrings(characterReplaced);
     var letReplaced = replaceLegalEntiyTypes(stringReplaced);
     var wordized = wordize(letReplaced);
-    return replaceWords(wordized, canonRegistering);
+    return replaceWords(wordized, canonicalizing);
   }
 
   String replaceCharacters(String capitalized) {
@@ -234,7 +160,7 @@ class Preprocessor with Configs {
     return ret;
   }
 
-  Preprocessed replaceWords(Preprocessed wordized, bool canonRegisting) {
+  Preprocessed replaceWords(Preprocessed wordized, bool canonicalizing) {
     var replaceds = <String>[];
     var letType = wordized.letType;
     for (var i = 0; i < wordized.terms.length; i++) {
@@ -260,7 +186,7 @@ class Preprocessor with Configs {
     return Preprocessed(
         letType,
         replaceds
-            .map((e) => RString(e, canonRegisting))
+            .map((e) => RString(e, canonicalizing))
             .toList(growable: false));
   }
 }

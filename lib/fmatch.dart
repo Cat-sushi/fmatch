@@ -89,6 +89,58 @@ class MatchedEntry {
       };
 }
 
+class CachedQuery {
+  final LetType letType;
+  final List<String> terms;
+  final bool perfectMatching;
+  final int _hashCode;
+  CachedQuery(this.letType, this.terms, this.perfectMatching)
+      : _hashCode = Object.hashAll([letType, perfectMatching, ...terms]);
+  CachedQuery.fromPreprocessed(Preprocessed preped, bool perfectMatching)
+      : this(preped.letType, preped.terms.map((e) => e.string).toList(),
+            perfectMatching);
+  CachedQuery.fromJson(Map<String, dynamic> json)
+      : this(
+          LetType.fromJson(json['letType'] as String),
+          (json['terms'] as List<dynamic>)
+              .map<String>((dynamic e) => e as String)
+              .toList(growable: false),
+          json['perfectMatching'] as bool,
+        );
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'letType': letType.toJson(),
+        'terms': [...terms],
+        'perfectMatching': perfectMatching ? true : false
+      };
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+    if (other is! CachedQuery) {
+      return false;
+    }
+    if (letType != other.letType) {
+      return false;
+    }
+    if (perfectMatching != other.perfectMatching) {
+      return false;
+    }
+    if (terms.length != other.terms.length) {
+      return false;
+    }
+    for (var i = 0; i < terms.length; i++) {
+      if (terms[i] != other.terms[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @override
+  int get hashCode => _hashCode;
+}
+
 class CachedResult {
   CachedQuery cachedQuery;
   double queryScore;
@@ -119,7 +171,7 @@ class QueryResult {
   final CachedResult cachedResult;
   final String error;
   QueryResult.fromCachedResult(this.cachedResult, DateTime start, DateTime end,
-      this.inputString, this.rawQuery, Preprocessed preprocessed,
+      this.inputString, this.rawQuery,
       [this.error = ''])
       : dateTime = start,
         durationInMilliseconds = end.difference(start).inMilliseconds;
@@ -206,6 +258,7 @@ class FMatcher with Settings {
   final preper = Preprocessor();
   late final Db db;
   late final IDb idb;
+  late final whiteQueries = <CachedQuery>{};
   late var resultCache = ResultCache(queryResultCacheSize);
   late final nd = db.length.toDouble(); // nd >= 2.0
   static const dfz = 1.0;
@@ -218,6 +271,7 @@ class FMatcher with Settings {
   static final _perfMatchTerm = RegExp(r'^"(.+)"$');
 
   Future<void> buildDb() async {
+    initWhiteQueries();
     var idbFile = File(Paths.idb);
     var idbFileExists = idbFile.existsSync();
     late DateTime idbTimestamp;
@@ -251,6 +305,23 @@ class FMatcher with Settings {
       await time(() => db = Db.fromIDb(idb), 'Db.fromIDb');
       await time(() => db.write(Paths.db), 'Db.write');
     }
+  }
+
+  void initWhiteQueries() {
+    for (var inputString in preper.rawWhiteQueries) {
+      if (preper.hasIllegalCharacter(inputString)) {
+        print('Illegal characters in white query: $inputString');
+        continue;
+      }
+      var rawQuery = preper.normalizeAndCapitalize(inputString);
+      var preprocessed = preper.preprocess(rawQuery, true);
+      if (preprocessed.terms.isEmpty) {
+        print('No valid terms in white query: $inputString');
+        continue;
+      }
+      whiteQueries.add(CachedQuery.fromPreprocessed(preprocessed, false));
+    }
+    preper.rawWhiteQueries.clear();
   }
 
   double absoluteTermImportance(double df) =>
@@ -295,14 +366,13 @@ class FMatcher with Settings {
     }
     var cachedQuery =
         CachedQuery.fromPreprocessed(preprocessed, perfectMatching);
-    if (preper.whiteQueries.contains(cachedQuery)) {
+    if (whiteQueries.contains(cachedQuery)) {
       return QueryResult.fromCachedResult(
         CachedResult(cachedQuery, 0, []),
         start,
         DateTime.now(),
         inputString,
         rawQuery,
-        preprocessed,
         'Safe Customer: ${preprocessed.terms.join(' ')}',
       );
     }
@@ -314,7 +384,6 @@ class FMatcher with Settings {
         DateTime.now(),
         inputString,
         rawQuery,
-        preprocessed,
       );
     }
     var query = Query.fromPreprocessed(preprocessed, perfectMatching);

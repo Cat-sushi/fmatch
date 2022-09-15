@@ -144,7 +144,7 @@ mixin Configs {
         continue;
       }
       for (var p in l) {
-        if (p == '') {
+        if (p == null || p == '') {
           break;
         }
         if (pattern.length > 1) {

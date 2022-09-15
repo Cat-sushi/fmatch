@@ -7,6 +7,7 @@ import 'dart:typed_data';
 import 'package:unorm_dart/unorm_dart.dart' as unorm;
 
 import 'configs.dart';
+import 'util.dart';
 
 enum LetType {
   na,
@@ -69,8 +70,8 @@ class Preprocessor with Configs {
     return m.end != name.length;
   }
 
-  final _htSpaces = RegExp(r'^\s+|\s+$');
-  final _mSpaces = RegExp(r'\s+');
+  final _htSpaces = regExp(r'^\s+|\s+$');
+  final _mSpaces = regExp(r'\s+');
 
   String normalizeAndCapitalize(String checked) {
     var uNormalized = unorm.nfkd(checked);
@@ -139,16 +140,16 @@ class Preprocessor with Configs {
   }
 
   final _r = [
-    RegExp(r'\$0'),
-    RegExp(r'\$1'),
-    RegExp(r'\$2'),
-    RegExp(r'\$3'),
-    RegExp(r'\$4'),
-    RegExp(r'\$5'),
-    RegExp(r'\$6'),
-    RegExp(r'\$7'),
-    RegExp(r'\$8'),
-    RegExp(r'\$9'),
+    regExp(r'\$0'),
+    regExp(r'\$1'),
+    regExp(r'\$2'),
+    regExp(r'\$3'),
+    regExp(r'\$4'),
+    regExp(r'\$5'),
+    regExp(r'\$6'),
+    regExp(r'\$7'),
+    regExp(r'\$8'),
+    regExp(r'\$9'),
   ];
 
   String _replacement(Match m, String replacement) {

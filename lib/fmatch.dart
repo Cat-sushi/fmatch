@@ -314,12 +314,20 @@ class FMatcher with Settings {
         continue;
       }
       var rawQuery = preper.normalizeAndCapitalize(inputString);
-      var preprocessed = preper.preprocess(rawQuery, true);
+      bool perfectMatching;
+      var perfMatchTermMatcher = _perfMatchTerm.firstMatch(rawQuery);
+      if (perfMatchTermMatcher != null) {
+        perfectMatching = true;
+        rawQuery = perfMatchTermMatcher[1]!;
+      } else {
+        perfectMatching = false;
+      }
+      var preprocessed = preper.preprocess(rawQuery, perfectMatching);
       if (preprocessed.terms.isEmpty) {
         print('No valid terms in white query: $inputString');
         continue;
       }
-      whiteQueries.add(CachedQuery.fromPreprocessed(preprocessed, false));
+      whiteQueries.add(CachedQuery.fromPreprocessed(preprocessed, perfectMatching));
     }
     preper.rawWhiteQueries.clear();
   }
@@ -350,19 +358,13 @@ class FMatcher with Settings {
     var perfMatchTermMatcher = _perfMatchTerm.firstMatch(rawQuery);
     if (perfMatchTermMatcher != null) {
       perfectMatching = true;
-      preprocessed = preper.preprocess(perfMatchTermMatcher[1]!);
-      if (preprocessed.letType != LetType.na ||
-          preprocessed.terms.length != 1 ||
-          preprocessed.terms[0].string != perfMatchTermMatcher[1]) {
-        return QueryResult.fromError(
-            'Query is not suitable for perfect matching: $inputString');
-      }
+      rawQuery = perfMatchTermMatcher[1]!;
     } else {
       perfectMatching = false;
-      preprocessed = preper.preprocess(rawQuery);
-      if (preprocessed.terms.isEmpty) {
-        return QueryResult.fromError('No valid terms in query: $inputString');
-      }
+    }
+    preprocessed = preper.preprocess(rawQuery);
+    if (preprocessed.terms.isEmpty) {
+      return QueryResult.fromError('No valid terms in query: $inputString');
     }
     var cachedQuery =
         CachedQuery.fromPreprocessed(preprocessed, perfectMatching);
@@ -411,7 +413,12 @@ class FMatcher with Settings {
     }
     queryTermOccurrences = queryTermOccurrences.toList(growable: false);
     var qtc = query.terms.length;
-    var maxMissedTC = maxMissedTermCount(qtc);
+    int maxMissedTC;
+    if (query.perfectMatching) {
+      maxMissedTC = 0;
+    } else {
+      maxMissedTC = maxMissedTermCount(qtc);
+    }
     if (estimateCombination(query, queryTermOccurrences, maxMissedTC) >
         fallbackThresholdCombinations) {
       queryTermOccurrences = reduceQueryTerms(query, queryTermOccurrences);

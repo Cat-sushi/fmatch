@@ -23,9 +23,20 @@ int distance(RString s1, RString s2) {
   if (l2 == 0) {
     return l1;
   }
-  
-  var r1 = s1.runes;
-  var r2 = s2.runes;
+
+  Int32List r1;
+  Int32List r2;
+
+  if (l2 > l1) {
+    r1 = s2.runes;
+    r2 = s1.runes;
+    var lt = l1;
+    l1 = l2;
+    l2 = lt;
+  } else {
+    r1 = s1.runes;
+    r2 = s2.runes;
+  }
 
   var size2 = l2 + 1;
   var v0 = Int32List(size2);
@@ -35,14 +46,12 @@ int distance(RString s1, RString s2) {
     v0[i] = i;
   }
 
+  int cost;
   for (var i = 0; i < l1; i++) {
     v1[0] = i + 1;
 
     for (var j = 0; j < l2; j++) {
-      int cost = 1;
-      if (r1[i] == r2[j]) {
-        cost = 0;
-      }
+      cost = (r1[i] == r2[j]) ? 0 : 1;
       v1[j + 1] = _min(v1[j] + 1, _min(v0[j + 1] + 1, v0[j] + cost));
     }
 

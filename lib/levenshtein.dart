@@ -8,7 +8,7 @@ import 'preprocess.dart';
 
 int _min(int a, int b) => a < b ? a : b;
 
-int distance(RString s1, RString s2) {
+int distance(Term s1, Term s2) {
   if (s1.string == s2.string) {
     return 0;
   }

@@ -24,21 +24,21 @@ Future<void> main() async {
 
   test('Li, Li', () async {
     var q = r'Li, Li';
-    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.entry.string).toList();
     expect(results, <String>[
       preprocessed[0],
     ]);
   });
   test('OSAMA BIN LADIN', () async {
     var q = r'ASAMA BIN LADEN NETWORK';
-    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.entry.string).toList();
     expect(results, <String>[
       preprocessed[2],
     ]);
   });
   test("ANSAR AL-SHARI'A (AAS)", () async {
     var q = r"ANSAR AL-SHARI'A (AAS)";
-    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.entry.string).toList();
     expect(results, <String>[
       preprocessed[3],
     ]);

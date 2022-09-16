@@ -18,40 +18,61 @@ enum LetType {
   String toJson() => name;
 }
 
-class RString implements Comparable<RString> {
-  static final canonicalized = <String, RString>{};
+class Term implements Comparable<Term> {
+  static final _canonicalized = <String, Term>{};
   final String string;
   final Int32List runes;
-  factory RString(String s, [bool registering = false]) {
-    if (registering == false) {
-      return RString._(s);
+  factory Term(String s, {bool canonicalizing = false}) {
+    if (canonicalizing == false) {
+      return Term._(s);
     }
-    var ret = canonicalized[s];
+    var ret = _canonicalized[s];
     if (ret != null) {
       return ret;
     }
-    return canonicalized[s] = RString._(s);
+    return _canonicalized[s] = Term._(s);
   }
-  RString._(this.string) : runes = Int32List.fromList(string.runes.toList());
+  Term._(this.string) : runes = Int32List.fromList(string.runes.toList());
   int get length => runes.length;
   @override
   String toString() => string;
   @override
-  int compareTo(dynamic other) => string.compareTo((other as RString).string);
+  int compareTo(dynamic other) => string.compareTo((other as Term).string);
+
+  @override
+  int get hashCode => Object.hashAll([...runes]);
+  @override
+  operator ==(Object? other) => string == (other! as Term).string;
+}
+
+class Entry implements Comparable<Entry> {
+  static final _canonicalized = <String, Entry>{};
+  final String string;
+  factory Entry(String s, {bool canonicalizing = false}) {
+    if (canonicalizing == false) {
+      return Entry._(s);
+    }
+    var ret = _canonicalized[s];
+    if (ret != null) {
+      return ret;
+    }
+    return _canonicalized[s] = Entry._(s);
+  }
+  Entry._(this.string);
+  int get length => string.length;
+  @override
+  String toString() => string;
+  @override
+  int compareTo(dynamic other) => string.compareTo((other as Entry).string);
   @override
   int get hashCode => string.hashCode;
   @override
-  operator ==(Object? other) {
-    if (other is! RString) {
-      return false;
-    }
-    return string == other.string;
-  }
+  operator ==(Object? other) => string == (other! as Entry).string;
 }
 
 class Preprocessed {
   final LetType letType;
-  final List<RString> terms;
+  final List<Term> terms;
   Preprocessed(this.letType, this.terms);
 }
 
@@ -135,7 +156,7 @@ class Preprocessor with Configs {
         letReplaced.letType,
         words
             .allMatches(letReplaced.name)
-            .map((m) => RString(m.group(0)!))
+            .map((m) => Term(m.group(0)!))
             .toList(growable: false));
   }
 
@@ -187,7 +208,7 @@ class Preprocessor with Configs {
     return Preprocessed(
         letType,
         replaceds
-            .map((e) => RString(e, canonicalizing))
+            .map((e) => Term(e, canonicalizing: canonicalizing))
             .toList(growable: false));
   }
 }

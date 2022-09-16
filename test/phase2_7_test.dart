@@ -39,7 +39,7 @@ Future<void> main() async {
   
   test('AL AL AL', () async {
     var q = r'AL AL AL';
-    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.entry.string).toList();
     expect(results, <String>[
       preprocessed[0],
       preprocessed[2],
@@ -64,14 +64,14 @@ Future<void> main() async {
   });
   test(r'AL AL AL AL AL AL AL AL', () async {
     var q = r'AL AL AL AL AL AL AL AL';
-    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.entry.string).toList();
     expect(results, <String>[
       preprocessed[1],
     ]);
   });
   test(r'AL AL AL AL AL AL AL AL AL', () async {
     var q = r'AL AL AL AL AL AL AL AL AL';
-    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.entry.string).toList();
     expect(results, <String>[
     ]);
   });

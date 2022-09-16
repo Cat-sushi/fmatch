@@ -8,21 +8,21 @@ import 'package:test/test.dart';
 
 Future<void> main() async {
   test('distance 1', () {
-    expect(distance(RString('abc'), RString('abcd')), 1);
+    expect(distance(Term('abc'), Term('abcd')), 1);
   });
   test('distance 2', () {
-    expect(distance(RString('abcd'), RString('abdc')), 2);
+    expect(distance(Term('abcd'), Term('abdc')), 2);
   });
   test('distance 3', () {
-    expect(distance(RString('abcd'), RString('abdd')), 1);
+    expect(distance(Term('abcd'), Term('abdd')), 1);
   });
   test('distance 4', () {
-    expect(distance(RString('𠀋𡈽𡌛𡑮'), RString('𠀋𡈽𡌛')), 1);
+    expect(distance(Term('𠀋𡈽𡌛𡑮'), Term('𠀋𡈽𡌛')), 1);
   });
   test('distance 5', () {
-    expect(distance(RString('𠀋𡈽𡌛𡑮'), RString('𠀋𡈽𡑮𡌛')), 2);
+    expect(distance(Term('𠀋𡈽𡌛𡑮'), Term('𠀋𡈽𡑮𡌛')), 2);
   });
   test('distance 6', () {
-    expect(distance(RString('𠀋𡈽𡌛𡑮'), RString('𠀋𠮟𡌛𡑮')), 1);
+    expect(distance(Term('𠀋𡈽𡌛𡑮'), Term('𠀋𠮟𡌛𡑮')), 1);
   });
 }

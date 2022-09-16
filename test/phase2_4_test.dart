@@ -280,48 +280,48 @@ Future<void> main() async {
   });
   test('BANK OF KESHAVARZI', () async {
     var q = r'BANK OF KESHAVARZI';
-    var r = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var r = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.entry.string).toList();
     expect(r, ['BANK KESHAVARZI', 'BANK KESHAVARZI IRAN', 'BANK TAAVON KESHAVARZI IRAN']);
   });
   test('HARBIN INSTITUTE OF TECHNOLOGY', () async {
     var q = r'HARPIN INSTITUTE OF TECHNOLOGY';
     var r = await matcher.fmatch(q);
-    expect(r.cachedResult.matchedEntiries[0].rawEntry, 'HARBIN INSTITUTE OF TECHNOLOGY (HIT)');
+    expect(r.cachedResult.matchedEntiries[0].entry.string, 'HARBIN INSTITUTE OF TECHNOLOGY (HIT)');
   });
   test('NOVOKUIBYSHEVSK REFYNERY', () async {
     var q = r'NOVOKUIBYSHEVSK REFYNERY';
     var r = await matcher.fmatch(q);
-    expect(r.cachedResult.matchedEntiries[0].rawEntry, 'NOVOKUIBYSHEVSK REFINERY');
+    expect(r.cachedResult.matchedEntiries[0].entry.string, 'NOVOKUIBYSHEVSK REFINERY');
   });
   test('NOVOKUYBYSHEVSK REFINERY', () async {
     var q = r'NOVOKUYBYSHEVSK REFINERY';
     var r = await matcher.fmatch(q);
-    expect(r.cachedResult.matchedEntiries[0].rawEntry, 'NOVOKUIBYSHEVSK REFINERY');
+    expect(r.cachedResult.matchedEntiries[0].entry.string, 'NOVOKUIBYSHEVSK REFINERY');
   });
   test('NOVOKUIBYSHEVSK REFINEYR', () async {
     var q = r'NOVOKUIBYSHEVSK REFINEYR';
     var r = await matcher.fmatch(q);
-    expect(r.cachedResult.matchedEntiries[0].rawEntry, 'NOVOKUIBYSHEVSK REFINERY');
+    expect(r.cachedResult.matchedEntiries[0].entry.string, 'NOVOKUIBYSHEVSK REFINERY');
   });
   test('NOVOKUYBYSHEVSK REFINRY', () async {
     var q = r'NOVOKUYBYSHEVSK REFINRY';
     var r = await matcher.fmatch(q);
-    expect(r.cachedResult.matchedEntiries[0].rawEntry, 'NOVOKUIBYSHEVSK REFINERY');
+    expect(r.cachedResult.matchedEntiries[0].entry.string, 'NOVOKUIBYSHEVSK REFINERY');
   });
   test('CJS NOVOKUIBYSHEVSK REFINERY', () async {
     var q = r'CJS NOVOKUIBYSHEVSK REFINERY';
     var r = await matcher.fmatch(q);
-    expect(r.cachedResult.matchedEntiries[0].rawEntry,'NOVOKUIBYSHEVSK REFINERY');
+    expect(r.cachedResult.matchedEntiries[0].entry.string,'NOVOKUIBYSHEVSK REFINERY');
   });
   test('ASTRONAUTICS SYSTEMS RESEARCH CENTRE', () async {
     var q = r'ASTRONAUTICS SYSTEMS RESEARCH CENTRE';
     var r = await matcher.fmatch(q);
-    expect(r.cachedResult.matchedEntiries[0].rawEntry, 'ASTRONAUTICS SYSTEMS RESEARCH CENTER');
+    expect(r.cachedResult.matchedEntiries[0].entry.string, 'ASTRONAUTICS SYSTEMS RESEARCH CENTER');
   });
   test('BIMEH IRAN INSURANCE COMPANY(UK)LIMITED', () async {
     var q = r'BIMEH IRAN INSURANCE COMPANY(UK)LIMITED';
     var r = await matcher.fmatch(q);
-    expect(r.cachedResult.matchedEntiries[0].rawEntry, 'BIMEH IRAN INSURANCE COMPANY (U.K.) LIMITED');
+    expect(r.cachedResult.matchedEntiries[0].entry.string, 'BIMEH IRAN INSURANCE COMPANY (U.K.) LIMITED');
   });
   test('OBRONPROM', () async {
     var q = r'OBRONPROM';
@@ -373,7 +373,7 @@ Future<void> main() async {
   test('Lukoil Europe Holdings BV', () async {
     var q = r'Lukoil Europe Holdings BV';
     var r = await matcher.fmatch(q);
-    expect(r.cachedResult.matchedEntiries[0].rawEntry, 'LUKOIL EUROPE HOLDINGS B.V.');
+    expect(r.cachedResult.matchedEntiries[0].entry.string, 'LUKOIL EUROPE HOLDINGS B.V.');
   });
   test('D.I.T. CO., LTD.', () async {
     var q = r'D.I.T. CO., LTD.';

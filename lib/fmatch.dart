@@ -13,7 +13,7 @@ import 'preprocess.dart';
 import 'util.dart';
 
 class QueryTerm {
-  RString term;
+  Term term;
   double df;
   double weight;
   QueryTerm(this.term, this.df, this.weight);
@@ -33,12 +33,13 @@ class Query {
 }
 
 class QueryTermOccurrence {
-  final String rawEntry;
+  final Entry entry;
   final int position;
+  final int df;
   final double termSimilarity;
   final bool partial;
   QueryTermOccurrence(
-      this.rawEntry, this.position, this.termSimilarity, this.partial);
+      this.entry, this.position, this.df, this.termSimilarity, this.partial);
 }
 
 class QueryTermInQueryOccurrnece {
@@ -68,23 +69,23 @@ class QueryTermInQueryOccurrnece {
 }
 
 class QueryOccurrence implements Comparable<QueryOccurrence> {
-  final String rawEntry;
+  final Entry entry;
   double score;
   final List<QueryTermInQueryOccurrnece> queryTerms;
-  QueryOccurrence(this.rawEntry, this.score, this.queryTerms);
+  QueryOccurrence(this.entry, this.score, this.queryTerms);
   @override
   int compareTo(QueryOccurrence other) => -score.compareTo(other.score);
 }
 
 class MatchedEntry {
-  final String rawEntry;
+  final Entry entry;
   final double score;
-  MatchedEntry(this.rawEntry, this.score);
+  MatchedEntry(this.entry, this.score);
   MatchedEntry.fromJson(Map<String, dynamic> json)
-      : rawEntry = json['rawEntry'] as String,
+      : entry = Entry(json['entry'] as String),
         score = json['score'] as double;
   Map toJson() => <String, Object>{
-        'rawEntry': rawEntry,
+        'entry': entry.string,
         'score': score,
       };
 }
@@ -191,7 +192,7 @@ class QueryResult {
                 query.perfectMatching),
             query.queryScore,
             queryOccurrences
-                .map((e) => MatchedEntry(e.rawEntry, e.score))
+                .map((e) => MatchedEntry(e.entry, e.score))
                 .toList()),
         error = '';
   QueryResult.fromError(this.error)
@@ -327,7 +328,8 @@ class FMatcher with Settings {
         print('No valid terms in white query: $inputString');
         continue;
       }
-      whiteQueries.add(CachedQuery.fromPreprocessed(preprocessed, perfectMatching));
+      whiteQueries
+          .add(CachedQuery.fromPreprocessed(preprocessed, perfectMatching));
     }
     preper.rawWhiteQueries.clear();
   }
@@ -443,9 +445,10 @@ class FMatcher with Settings {
       if (idbv == null) {
         return <QueryTermOccurrence>[];
       }
-      qterm.df += idbv.occurrences.length * 1.0;
+      qterm.df += idbv.df * 1.0;
       var os = idbv.occurrences
-          .map((o) => QueryTermOccurrence(o.rawEntry, o.position, 1.0, false))
+          .map((o) =>
+              QueryTermOccurrence(o.entry, o.position, idbv.df, 1.0, false))
           .toList(growable: false);
       return os;
     }
@@ -466,7 +469,7 @@ class FMatcher with Settings {
       var sim = similarity(idbe.key.term, qterm.term);
       if (sim > 0) {
         partial = false;
-        qterm.df += idbe.value.occurrences.length * sim;
+        qterm.df += idbe.value.df * sim;
       } else {
         sim = partialSimilarity(idbe.key.term, qterm.term);
         if (sim == 0) {
@@ -475,13 +478,13 @@ class FMatcher with Settings {
         partial = true;
         qterm.df += 0;
       }
-      var os = idbe.value.occurrences.map(
-          (o) => QueryTermOccurrence(o.rawEntry, o.position, sim, partial));
+      var os = idbe.value.occurrences.map((o) => QueryTermOccurrence(
+          o.entry, o.position, idbe.value.df, sim, partial));
       occurrences.addAll(os);
     }
     occurrences = occurrences.toList(growable: false);
     occurrences.sort((a, b) {
-      var c = a.rawEntry.compareTo(b.rawEntry);
+      var c = a.entry.compareTo(b.entry);
       if (c != 0) {
         return c;
       }
@@ -494,7 +497,7 @@ class FMatcher with Settings {
     return occurrences;
   }
 
-  double similarity(RString dbTerm, RString queryTerm) {
+  double similarity(Term dbTerm, Term queryTerm) {
     var lenDt = dbTerm.length;
     var lenQt = queryTerm.length;
     int lenMax;
@@ -526,7 +529,7 @@ class FMatcher with Settings {
     return sim;
   }
 
-  double partialSimilarity(RString dbTerm, RString queryTerm) {
+  double partialSimilarity(Term dbTerm, Term queryTerm) {
     var dtlen = dbTerm.length;
     var qtlen = queryTerm.length;
     if (dtlen < qtlen) {
@@ -555,9 +558,9 @@ class FMatcher with Settings {
     var etmc = <int>[];
     var etmcr = <List<int>>[[]];
     var maxCombi = 1.0;
-    for (var currentEntry = setRangeIndices(
-            '', query, queryTermOccurrences, ris, maxMissedTermCount, etmcr);
-        currentEntry != '';
+    for (var currentEntry = setRangeIndices(Entry(''), query,
+            queryTermOccurrences, ris, maxMissedTermCount, etmcr);
+        currentEntry.string != '';
         currentEntry = setRangeIndices(currentEntry, query,
             queryTermOccurrences, ris, maxMissedTermCount, etmcr)) {
       etmc = etmcr[0];
@@ -610,14 +613,14 @@ class FMatcher with Settings {
       List<QueryTermOccurrence> queryTermOccurrences, Query query) {
     var ose = <QueryTermOccurrence>[];
     var ret = <QueryTermOccurrence>[];
-    var currentEntry = '';
+    var currentEntry = Entry('');
     for (var o in queryTermOccurrences) {
-      if (currentEntry == '') {
+      if (currentEntry.string == '') {
         ose = [o];
-        currentEntry = o.rawEntry;
+        currentEntry = o.entry;
         continue;
       }
-      if (currentEntry == o.rawEntry) {
+      if (currentEntry == o.entry) {
         ose.add(o);
         continue;
       }
@@ -626,7 +629,7 @@ class FMatcher with Settings {
       }
       ret.addAll(ose);
       ose = [o];
-      currentEntry = o.rawEntry;
+      currentEntry = o.entry;
     }
     if (ose.length > fallbackMaxQueryTermMobility) {
       ose.sort((a, b) => -a.termSimilarity.compareTo(b.termSimilarity));
@@ -684,9 +687,9 @@ class FMatcher with Settings {
     var ret = <QueryOccurrence>[];
     var etmc = <int>[];
     var etmcr = <List<int>>[[]];
-    for (var currentEntry = setRangeIndices(
-            '', query, queryTermOccurrences, ris, maxMissedTermCount, etmcr);
-        currentEntry != '';
+    for (var currentEntry = setRangeIndices(Entry(''), query,
+            queryTermOccurrences, ris, maxMissedTermCount, etmcr);
+        currentEntry.string != '';
         currentEntry = setRangeIndices(currentEntry, query,
             queryTermOccurrences, ris, maxMissedTermCount, etmcr)) {
       etmc = etmcr[0];
@@ -699,14 +702,14 @@ class FMatcher with Settings {
     return ret;
   }
 
-  String setRangeIndices(
-      String currentEntry,
+  Entry setRangeIndices(
+      Entry currentEntry,
       Query query,
       List<List<QueryTermOccurrence>> queryTermOccurrences,
       List<RangeIndices> rangeIndices,
       int maxMissedTermCount,
       List<List<int>> matchedQueryTermCountsRef) {
-    var nextEntry = '';
+    var nextEntry = Entry('');
     var qtc = queryTermOccurrences.length;
     while (true) {
       for (var qti = 0; qti < qtc; qti++) {
@@ -717,8 +720,8 @@ class FMatcher with Settings {
         if (rangeIndices[qti].start >= queryTermOccurrences[qti].length) {
           continue;
         }
-        var qtse = queryTermOccurrences[qti][rangeIndices[qti].start].rawEntry;
-        if (nextEntry == '') {
+        var qtse = queryTermOccurrences[qti][rangeIndices[qti].start].entry;
+        if (nextEntry.string == '') {
           nextEntry = qtse;
           continue;
         }
@@ -726,8 +729,8 @@ class FMatcher with Settings {
           nextEntry = qtse;
         }
       }
-      if (nextEntry == '') {
-        return '';
+      if (nextEntry.string == '') {
+        return Entry('');
       }
       var etc = db[nextEntry]!.terms.length;
       matchedQueryTermCountsRef[0] = List<int>.filled(etc, 0, growable: false);
@@ -738,7 +741,7 @@ class FMatcher with Settings {
         for (j = rangeIndices[qti].start;
             j < queryTermOccurrences[qti].length;
             j++) {
-          if (queryTermOccurrences[qti][j].rawEntry != nextEntry) {
+          if (queryTermOccurrences[qti][j].entry != nextEntry) {
             break;
           }
           matchedQueryTermCounts[queryTermOccurrences[qti][j].position]++;
@@ -750,7 +753,7 @@ class FMatcher with Settings {
       }
       if (qtc - matchedQueryTerms > maxMissedTermCount) {
         currentEntry = nextEntry;
-        nextEntry = '';
+        nextEntry = Entry('');
         continue;
       }
       break;
@@ -760,7 +763,7 @@ class FMatcher with Settings {
 
   List<QueryOccurrence> joinQueryTermOccurrencesRecursively(
       Query query,
-      String rawEntry,
+      Entry entry,
       List<List<QueryTermOccurrence>> queryTermOccurrences,
       List<RangeIndices> rangeIndices,
       List<int> matchedQueryTermCounts,
@@ -777,13 +780,15 @@ class FMatcher with Settings {
                   tmpQueryTermsInQueryOccurrence[i]),
               growable: false);
       if (!checkDevidedMatch(
-          query, rawEntry, tmpTmpQueryTermsInQueryOccurrence)) {
+          query, entry, tmpTmpQueryTermsInQueryOccurrence)) {
         return ret;
       }
       var qo =
-          QueryOccurrence(rawEntry, 0.0, tmpTmpQueryTermsInQueryOccurrence);
+          QueryOccurrence(entry, 0.0, tmpTmpQueryTermsInQueryOccurrence);
       caliulateScore(qo, query);
-      if (qo.score >= minScore || missedTermCount == 0) {
+      if (query.perfectMatching && qo.score == query.queryScore ||
+          !query.perfectMatching &&
+              (qo.score >= minScore || missedTermCount == 0)) {
         ret.add(qo);
       }
       return ret;
@@ -804,7 +809,7 @@ class FMatcher with Settings {
         ..sequenceNo = 0;
       joinQueryTermOccurrencesRecursively(
           query,
-          rawEntry,
+          entry,
           queryTermOccurrences,
           rangeIndices,
           matchedQueryTermCounts,
@@ -830,16 +835,14 @@ class FMatcher with Settings {
       if (collision) {
         continue;
       }
-      var dbterm = db[qto.rawEntry]!.terms[qto.position];
-      var isLet = isLetByQueryTerm(query, qti);
       tmpQueryTermsInQueryOccurrence[qti]
         ..position = qto.position
         ..partial = qto.partial
         ..termSimilarity = qto.termSimilarity
-        ..df = idb[IDbEntryKey(dbterm, isLet)]!.df;
+        ..df = qto.df;
       joinQueryTermOccurrencesRecursively(
           query,
-          rawEntry,
+          entry,
           queryTermOccurrences,
           rangeIndices,
           matchedQueryTermCounts,
@@ -852,7 +855,7 @@ class FMatcher with Settings {
     return ret;
   }
 
-  bool checkDevidedMatch(Query query, String rawEntry,
+  bool checkDevidedMatch(Query query, Entry entry,
       List<QueryTermInQueryOccurrnece> tmpQueryTermsInQueryOccurrence) {
     var joinedTermQtis = <int, List<int>>{};
     for (var qti = 0; qti < tmpQueryTermsInQueryOccurrence.length; qti++) {
@@ -878,8 +881,8 @@ class FMatcher with Settings {
       }
       var position = me.key;
       var joinedTerm =
-          RString(me.value.map((var qti) => query.terms[qti].term).join(' '));
-      var dbterm = db[rawEntry]!.terms[position];
+          Term(me.value.map((var qti) => query.terms[qti].term).join(' '));
+      var dbterm = db[entry]!.terms[position];
       var sim = similarity(dbterm, joinedTerm);
       if (sim == 0.0) {
         return false;
@@ -959,7 +962,7 @@ class FMatcher with Settings {
       if (e == topO) {
         continue;
       }
-      if (e.rawEntry == topO.rawEntry) {
+      if (e.entry == topO.entry) {
         if (e.score > topO.score) {
           topO = e;
         }

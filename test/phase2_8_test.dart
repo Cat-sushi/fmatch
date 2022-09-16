@@ -23,7 +23,7 @@ Future<void> main() async {
 
   test('ABCD EFGH', () async {
     var q = r'ABCD, EFGH';
-    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.entry.string).toList();
     expect(results, <String>[
       preprocessed[0],
       preprocessed[1],
@@ -31,7 +31,7 @@ Future<void> main() async {
   });
   test('ABC DEF GHI', () async {
     var q = r'ABC DEF GHI';
-    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.entry.string).toList();
     expect(results, <String>[
       preprocessed[0],
       preprocessed[1],
@@ -39,7 +39,7 @@ Future<void> main() async {
   });
   test('ABCD DE GHI', () async {
     var q = r'ABCD DE GHI';
-    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.entry.string).toList();
     expect(results, <String>[
       preprocessed[0],
       preprocessed[1],
@@ -47,21 +47,21 @@ Future<void> main() async {
   });
   test('ABC LMNO', () async {
     var q = r'ABC LMNO';
-    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.entry.string).toList();
     expect(results, <String>[
       preprocessed[1],
     ]);
   });
   test('PQR STU UVW XYZ ABC DEF', () async {
     var q = r'PQR STU UVW XYZ ABC DEF';
-    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.entry.string).toList();
     expect(results, <String>[
       preprocessed[2],
     ]);
   });
   test('AB DE GH', () async {
     var q = r'AB DE GH';
-    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.entry.string).toList();
     expect(results, <String>[
       preprocessed[0],
       preprocessed[1],
@@ -69,13 +69,13 @@ Future<void> main() async {
   });
   test('AB GH DE', () async {
     var q = r'AB GH DE';
-    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.entry.string).toList();
     expect(results, <String>[
     ]);
   });
   test('ABCDEFGHI AB GH ABCJKLMNO', () async {
     var q = r'ABCDEFGHI AB GH ABCJKLMNO';
-    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.rawEntry).toList();
+    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.entry.string).toList();
     expect(results, <String>[
       preprocessed[1],
     ]);

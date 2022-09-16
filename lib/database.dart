@@ -11,66 +11,66 @@ import 'util.dart';
 const bufferSize = 128 * 1024;
 
 class Db {
-  final Map<String, Preprocessed> _map = {};
+  final Map<Entry, Preprocessed> _map = {};
   Db();
   Db.fromIDb(IDb idb) {
-    var entryTermTable = <String, Map<int, RString>>{};
-    var entryLetPosition = <String, int>{};
+    var entryTermTable = <Entry, Map<int, Term>>{};
+    var entryLetPosition = <Entry, int>{};
     for (var me in idb.entries) {
       var isLet = me.key.isLet;
       var os = me.value.occurrences;
       for (var o in os) {
-        var rawEntry = o.rawEntry;
+        var entry = o.entry;
         var position = o.position;
-        if (!entryTermTable.containsKey(rawEntry)) {
-          entryTermTable[rawEntry] = <int, RString>{};
-          entryLetPosition[rawEntry] = -1;
+        if (!entryTermTable.containsKey(entry)) {
+          entryTermTable[entry] = <int, Term>{};
+          entryLetPosition[entry] = -1;
         }
-        entryTermTable[rawEntry]![position] = me.key.term;
+        entryTermTable[entry]![position] = me.key.term;
         if (isLet) {
-          entryLetPosition[rawEntry] = position;
+          entryLetPosition[entry] = position;
         }
       }
     }
     for (var me in entryTermTable.entries) {
-      var rawEntry = me.key;
+      var entry = me.key;
       var entryTermMap = me.value;
       var entryTermCount = entryTermMap.length;
-      var terms = List<RString>.generate(
+      var terms = List<Term>.generate(
           entryTermCount, (qti) => entryTermMap[qti]!,
           growable: false);
       LetType letType;
-      if (entryLetPosition[rawEntry] == -1) {
+      if (entryLetPosition[entry] == -1) {
         letType = LetType.na;
-      } else if (entryLetPosition[rawEntry] == entryTermCount - 1) {
+      } else if (entryLetPosition[entry] == entryTermCount - 1) {
         letType = LetType.postfix;
-      } else if (entryLetPosition[rawEntry] == 0) {
+      } else if (entryLetPosition[entry] == 0) {
         letType = LetType.prefix;
       } else {
         throw Exception();
       }
-      this[rawEntry] = Preprocessed(letType, terms);
+      this[entry] = Preprocessed(letType, terms);
     }
     assert(length >= 2);
   }
   static Future<Db> fromStringStream(
       Preprocessor preper, Stream<String> entries) async {
     var ret = Db();
-    await entries.where((var entry) => entry != '').forEach((var entry) {
-      var rawEntry = canonicalize(preper.normalizeAndCapitalize(entry));
-      if (!ret.containsKey(rawEntry)) {
-        ret[rawEntry] = preper.preprocess(rawEntry, true);
+    await entries.where((var entry) => entry != '').forEach((var e) {
+      var entry = Entry(preper.normalizeAndCapitalize(e), canonicalizing: true);
+      if (!ret.containsKey(entry)) {
+        ret[entry] = preper.preprocess(entry.string, true);
       }
     });
     assert(ret.length >= 2);
     return ret;
   }
 
-  Preprocessed? operator [](String key) => _map[key];
-  operator []=(String key, Preprocessed value) => _map[key] = value;
-  Iterable<String> get keys => _map.keys;
+  Preprocessed? operator [](Entry key) => _map[key];
+  operator []=(Entry key, Preprocessed value) => _map[key] = value;
+  Iterable<Entry> get keys => _map.keys;
   int get length => _map.length;
-  bool containsKey(String key) => _map.containsKey(key);
+  bool containsKey(Entry key) => _map.containsKey(key);
 
   static Future<Db> readList(Preprocessor preper, String path) async {
     var plainEntries = readCsvLines(path)
@@ -87,7 +87,7 @@ class Db {
     var keys = this.keys.toList(growable: false);
     keys.sort();
     for (var key in keys) {
-      csvLine.write(quoteCsvCell(key));
+      csvLine.write(quoteCsvCell(key.string));
       csvLine.write(r',');
       var v = this[key]!;
       csvLine.write(v.letType.toString().substring(8));
@@ -107,7 +107,7 @@ class Db {
 }
 
 class IDbEntryKey implements Comparable<IDbEntryKey> {
-  final RString term;
+  final Term term;
   final bool isLet;
   final int _hashCode;
   @override
@@ -132,7 +132,8 @@ class IDbEntryKey implements Comparable<IDbEntryKey> {
   int get hashCode => _hashCode;
   IDbEntryKey(this.term, this.isLet) : _hashCode = Object.hash(term, isLet);
   IDbEntryKey.fromJson(Map<String, dynamic> json)
-      : this(RString(json['term'] as String, true), json['isLet'] as bool);
+      : this(Term(json['term'] as String, canonicalizing: true),
+            json['isLet'] as bool);
   Map<String, dynamic> toJson() => <String, dynamic>{
         'term': term.string,
         'isLet': isLet,
@@ -140,13 +141,14 @@ class IDbEntryKey implements Comparable<IDbEntryKey> {
 }
 
 class IDbTermOccurrence {
-  final String rawEntry;
+  final Entry entry;
   final int position;
-  IDbTermOccurrence(this.rawEntry, this.position);
+  IDbTermOccurrence(this.entry, this.position);
   IDbTermOccurrence.fromJson(Map<String, dynamic> json)
-      : this(canonicalize(json['rawEntry'] as String), json['position'] as int);
+      : this(Entry(json['entry'] as String, canonicalizing: true),
+            json['position'] as int);
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'rawEntry': rawEntry,
+        'entry': entry.string,
         'position': position,
       };
 }
@@ -217,10 +219,10 @@ class IDb {
     for (var mentry in tmpMap.entries) {
       var value = mentry.value;
       var df = 0;
-      var lastRawEntry = '';
+      var lastEntry = Entry('');
       for (var o in value.occurrences) {
-        if (o.rawEntry != lastRawEntry) {
-          lastRawEntry = o.rawEntry;
+        if (o.entry != lastEntry) {
+          lastEntry = o.entry;
           df++;
         }
       }

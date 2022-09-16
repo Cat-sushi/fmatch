@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'fmatch.dart';
+import 'preprocess.dart';
 import 'util.dart';
 
 Future<void> batch(FMatcher matcher, [String path = 'batch']) async {
@@ -58,7 +59,7 @@ Stream<String> openQueryListStream(String batchQueryPath) async* {
 String formatOutput(int ix, QueryResult result) {
   var csvLine = StringBuffer();
   if (result.cachedResult.matchedEntiries.isEmpty) {
-    result.cachedResult.matchedEntiries.add(MatchedEntry('', 0.0));
+    result.cachedResult.matchedEntiries.add(MatchedEntry(Entry(''), 0.0));
   }
   for (var e in result.cachedResult.matchedEntiries) {
     csvLine.write(result.serverId);
@@ -75,7 +76,7 @@ String formatOutput(int ix, QueryResult result) {
     csvLine.write(r',');
     csvLine.write(quoteCsvCell(result.rawQuery));
     csvLine.write(r',');
-    csvLine.write(quoteCsvCell(e.rawEntry));
+    csvLine.write(quoteCsvCell(e.entry.string));
     csvLine.write(r',');
     csvLine
         .write(result.cachedResult.cachedQuery.letType.toString().substring(8));

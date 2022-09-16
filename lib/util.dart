@@ -62,18 +62,6 @@ Stream<List<String?>> readCsvLines(String filepath) async* {
 
 String quoteCsvCell(String cell) => r'"' + cell.replaceAll(r'"', r'""') + r'"';
 
-final _stringMap = <String, String>{};
-String canonicalize(String s, [bool registering = true]) {
-  var ret = _stringMap[s];
-  if (ret != null) {
-    return ret;
-  }
-  if (registering) {
-    _stringMap[s] = s;
-  }
-  return s;
-}
-
 Future<void> time(FutureOr<void> Function() func, String name) async {
   var start = DateTime.now();
   await func();

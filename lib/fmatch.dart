@@ -5,10 +5,10 @@
 import 'dart:collection';
 import 'dart:io';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'configs.dart';
 import 'database.dart';
-import 'levenshtein.dart';
 import 'preprocess.dart';
 import 'util.dart';
 
@@ -497,6 +497,52 @@ class FMatcher with Settings {
     return occurrences;
   }
 
+  static int distance(Term s1, Term s2) {
+    int min(int a, int b) => a < b ? a : b;
+    if (s1.string == s2.string) {
+      return 0;
+    }
+    var l1 = s1.length;
+    var l2 = s2.length;
+    if (l1 == 0) {
+      return l2;
+    }
+    if (l2 == 0) {
+      return l1;
+    }
+    Int32List r1;
+    Int32List r2;
+    if (l2 > l1) {
+      r1 = s2.runes;
+      r2 = s1.runes;
+      var lt = l1;
+      l1 = l2;
+      l2 = lt;
+    } else {
+      r1 = s1.runes;
+      r2 = s2.runes;
+    }
+    var size2 = l2 + 1;
+    var v0 = Int32List(size2);
+    var v1 = Int32List(size2);
+    Int32List vtemp;
+    for (var i = 0; i < size2; i++) {
+      v0[i] = i;
+    }
+    int cost;
+    for (var i = 0; i < l1; i++) {
+      v1[0] = i + 1;
+      for (var j = 0; j < l2; j++) {
+        cost = (r1[i] == r2[j]) ? 0 : 1;
+        v1[j + 1] = min(v1[j] + 1, min(v0[j + 1] + 1, v0[j] + cost));
+      }
+      vtemp = v0;
+      v0 = v1;
+      v1 = vtemp;
+    }
+    return v0[l2];
+  }
+
   double similarity(Term dbTerm, Term queryTerm) {
     var lenDt = dbTerm.length;
     var lenQt = queryTerm.length;
@@ -779,12 +825,10 @@ class FMatcher with Settings {
               (i) => QueryTermInQueryOccurrnece.of(
                   tmpQueryTermsInQueryOccurrence[i]),
               growable: false);
-      if (!checkDevidedMatch(
-          query, entry, tmpTmpQueryTermsInQueryOccurrence)) {
+      if (!checkDevidedMatch(query, entry, tmpTmpQueryTermsInQueryOccurrence)) {
         return ret;
       }
-      var qo =
-          QueryOccurrence(entry, 0.0, tmpTmpQueryTermsInQueryOccurrence);
+      var qo = QueryOccurrence(entry, 0.0, tmpTmpQueryTermsInQueryOccurrence);
       caliulateScore(qo, query);
       if (query.perfectMatching && qo.score == query.queryScore ||
           !query.perfectMatching &&

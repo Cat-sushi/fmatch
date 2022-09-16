@@ -79,7 +79,7 @@ String formatOutput(int ix, QueryResult result) {
     csvLine.write(quoteCsvCell(e.entry.string));
     csvLine.write(r',');
     csvLine
-        .write(result.cachedResult.cachedQuery.letType.toString().substring(8));
+        .write(result.cachedResult.cachedQuery.letType.name);
     for (var e in result.cachedResult.cachedQuery.terms) {
       csvLine.write(r',');
       csvLine.write(quoteCsvCell(e));

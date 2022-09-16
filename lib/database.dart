@@ -90,7 +90,7 @@ class Db {
       csvLine.write(quoteCsvCell(key.string));
       csvLine.write(r',');
       var v = this[key]!;
-      csvLine.write(v.letType.toString().substring(8));
+      csvLine.write(v.letType.name);
       for (var t in v.terms) {
         csvLine.write(r',');
         csvLine.write(quoteCsvCell(t.string));

@@ -89,9 +89,11 @@ class Dispatcher {
       if (result == null) {
         return;
       }
-      if (result.error != '') {
-        logSink.writeln(result.error);
+      if (result.cachedResult.cachedQuery.terms.isEmpty){
         continue;
+      }
+      if (result.message != '') {
+        logSink.writeln(result.message);
       }
       resultSink.write(formatOutput(ixO + 1, result));
       if (((ixO + 1) % 100) == 0) {

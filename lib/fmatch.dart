@@ -170,10 +170,10 @@ class QueryResult {
   final String inputString;
   final String rawQuery;
   final CachedResult cachedResult;
-  final String error;
+  final String message;
   QueryResult.fromCachedResult(this.cachedResult, DateTime start, DateTime end,
       this.inputString, this.rawQuery,
-      [this.error = ''])
+      [this.message = ''])
       : dateTime = start,
         durationInMilliseconds = end.difference(start).inMilliseconds;
   QueryResult.fromQueryOccurrences(
@@ -194,8 +194,8 @@ class QueryResult {
             queryOccurrences
                 .map((e) => MatchedEntry(e.entry, e.score))
                 .toList()),
-        error = '';
-  QueryResult.fromError(this.error)
+        message = '';
+  QueryResult.fromError(this.message)
       : dateTime = DateTime.now(),
         durationInMilliseconds = 0,
         inputString = '',
@@ -209,7 +209,7 @@ class QueryResult {
         rawQuery = json['rawQuery'] as String,
         cachedResult =
             CachedResult.fromJson(json['cachedResult'] as Map<String, dynamic>),
-        error = json['error'] as String;
+        message = json['message'] as String;
   Map toJson() => <String, Object>{
         'serverId': serverId,
         'start': dateTime.toUtc().toIso8601String(),
@@ -217,7 +217,7 @@ class QueryResult {
         'inputString': inputString,
         'rawQuery': rawQuery,
         'cachedResult': cachedResult.toJson(),
-        'error': error,
+        'message': message,
       };
 }
 
@@ -269,7 +269,7 @@ class FMatcher with Settings {
   late final tix = absoluteTermImportance(dfx) / tidfz;
   late final tsox = queryMatchingMinTermOrderSimilarity;
   late final minScore = (1.0 - (1.0 - tix)) * tsox;
-  static final _perfMatchTerm = RegExp(r'^"(.+)"$');
+  static final _perfMatchQuery = RegExp(r'^"(.+)"$');
 
   Future<void> buildDb() async {
     initWhiteQueries();
@@ -315,21 +315,12 @@ class FMatcher with Settings {
         continue;
       }
       var rawQuery = preper.normalizeAndCapitalize(inputString);
-      bool perfectMatching;
-      var perfMatchTermMatcher = _perfMatchTerm.firstMatch(rawQuery);
-      if (perfMatchTermMatcher != null) {
-        perfectMatching = true;
-        rawQuery = perfMatchTermMatcher[1]!;
-      } else {
-        perfectMatching = false;
-      }
-      var preprocessed = preper.preprocess(rawQuery, perfectMatching);
+      var preprocessed = preper.preprocess(rawQuery, false);
       if (preprocessed.terms.isEmpty) {
         print('No valid terms in white query: $inputString');
         continue;
       }
-      whiteQueries
-          .add(CachedQuery.fromPreprocessed(preprocessed, perfectMatching));
+      whiteQueries.add(CachedQuery.fromPreprocessed(preprocessed, false));
     }
     preper.rawWhiteQueries.clear();
   }
@@ -355,22 +346,19 @@ class FMatcher with Settings {
       return QueryResult.fromError('Illegal characters in query: $inputString');
     }
     var rawQuery = preper.normalizeAndCapitalize(inputString);
-    bool perfectMatching;
-    Preprocessed preprocessed;
-    var perfMatchTermMatcher = _perfMatchTerm.firstMatch(rawQuery);
-    if (perfMatchTermMatcher != null) {
+    bool perfectMatching = false;
+    var perfMatchQueryMatcher = _perfMatchQuery.firstMatch(rawQuery);
+    if (perfMatchQueryMatcher != null) {
       perfectMatching = true;
-      rawQuery = perfMatchTermMatcher[1]!;
-    } else {
-      perfectMatching = false;
+      rawQuery = perfMatchQueryMatcher[1]!;
     }
-    preprocessed = preper.preprocess(rawQuery);
+    var preprocessed = preper.preprocess(rawQuery);
     if (preprocessed.terms.isEmpty) {
       return QueryResult.fromError('No valid terms in query: $inputString');
     }
     var cachedQuery =
         CachedQuery.fromPreprocessed(preprocessed, perfectMatching);
-    if (whiteQueries.contains(cachedQuery)) {
+    if (!perfectMatching && whiteQueries.contains(cachedQuery)) {
       return QueryResult.fromCachedResult(
         CachedResult(cachedQuery, 0, []),
         start,
@@ -388,6 +376,7 @@ class FMatcher with Settings {
         DateTime.now(),
         inputString,
         rawQuery,
+        'Cached result'
       );
     }
     var query = Query.fromPreprocessed(preprocessed, perfectMatching);

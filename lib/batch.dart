@@ -1,4 +1,4 @@
-// Copyright (c) 2020, Yako.
+// Copyright (c) 2020, 2022 Yako.
 // All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -25,9 +25,11 @@ Future<void> batch(FMatcher matcher, [String path = 'batch']) async {
   await for (var query in openQueryListStream(batchQueryPath)) {
     ++lc;
     var result = await matcher.fmatch(query);
-    if (result.error != '') {
-      logSink.writeln(result.error);
+    if (result.cachedResult.cachedQuery.terms.isEmpty) {
       continue;
+    }
+    if (result.message != '') {
+      logSink.writeln(result.message);
     }
     resultSink.write(formatOutput(lc, result));
     if ((lc % 100) == 0) {
@@ -78,8 +80,7 @@ String formatOutput(int ix, QueryResult result) {
     csvLine.write(r',');
     csvLine.write(quoteCsvCell(e.entry.string));
     csvLine.write(r',');
-    csvLine
-        .write(result.cachedResult.cachedQuery.letType.name);
+    csvLine.write(result.cachedResult.cachedQuery.letType.name);
     for (var e in result.cachedResult.cachedQuery.terms) {
       csvLine.write(r',');
       csvLine.write(quoteCsvCell(e));

@@ -40,7 +40,7 @@ Future<void> main() async {
             '{"entry":"DEF COMPANY","score":0.4628958000823221},'
             '{"entry":"DEF GHI CO.","score":0.4628958000823221},'
             '{"entry":"COMPANY","score":0.006317690713281352},'
-            '{"entry":"COMPANY ABC","score":0.006317690713281352}]},"error":""}'));
+            '{"entry":"COMPANY ABC","score":0.006317690713281352}]},"message":""}'));
   });
   test('query 2', () async {
     var q = r'def co';

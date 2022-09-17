@@ -1,4 +1,4 @@
-// Copyright (c) 2020, Yako.
+// Copyright (c) 2020, 2022 Yako.
 // All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -40,7 +40,7 @@ class Term implements Comparable<Term> {
   int compareTo(dynamic other) => string.compareTo((other as Term).string);
 
   @override
-  int get hashCode => Object.hashAll([...runes]);
+  int get hashCode => string.hashCode;
   @override
   operator ==(Object? other) => string == (other! as Term).string;
 }
@@ -160,7 +160,7 @@ class Preprocessor with Configs {
             .toList(growable: false));
   }
 
-  final _r = [
+  static final _r = [
     regExp(r'\$0'),
     regExp(r'\$1'),
     regExp(r'\$2'),
@@ -173,7 +173,7 @@ class Preprocessor with Configs {
     regExp(r'\$9'),
   ];
 
-  String _replacement(Match m, String replacement) {
+  static String _replacement(Match m, String replacement) {
     var ret = replacement;
     for (var i = 0; i <= m.groupCount && i <= 9; i++) {
       var replacement = m[i] ?? '';

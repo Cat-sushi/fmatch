@@ -270,13 +270,13 @@ mixin Configs {
 
   Future<void> _readWordReplacementConf(String path) async {
     var pattern = StringBuffer();
-    String toString;
+    String targetString;
     var wordRpl = <WordReplacement>[];
     await for (var l in readCsvLines(path)) {
       if (l.length < 2 || l[0] == null) {
         continue;
       }
-      toString = l.removeAt(0)!;
+      targetString = l.removeAt(0)!;
       pattern.clear();
       for (var p in l) {
         if (p == '') {
@@ -289,7 +289,7 @@ mixin Configs {
         pattern.write(p);
         pattern.write(r'$');
       }
-      wordRpl.add(WordReplacement(regExp(pattern.toString()), toString));
+      wordRpl.add(WordReplacement(regExp(pattern.toString()), targetString));
     }
     wordReplacements = wordRpl.toList(growable: false);
   }

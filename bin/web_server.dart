@@ -21,15 +21,19 @@ class Command {
   Command(this.request, this.query);
 }
 
-var matcher = FMatcher();
 var commandStreamController = StreamController<Command>();
 var commandStreamQueue = StreamQueue(commandStreamController.stream);
 var josonEncoderWithIdent = JsonEncoder.withIndent('  ');
 var servers = <Server>[];
 
-Future main() async {
+Future main(List<String> args) async {
   print('Start Server');
+  var matcher = FMatcher();
   await time(() => matcher.readSettings(null), 'Settings.read');
+  if (args.isNotEmpty) {
+    matcher.queryResultCacheSize =
+        int.tryParse(args[0]) ?? matcher.queryResultCacheSize;
+  }
   await time(() => matcher.preper.readConfigs(), 'Configs.read');
   await time(() => matcher.buildDb(), 'buildDb');
   print('Min Score: ${matcher.minScore}');

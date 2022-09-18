@@ -8,9 +8,9 @@ import 'dart:io';
 
 RegExp regExp(String pattern) => RegExp(pattern, unicode: true);
 
-RegExp escapedDoubleQuate = RegExp(r'""');
-RegExp mlDetecter = regExp(r'^(("(""|[^"])*"|[^",]+|),)*"(""|[^"])*$');
-RegExp csvParser = regExp(r'(?:"((?:""|[^"])*)"|([^",]+)|())(?:,|$)');
+RegExp _escapedDoubleQuate = RegExp(r'""');
+RegExp _mlDetecter = regExp(r'^(("(""|[^"])*"|[^",]+|),)*"(""|[^"])*$');
+RegExp _csvParser = regExp(r'(?:"((?:""|[^"])*)"|([^",]+)|())(?:,|$)');
 
 Stream<List<String?>> readCsvLines(String filepath) async* {
   var row = '';
@@ -23,13 +23,13 @@ Stream<List<String?>> readCsvLines(String filepath) async* {
       row += '\n';
     }
     row += line;
-    if (mlDetecter.firstMatch(row) != null) {
+    if (_mlDetecter.firstMatch(row) != null) {
       continue;
     }
     var ret = <String?>[];
     var start = 0;
     for (Match? m; true; start = m.end) {
-      m = csvParser.matchAsPrefix(row, start);
+      m = _csvParser.matchAsPrefix(row, start);
       if (m == null) {
         if (start != row.length) {
           print('Illegal CSV line: $row');
@@ -40,7 +40,7 @@ Stream<List<String?>> readCsvLines(String filepath) async* {
         break;
       }
       if (m.group(1) != null) {
-        ret.add(m.group(1)!.replaceAll(escapedDoubleQuate, r'"'));
+        ret.add(m.group(1)!.replaceAll(_escapedDoubleQuate, r'"'));
         continue;
       }
       if (m.group(2) != null) {

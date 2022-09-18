@@ -85,7 +85,7 @@ class MatchedEntry {
       : entry = Entry(json['entry'] as String),
         score = json['score'] as double;
   Map toJson() => <String, Object>{
-        'entry': entry.string,
+        'entry': entry,
         'score': score,
       };
 }
@@ -108,9 +108,9 @@ class CachedQuery {
           json['perfectMatching'] as bool,
         );
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'letType': letType.toJson(),
-        'terms': [...terms.map((e) => e.string)],
-        'perfectMatching': perfectMatching ? true : false
+        'letType': letType,
+        'terms': terms,
+        'perfectMatching': perfectMatching,
       };
   @override
   bool operator ==(Object other) {
@@ -158,7 +158,7 @@ class CachedResult {
   Map toJson() => <String, Object>{
         'cachedQuery': cachedQuery,
         'queryScore': queryScore,
-        'matchedEntiries': matchedEntiries.map((e) => e.toJson()).toList(),
+        'matchedEntiries': matchedEntiries,
       };
 }
 
@@ -215,7 +215,7 @@ class QueryResult {
         'durationInMilliseconds': durationInMilliseconds,
         'inputString': inputString,
         'rawQuery': rawQuery,
-        'cachedResult': cachedResult.toJson(),
+        'cachedResult': cachedResult,
         'message': message,
       };
 }
@@ -280,7 +280,9 @@ class FMatcher with Settings {
     }
     if (!idbFileExists ||
         File(Pathes.list).lastModifiedSync().isAfter(idbTimestamp) ||
-        File(Pathes.legalCaharacters).lastModifiedSync().isAfter(idbTimestamp) ||
+        File(Pathes.legalCaharacters)
+            .lastModifiedSync()
+            .isAfter(idbTimestamp) ||
         File(Pathes.characterReplacement)
             .lastModifiedSync()
             .isAfter(idbTimestamp) ||

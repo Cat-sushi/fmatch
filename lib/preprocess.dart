@@ -39,6 +39,7 @@ class Term implements Comparable<Term> {
 
   static Term canonicalize(Term t) => _canonicalize(t.string);
   int get length => runes.length;
+  String toJson() => string;
   @override
   int compareTo(dynamic other) => string.compareTo((other as Term).string);
   @override
@@ -67,6 +68,7 @@ class Entry implements Comparable<Entry> {
 
   static Entry canonicalize(Entry e) => _canonicalize(e.string);
   int get length => string.length;
+  String toJson() => string;
   @override
   int compareTo(dynamic other) => string.compareTo((other as Entry).string);
   @override

@@ -51,7 +51,7 @@ class Db {
       }
       this[entry] = Preprocessed(letType, terms);
     }
-    if(length < 2) {
+    if (length < 2) {
       throw "Too small database";
     }
   }
@@ -64,7 +64,7 @@ class Db {
         ret[entry] = preper.preprocess(entry.string, true);
       }
     });
-    if(ret.length < 2) {
+    if (ret.length < 2) {
       throw "Too small database";
     }
     return ret;
@@ -137,7 +137,7 @@ class IDbEntryKey implements Comparable<IDbEntryKey> {
       : this(Term(json['term'] as String, canonicalizing: true),
             json['isLet'] as bool);
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'term': term.string,
+        'term': term,
         'isLet': isLet,
       };
 }
@@ -150,7 +150,7 @@ class IDbTermOccurrence {
       : this(Entry(json['entry'] as String, canonicalizing: true),
             json['position'] as int);
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'entry': entry.string,
+        'entry': entry,
         'position': position,
       };
 }
@@ -171,8 +171,7 @@ class IDbEntryValue {
             .toList(growable: false);
   Map<String, dynamic> toJson() => <String, dynamic>{
         'df': df,
-        'occurrences':
-            occurrences.map((o) => o.toJson()).toList(growable: false),
+        'occurrences': occurrences,
       };
 }
 
@@ -308,7 +307,7 @@ class IDb {
     var mapKeys = keys.toList(growable: false);
     mapKeys.sort();
     return mapKeys
-        .map((mk) => {'key': mk.toJson(), 'value': this[mk]!.toJson()})
+        .map((mk) => {'key': mk, 'value': this[mk]!})
         .toList(growable: false);
   }
 }

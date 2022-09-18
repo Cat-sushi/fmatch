@@ -45,7 +45,7 @@ class QueryTermOccurrence {
 class QueryTermInQueryOccurrnece {
   int position;
   int sequenceNo;
-  int df;
+  int df; // redundant for performance optimization
   double termSimilarity;
   bool partial;
   QueryTermInQueryOccurrnece()

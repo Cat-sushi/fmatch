@@ -20,7 +20,7 @@ enum LetType {
 
 class Term implements Comparable<Term> {
   static final _canonicalized = <String, Term>{};
-  final String string;
+  final String string; // redundant for performance optimization
   final Int32List runes;
   factory Term(String s, {bool canonicalizing = false}) {
     if (canonicalizing == false) {

@@ -241,9 +241,7 @@ class ResultCache {
     if (_queryResultCacheSize == 0) {
       return;
     }
-    var rce = _map.remove(query) ??
-        CachedResult(
-            result.cachedQuery, result.queryScore, result.matchedEntiries);
+    var rce = _map.remove(query) ?? result;
     _map[query] = rce;
     if (_map.length > _queryResultCacheSize) {
       _map.remove(_map.keys.first);
@@ -366,7 +364,7 @@ class FMatcher with Settings {
         DateTime.now(),
         inputString,
         rawQuery,
-        'Safe Customer: ${preprocessed.terms.join(' ')}',
+        'Safe Customer: ${preprocessed.terms.map((e) => e.string).join(' ')}',
       );
     }
     var cachedResult = await resultCache.get(cachedQuery);

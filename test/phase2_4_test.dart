@@ -7,9 +7,9 @@ import 'package:fmatch/fmatch.dart';
 import 'package:test/test.dart';
 
 Future<void> main() async {
-  Paths.list = 'test/env1/list.csv';
-  Paths.db = 'test/env1/db.csv';
-  Paths.idb = 'test/env1/idb.json';
+  Pathes.list = 'test/env1/list.csv';
+  Pathes.db = 'test/env1/db.csv';
+  Pathes.idb = 'test/env1/idb.json';
 
   var matcher = FMatcher();
   await matcher.readSettings(null);

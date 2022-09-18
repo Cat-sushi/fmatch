@@ -272,38 +272,38 @@ class FMatcher with Settings {
 
   Future<void> buildDb() async {
     initWhiteQueries();
-    var idbFile = File(Paths.idb);
+    var idbFile = File(Pathes.idb);
     var idbFileExists = idbFile.existsSync();
     late DateTime idbTimestamp;
     if (idbFileExists) {
-      idbTimestamp = File(Paths.idb).lastModifiedSync();
+      idbTimestamp = File(Pathes.idb).lastModifiedSync();
     }
     if (!idbFileExists ||
-        File(Paths.list).lastModifiedSync().isAfter(idbTimestamp) ||
-        File(Paths.legalCaharacters).lastModifiedSync().isAfter(idbTimestamp) ||
-        File(Paths.characterReplacement)
+        File(Pathes.list).lastModifiedSync().isAfter(idbTimestamp) ||
+        File(Pathes.legalCaharacters).lastModifiedSync().isAfter(idbTimestamp) ||
+        File(Pathes.characterReplacement)
             .lastModifiedSync()
             .isAfter(idbTimestamp) ||
-        File(Paths.stringReplacement)
+        File(Pathes.stringReplacement)
             .lastModifiedSync()
             .isAfter(idbTimestamp) ||
-        File(Paths.legalEntryType).lastModifiedSync().isAfter(idbTimestamp) ||
-        File(Paths.words).lastModifiedSync().isAfter(idbTimestamp) ||
-        File(Paths.wordReplacement).lastModifiedSync().isAfter(idbTimestamp)) {
+        File(Pathes.legalEntryType).lastModifiedSync().isAfter(idbTimestamp) ||
+        File(Pathes.words).lastModifiedSync().isAfter(idbTimestamp) ||
+        File(Pathes.wordReplacement).lastModifiedSync().isAfter(idbTimestamp)) {
       await time(() async {
-        db = await Db.readList(preper, Paths.list);
+        db = await Db.readList(preper, Pathes.list);
       }, 'Db.readList');
       await time(() async {
         idb = IDb.fromDb(db);
       }, 'IDb.fromDb');
-      await time(() => db.write(Paths.db), 'Db.write');
-      await time(() => idb.write(Paths.idb), 'IDb.write');
+      await time(() => db.write(Pathes.db), 'Db.write');
+      await time(() => idb.write(Pathes.idb), 'IDb.write');
     } else {
       await time(() async {
-        idb = await IDb.read(Paths.idb);
+        idb = await IDb.read(Pathes.idb);
       }, 'IDb.read');
       await time(() => db = Db.fromIDb(idb), 'Db.fromIDb');
-      await time(() => db.write(Paths.db), 'Db.write');
+      await time(() => db.write(Pathes.db), 'Db.write');
     }
   }
 

@@ -10,9 +10,9 @@ import 'package:test/test.dart';
 
 Future<void> main() async {
   var env = 'test/env0';
-  Paths.list = '$env/list.csv';
-  Paths.db = '$env/db.csv';
-  Paths.idb = '$env/idb.json';
+  Pathes.list = '$env/list.csv';
+  Pathes.db = '$env/db.csv';
+  Pathes.idb = '$env/idb.json';
 
   var matcher = FMatcher();
   await matcher.readSettings(null);
@@ -21,7 +21,7 @@ Future<void> main() async {
   await batch(matcher, env);
 
   var queries = <String>[];
-  await for (var l in readCsvLines( Paths.list)) {
+  await for (var l in readCsvLines( Pathes.list)) {
     if (l.isEmpty || l[0] == null) {
       continue;
     }

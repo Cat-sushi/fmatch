@@ -7,7 +7,7 @@ import 'dart:math';
 
 import 'util.dart';
 
-class Paths {
+class Pathes {
   static var setting = 'config/settings.csv';
   static var legalCaharacters = 'config/legal_characters.csv';
   static var characterReplacement = 'config/character_replacement.csv';
@@ -40,7 +40,7 @@ mixin Settings {
   int serverCount = Platform.numberOfProcessors;
 
   Future<void> readSettings(String? path) async {
-    path ??= Paths.setting;
+    path ??= Pathes.setting;
     await for (var l in readCsvLines(path)) {
       if (l.length < 2 || l[0] == null || l[1] == null) {
         continue;
@@ -128,13 +128,13 @@ mixin Configs {
   late final List<WordReplacement> wordReplacements;
   late final List<String> rawWhiteQueries;
   Future<void> readConfigs() async {
-    await _readLegalCharConf(Paths.legalCaharacters);
-    await _readCharacterReplacementConf(Paths.characterReplacement);
-    await _readStringReplacementConf(Paths.stringReplacement);
-    await _readLegalEntityTypesConf(Paths.legalEntryType);
-    await _readWordsConf(Paths.words);
-    await _readWordReplacementConf(Paths.wordReplacement);
-    await _readWhiteQueries(Paths.whiteQueries);
+    await _readLegalCharConf(Pathes.legalCaharacters);
+    await _readCharacterReplacementConf(Pathes.characterReplacement);
+    await _readStringReplacementConf(Pathes.stringReplacement);
+    await _readLegalEntityTypesConf(Pathes.legalEntryType);
+    await _readWordsConf(Pathes.words);
+    await _readWordReplacementConf(Pathes.wordReplacement);
+    await _readWhiteQueries(Pathes.whiteQueries);
   }
 
   Future<void> _readLegalCharConf(String path) async {

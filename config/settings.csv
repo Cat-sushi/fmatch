@@ -12,4 +12,4 @@ fallbackMaxQueryTerms,6
 fallbackMaxQueryTermMobility,6
 queryMatchingTermOrderCoefficent,0.5
 queryResultCacheSize,100000
-,serverCount,1
+serverCount,6

@@ -51,7 +51,9 @@ class Db {
       }
       this[entry] = Preprocessed(letType, terms);
     }
-    assert(length >= 2);
+    if(length < 2) {
+      throw "Too small database";
+    }
   }
   static Future<Db> fromStringStream(
       Preprocessor preper, Stream<String> entries) async {
@@ -62,7 +64,9 @@ class Db {
         ret[entry] = preper.preprocess(entry.string, true);
       }
     });
-    assert(ret.length >= 2);
+    if(ret.length < 2) {
+      throw "Too small database";
+    }
     return ret;
   }
 
@@ -122,8 +126,6 @@ class IDbEntryKey implements Comparable<IDbEntryKey> {
     return 1;
   }
 
-  @override
-  String toString() => term.string;
   @override
   bool operator ==(dynamic other) =>
       identical(this, other) ||

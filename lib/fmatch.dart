@@ -92,25 +92,24 @@ class MatchedEntry {
 
 class CachedQuery {
   final LetType letType;
-  final List<String> terms;
+  final List<Term> terms;
   final bool perfectMatching;
   final int _hashCode;
   CachedQuery(this.letType, this.terms, this.perfectMatching)
       : _hashCode = Object.hashAll([letType, perfectMatching, ...terms]);
   CachedQuery.fromPreprocessed(Preprocessed preped, bool perfectMatching)
-      : this(preped.letType, preped.terms.map((e) => e.string).toList(),
-            perfectMatching);
+      : this(preped.letType, preped.terms, perfectMatching);
   CachedQuery.fromJson(Map<String, dynamic> json)
       : this(
           LetType.fromJson(json['letType'] as String),
           (json['terms'] as List<dynamic>)
-              .map<String>((dynamic e) => e as String)
+              .map<Term>((dynamic e) => Term(e as String))
               .toList(growable: false),
           json['perfectMatching'] as bool,
         );
   Map<String, dynamic> toJson() => <String, dynamic>{
         'letType': letType.toJson(),
-        'terms': [...terms],
+        'terms': [...terms.map((e) => e.string)],
         'perfectMatching': perfectMatching ? true : false
       };
   @override
@@ -188,7 +187,7 @@ class QueryResult {
         cachedResult = CachedResult(
             CachedQuery(
                 query.letType,
-                query.terms.map((e) => e.term.string).toList(growable: false),
+                query.terms.map((e) => e.term).toList(growable: false),
                 query.perfectMatching),
             query.queryScore,
             queryOccurrences
@@ -242,8 +241,10 @@ class ResultCache {
     if (_queryResultCacheSize == 0) {
       return;
     }
-    _map.remove(query);
-    _map[query] = result;
+    var rce = _map.remove(query) ??
+        CachedResult(
+            result.cachedQuery, result.queryScore, result.matchedEntiries);
+    _map[query] = rce;
     if (_map.length > _queryResultCacheSize) {
       _map.remove(_map.keys.first);
     }
@@ -315,7 +316,7 @@ class FMatcher with Settings {
         continue;
       }
       var rawQuery = preper.normalizeAndCapitalize(inputString);
-      var preprocessed = preper.preprocess(rawQuery, false);
+      var preprocessed = preper.preprocess(rawQuery, true);
       if (preprocessed.terms.isEmpty) {
         print('No valid terms in white query: $inputString');
         continue;
@@ -376,7 +377,7 @@ class FMatcher with Settings {
         DateTime.now(),
         inputString,
         rawQuery,
-        'Cached result'
+        'Cached result',
       );
     }
     var query = Query.fromPreprocessed(preprocessed, perfectMatching);
@@ -913,8 +914,8 @@ class FMatcher with Settings {
         return false;
       }
       var position = me.key;
-      var joinedTerm =
-          Term(me.value.map((var qti) => query.terms[qti].term).join(' '));
+      var joinedTerm = Term(
+          me.value.map((var qti) => query.terms[qti].term.string).join(' '));
       var dbterm = db[entry]!.terms[position];
       var sim = similarity(dbterm, joinedTerm);
       if (sim == 0.0) {

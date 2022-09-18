@@ -26,19 +26,21 @@ class Term implements Comparable<Term> {
     if (canonicalizing == false) {
       return Term._(s);
     }
+    return _canonicalize(s);
+  }
+  Term._(this.string) : runes = Int32List.fromList(string.runes.toList());
+  static Term _canonicalize(String s) {
     var ret = _canonicalized[s];
     if (ret != null) {
       return ret;
     }
     return _canonicalized[s] = Term._(s);
   }
-  Term._(this.string) : runes = Int32List.fromList(string.runes.toList());
+
+  static Term canonicalize(Term t) => _canonicalize(t.string);
   int get length => runes.length;
   @override
-  String toString() => string;
-  @override
   int compareTo(dynamic other) => string.compareTo((other as Term).string);
-
   @override
   int get hashCode => string.hashCode;
   @override
@@ -52,16 +54,19 @@ class Entry implements Comparable<Entry> {
     if (canonicalizing == false) {
       return Entry._(s);
     }
+    return _canonicalize(s);
+  }
+  Entry._(this.string);
+  static Entry _canonicalize(String s) {
     var ret = _canonicalized[s];
     if (ret != null) {
       return ret;
     }
     return _canonicalized[s] = Entry._(s);
   }
-  Entry._(this.string);
+
+  static Entry canonicalize(Entry e) => _canonicalize(e.string);
   int get length => string.length;
-  @override
-  String toString() => string;
   @override
   int compareTo(dynamic other) => string.compareTo((other as Entry).string);
   @override

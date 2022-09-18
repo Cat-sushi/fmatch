@@ -44,7 +44,7 @@ class Term implements Comparable<Term> {
   @override
   int get hashCode => string.hashCode;
   @override
-  operator ==(Object? other) => string == (other! as Term).string;
+  operator ==(Object other) => string == (other as Term).string;
 }
 
 class Entry implements Comparable<Entry> {
@@ -72,7 +72,7 @@ class Entry implements Comparable<Entry> {
   @override
   int get hashCode => string.hashCode;
   @override
-  operator ==(Object? other) => string == (other! as Entry).string;
+  operator ==(Object other) => string == (other as Entry).string;
 }
 
 class Preprocessed {

@@ -16,9 +16,9 @@ Future<void> main() async {
     r'OSAMA BIN LADEN-ORGANISATION',
     r"ANSAR AL-SHARI'A IN TUNISIA (AAS-T)",
   ];
-  var rawEntries = list.map((e) => matcher.preper.normalizeAndCapitalize(e)).toList();
+  var rawEntries = list.map((e) => matcher.preper.normalizeAndCapitalize(e).string).toList();
   rawEntries.forEach(print);
-  var preprocessed = list.map((e) => matcher.preper.normalizeAndCapitalize(e)).toList();
+  var preprocessed = list.map((e) => matcher.preper.normalizeAndCapitalize(e).string).toList();
   matcher.db = await Db.fromStringStream(matcher.preper, Stream.fromIterable(rawEntries));
   matcher.idb = IDb.fromDb(matcher.db);
 

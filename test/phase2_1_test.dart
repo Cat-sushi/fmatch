@@ -18,7 +18,7 @@ Future<void> main() async {
     r'P.T. hogehoge hagehage',
     r'xxx yyy zzz co., ltd.',
   ];
-  var rawEntries = list.map((e) => matcher.preper.normalizeAndCapitalize(e)).toList();
+  var rawEntries = list.map((e) => matcher.preper.normalizeAndCapitalize(e).string).toList();
   rawEntries.forEach(print);
   matcher.db = await Db.fromStringStream(matcher.preper, Stream.fromIterable(rawEntries));
   matcher.idb = IDb.fromDb(matcher.db);

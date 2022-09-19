@@ -49,7 +49,7 @@ Future<void> initMatcher() async {
     if (matcher.preper.hasIllegalCharacter(l[0]!)) {
       continue;
     }
-    queries.add(matcher.preper.normalizeAndCapitalize(l[0]!));
+    queries.add(matcher.preper.normalizeAndCapitalize(l[0]!).string);
   }
 }
 

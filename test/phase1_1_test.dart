@@ -215,10 +215,10 @@ Future<void> main() async {
 
   group('Preprocess1', () {
     test('prep1-1', () {
-      expect(cntxt.normalizeAndCapitalize('abcdef'), 'ABCDEF');
+      expect(cntxt.normalizeAndCapitalize('abcdef').string, 'ABCDEF');
     });
     test('prep1-2', () {
-      expect(cntxt.normalizeAndCapitalize('  abc  def  '), 'ABC DEF');
+      expect(cntxt.normalizeAndCapitalize('  abc  def  ').string, 'ABC DEF');
     });
   });
 
@@ -236,13 +236,13 @@ Future<void> main() async {
 
   group('replaceLET', () {
     test('replaceLET1', () {
-      expect(cntxt.replaceLegalEntiyTypes(r'AAA CO., LTD.').name, r'AAA <*CO_LTD*>');
+      expect(cntxt.replaceLegalEntityTypes(r'AAA CO., LTD.').name, r'AAA <*CO_LTD*>');
     });
     test('replaceLET2', () {
-      expect(cntxt.replaceLegalEntiyTypes(r'CO., LTD. AAA').name, r'<*CO_LTD*> AAA');
+      expect(cntxt.replaceLegalEntityTypes(r'CO., LTD. AAA').name, r'<*CO_LTD*> AAA');
     });
     test('replaceLET3', () {
-      expect(cntxt.replaceLegalEntiyTypes(r'AAA CO., LTD. AAA').name, r'AAA CO., LTD. AAA');
+      expect(cntxt.replaceLegalEntityTypes(r'AAA CO., LTD. AAA').name, r'AAA CO., LTD. AAA');
     });
   });
 

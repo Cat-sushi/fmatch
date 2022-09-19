@@ -16,7 +16,7 @@ Future<void> main() async {
     'uuu vvv www xxx',
     'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
   ];
-  var rawEntries = list.map((e) => matcher.preper.normalizeAndCapitalize(e)).toList();
+  var rawEntries = list.map((e) => matcher.preper.normalizeAndCapitalize(e).string).toList();
   rawEntries.forEach(print);
   matcher.db = await Db.fromStringStream(matcher.preper, Stream.fromIterable(rawEntries));
   matcher.idb = IDb.fromDb(matcher.db);

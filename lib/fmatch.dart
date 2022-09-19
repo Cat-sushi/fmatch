@@ -13,7 +13,7 @@ import 'preprocess.dart';
 import 'util.dart';
 
 class QueryTerm {
-  Term term;
+  final Term term;
   double df;
   double weight;
   QueryTerm(this.term, this.df, this.weight);
@@ -84,7 +84,7 @@ class MatchedEntry {
   MatchedEntry.fromJson(Map<String, dynamic> json)
       : entry = Entry(json['entry'] as String),
         score = json['score'] as double;
-  Map toJson() => <String, Object>{
+  Map toJson() => <String, dynamic>{
         'entry': entry,
         'score': score,
       };
@@ -94,9 +94,10 @@ class CachedQuery {
   final LetType letType;
   final List<Term> terms;
   final bool perfectMatching;
-  final int _hashCode;
+  @override
+  final int hashCode;
   CachedQuery(this.letType, this.terms, this.perfectMatching)
-      : _hashCode = Object.hashAll([letType, perfectMatching, ...terms]);
+      : hashCode = Object.hashAll([letType, perfectMatching, ...terms]);
   CachedQuery.fromPreprocessed(Preprocessed preped, bool perfectMatching)
       : this(preped.letType, preped.terms, perfectMatching);
   CachedQuery.fromJson(Map<String, dynamic> json)
@@ -136,15 +137,12 @@ class CachedQuery {
     }
     return true;
   }
-
-  @override
-  int get hashCode => _hashCode;
 }
 
 class CachedResult {
-  CachedQuery cachedQuery;
-  double queryScore;
-  List<MatchedEntry> matchedEntiries;
+  final CachedQuery cachedQuery;
+  final double queryScore;
+  final List<MatchedEntry> matchedEntiries;
   CachedResult(this.cachedQuery, this.queryScore, this.matchedEntiries);
   CachedResult.fromJson(Map<String, dynamic> json)
       : this(
@@ -153,9 +151,9 @@ class CachedResult {
           (json['matchedEntiries'] as List<dynamic>)
               .map<MatchedEntry>((dynamic e) =>
                   MatchedEntry.fromJson(e as Map<String, dynamic>))
-              .toList(),
+              .toList(growable: false),
         );
-  Map toJson() => <String, Object>{
+  Map toJson() => <String, dynamic>{
         'cachedQuery': cachedQuery,
         'queryScore': queryScore,
         'matchedEntiries': matchedEntiries,
@@ -167,7 +165,7 @@ class QueryResult {
   final DateTime dateTime;
   final int durationInMilliseconds;
   final String inputString;
-  final String rawQuery;
+  final Entry rawQuery;
   final CachedResult cachedResult;
   final String message;
   QueryResult.fromCachedResult(this.cachedResult, DateTime start, DateTime end,
@@ -198,18 +196,18 @@ class QueryResult {
       : dateTime = DateTime.now(),
         durationInMilliseconds = 0,
         inputString = '',
-        rawQuery = '',
+        rawQuery = Entry(''),
         cachedResult = CachedResult(CachedQuery(LetType.na, [], false), 0, []);
   QueryResult.fromJson(Map<String, dynamic> json)
       : serverId = json['serverId'] as int,
         dateTime = DateTime.parse(json['start'] as String),
         durationInMilliseconds = json['durationInMilliseconds'] as int,
         inputString = json['inputString'] as String,
-        rawQuery = json['rawQuery'] as String,
+        rawQuery = Entry(json['rawQuery'] as String),
         cachedResult =
             CachedResult.fromJson(json['cachedResult'] as Map<String, dynamic>),
         message = json['message'] as String;
-  Map toJson() => <String, Object>{
+  Map toJson() => <String, dynamic>{
         'serverId': serverId,
         'start': dateTime.toUtc().toIso8601String(),
         'durationInMilliseconds': durationInMilliseconds,
@@ -316,7 +314,7 @@ class FMatcher with Settings {
         continue;
       }
       var rawQuery = preper.normalizeAndCapitalize(inputString);
-      var preprocessed = preper.preprocess(rawQuery, true);
+      var preprocessed = preper.preprocess(rawQuery, canonicalizing: true);
       if (preprocessed.terms.isEmpty) {
         print('No valid terms in white query: $inputString');
         continue;
@@ -348,10 +346,10 @@ class FMatcher with Settings {
     }
     var rawQuery = preper.normalizeAndCapitalize(inputString);
     bool perfectMatching = false;
-    var perfMatchQueryMatcher = _perfMatchQuery.firstMatch(rawQuery);
+    var perfMatchQueryMatcher = _perfMatchQuery.firstMatch(rawQuery.string);
     if (perfMatchQueryMatcher != null) {
       perfectMatching = true;
-      rawQuery = perfMatchQueryMatcher[1]!;
+      rawQuery = Entry(perfMatchQueryMatcher[1]!);
     }
     var preprocessed = preper.preprocess(rawQuery);
     if (preprocessed.terms.isEmpty) {
@@ -396,15 +394,15 @@ class FMatcher with Settings {
   }
 
   List<QueryOccurrence> matchWithoutSort(Query query) {
-    var queryTermOccurrences = <List<QueryTermOccurrence>>[];
+    var qtc = query.terms.length;
+    var queryTermOccurrences =
+        List<List<QueryTermOccurrence>>.filled(qtc, [], growable: false);
     for (var qti = 0; qti < query.terms.length; qti++) {
       var qterm = query.terms[qti];
       var isLet = isLetByQueryTerm(query, qti);
       var qto = queryTermMatch(qterm, isLet, query.perfectMatching);
-      queryTermOccurrences.add(qto);
+      queryTermOccurrences[qti] = qto;
     }
-    queryTermOccurrences = queryTermOccurrences.toList(growable: false);
-    var qtc = query.terms.length;
     int maxMissedTC;
     if (query.perfectMatching) {
       maxMissedTC = 0;
@@ -448,29 +446,32 @@ class FMatcher with Settings {
     var ls2 = (lqt * termPartialMatchingMinLetterRatio).ceil();
     var ls3 = min<int>(termMatchingMinLetters, termPartialMatchingMinLetters);
     var ls = min<int>(max<int>(min<int>(ls1, ls2), ls3), idb.maxTermLength);
-    var ixs = idb.listIndicesOfTermLength[ls];
     var le1 = (lqt / termPartialMatchingMinLetterRatio).truncate();
     var le2 = (lqt / termMatchingMinLetterRatio).truncate();
     var le = min<int>(max<int>(le1, le2), idb.maxTermLength);
-    var ixe = idb.listIndicesOfTermLength[le + 1];
-    for (var i = ixs; i < ixe; i++) {
-      var idbe = idb.list[i];
-      bool partial;
-      var sim = similarity(idbe.key.term, qterm.term);
-      if (sim > 0) {
-        partial = false;
-        qterm.df += idbe.value.df * sim;
-      } else {
-        sim = partialSimilarity(idbe.key.term, qterm.term);
-        if (sim == 0) {
-          continue;
-        }
-        partial = true;
-        qterm.df += 0;
+    for (var l = ls; l <= le; l++) {
+      var list = idb.listsByTermLength[l];
+      if (list == null) {
+        continue;
       }
-      var os = idbe.value.occurrences.map((o) => QueryTermOccurrence(
-          o.entry, o.position, idbe.value.df, sim, partial));
-      occurrences.addAll(os);
+      for (var idbe in list) {
+        bool partial;
+        var sim = similarity(idbe.key.term, qterm.term);
+        if (sim > 0) {
+          partial = false;
+          qterm.df += idbe.value.df * sim;
+        } else {
+          sim = partialSimilarity(idbe.key.term, qterm.term);
+          if (sim == 0) {
+            continue;
+          }
+          partial = true;
+          qterm.df += 0;
+        }
+        var os = idbe.value.occurrences.map((o) => QueryTermOccurrence(
+            o.entry, o.position, idbe.value.df, sim, partial));
+        occurrences.addAll(os);
+      }
     }
     occurrences = occurrences.toList(growable: false);
     occurrences.sort((a, b) {
@@ -534,6 +535,9 @@ class FMatcher with Settings {
   }
 
   double similarity(Term dbTerm, Term queryTerm) {
+    if (dbTerm == queryTerm) {
+      return 1.0;
+    }
     var lenDt = dbTerm.length;
     var lenQt = queryTerm.length;
     int lenMax;
@@ -544,9 +548,6 @@ class FMatcher with Settings {
     } else {
       lenMin = lenQt;
       lenMax = lenDt;
-    }
-    if (dbTerm == queryTerm) {
-      return 1.0;
     }
     if (lenMin < termMatchingMinLetters) {
       return 0.0;

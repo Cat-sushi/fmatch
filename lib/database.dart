@@ -49,7 +49,7 @@ class Db {
       } else {
         throw Exception();
       }
-      this[entry] = Preprocessed(letType, terms);
+      _map[entry] = Preprocessed(letType, terms);
     }
     if (length < 2) {
       throw "Too small database";
@@ -58,10 +58,10 @@ class Db {
   static Future<Db> fromStringStream(
       Preprocessor preper, Stream<String> entries) async {
     var ret = Db();
-    await entries.where((var entry) => entry != '').forEach((var e) {
-      var entry = Entry(preper.normalizeAndCapitalize(e), canonicalizing: true);
+    await entries.where((s) => s != '').forEach((e) {
+      var entry = preper.normalizeAndCapitalize(e, canonicalizing: true);
       if (!ret.containsKey(entry)) {
-        ret[entry] = preper.preprocess(entry.string, true);
+        ret._map[entry] = preper.preprocess(entry, canonicalizing: true);
       }
     });
     if (ret.length < 2) {
@@ -71,7 +71,6 @@ class Db {
   }
 
   Preprocessed? operator [](Entry key) => _map[key];
-  operator []=(Entry key, Preprocessed value) => _map[key] = value;
   Iterable<Entry> get keys => _map.keys;
   int get length => _map.length;
   bool containsKey(Entry key) => _map.containsKey(key);
@@ -113,12 +112,16 @@ class Db {
 class IDbEntryKey implements Comparable<IDbEntryKey> {
   final Term term;
   final bool isLet;
-  final int _hashCode;
+  @override
+  final int hashCode;
   @override
   int compareTo(IDbEntryKey other) {
     var tc = term.compareTo(other.term);
     if (tc != 0) {
       return tc;
+    }
+    if (isLet == other.isLet) {
+      return 0;
     }
     if (isLet == false) {
       return -1;
@@ -127,12 +130,10 @@ class IDbEntryKey implements Comparable<IDbEntryKey> {
   }
 
   @override
-  bool operator ==(dynamic other) =>
+  bool operator ==(Object other) =>
       identical(this, other) ||
       other is IDbEntryKey && term == other.term && isLet == other.isLet;
-  @override
-  int get hashCode => _hashCode;
-  IDbEntryKey(this.term, this.isLet) : _hashCode = Object.hash(term, isLet);
+  IDbEntryKey(this.term, this.isLet) : hashCode = Object.hash(term, isLet);
   IDbEntryKey.fromJson(Map<String, dynamic> json)
       : this(Term(json['term'] as String, canonicalizing: true),
             json['isLet'] as bool);
@@ -165,7 +166,7 @@ class IDbEntryValue {
       : occurrences = o.occurrences.toList(growable: false);
   IDbEntryValue.fromJson(Map<String, dynamic> json)
       : df = json['df'] as int,
-        occurrences = (json['occurrences'] as List)
+        occurrences = (json['occurrences'] as List<dynamic>)
             .map((dynamic e) =>
                 IDbTermOccurrence.fromJson(e as Map<String, dynamic>))
             .toList(growable: false);
@@ -192,8 +193,8 @@ class JsonChankSink implements Sink<List<int>> {
 class IDb {
   final _map = <IDbEntryKey, IDbEntryValue>{};
   late final int maxTermLength;
-  late final List<MapEntry<IDbEntryKey, IDbEntryValue>> list;
-  late final List<int> listIndicesOfTermLength;
+  late final List<List<MapEntry<IDbEntryKey, IDbEntryValue>>?>
+      listsByTermLength;
   IDb();
   IDb.fromDb(Db db) {
     var tmpMap = <IDbEntryKey, IDbEntryValue>{};
@@ -227,13 +228,12 @@ class IDb {
           df++;
         }
       }
-      this[mentry.key] = IDbEntryValue.of(df, value);
+      _map[mentry.key] = IDbEntryValue.of(df, value);
     }
-    _initList();
+    _initLists();
   }
 
   IDbEntryValue? operator [](IDbEntryKey key) => _map[key];
-  operator []=(IDbEntryKey key, IDbEntryValue value) => _map[key] = value;
   Iterable<MapEntry<IDbEntryKey, IDbEntryValue>> get entries => _map.entries;
   Iterable<IDbEntryKey> get keys => _map.keys;
 
@@ -243,15 +243,15 @@ class IDb {
     var fs = File(path).openRead().transform<String>(utf8.decoder);
     var json = (await decoder.bind(fs).first)! as List;
     for (var me in json) {
-      ret[IDbEntryKey.fromJson(me['key'] as Map<String, dynamic>)] =
+      ret._map[IDbEntryKey.fromJson(me['key'] as Map<String, dynamic>)] =
           IDbEntryValue.fromJson(me['value'] as Map<String, dynamic>);
     }
-    ret._initList();
+    ret._initLists();
     return ret;
   }
 
-  void _initList() {
-    list = entries.where((e) => !e.key.isLet).toList(growable: false);
+  void _initLists() {
+    var list = entries.where((e) => !e.key.isLet).toList(growable: false);
     list.sort((a, b) {
       var ta = a.key.term;
       var tb = b.key.term;
@@ -263,36 +263,25 @@ class IDb {
         return ta.compareTo(tb);
       }
     });
-    _initListIndices();
-  }
-
-  void _initListIndices() {
-    // `l` of `listIndicesOfTermLength[l]` is the length of the terms
-    // `listIndicesOfTermLength[l] == listIndicesOfTermLength[l+1]` unless term with length `l` exists
-    // `listIndicesOfTermLength[0]` isn't used
-    // `listIndicesOfTermLength[maxTermLength + 1]` is index of `list.last` + 1
+    // `l` of `listsByTermLength[l]` is the length of the terms
+    // `listsByTermLength[0]` isn't used
     maxTermLength = list.last.key.term.length;
-    listIndicesOfTermLength =
-        List<int>.filled(maxTermLength + 2, 0, growable: false);
-    var nextLen = list.first.key.term.length;
-    var firstIx = 0;
-    var ix = 0;
-    for (var ln = 0; ln <= maxTermLength; ln++) {
-      if (ln <= nextLen) {
-        listIndicesOfTermLength[ln] = firstIx;
-        continue;
-      }
-      for (; ix < list.length; ix++) {
-        var idbeln = list[ix].key.term.length;
-        if (idbeln >= ln) {
-          listIndicesOfTermLength[ln] = ix;
-          nextLen = idbeln;
-          firstIx = ix;
-          break;
-        }
+    listsByTermLength =
+        List<List<MapEntry<IDbEntryKey, IDbEntryValue>>?>.filled(
+            maxTermLength + 1, null,
+            growable: false);
+    var len = list.first.key.term.length;
+    var start = 0;
+    var end = 0;
+    for (end = 0; end < list.length; end++) {
+      var idbeln = list[end].key.term.length;
+      if (idbeln != len) {
+        listsByTermLength[len] = list.sublist(start, end);
+        len = idbeln;
+        start = end;
       }
     }
-    listIndicesOfTermLength[maxTermLength + 1] = list.length;
+    listsByTermLength[len] = list.sublist(start, end);
   }
 
   void write(String path) {
@@ -306,8 +295,6 @@ class IDb {
   List<Map<String, dynamic>> toJson() {
     var mapKeys = keys.toList(growable: false);
     mapKeys.sort();
-    return mapKeys
-        .map((mk) => {'key': mk, 'value': this[mk]!})
-        .toList(growable: false);
+    return mapKeys.map((mk) => {'key': mk, 'value': this[mk]!}).toList();
   }
 }

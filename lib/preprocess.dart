@@ -22,22 +22,21 @@ class Term implements Comparable<Term> {
   static final _canonicalized = <String, Term>{};
   final String string; // redundant for performance optimization
   final Int32List runes;
-  factory Term(String s, {bool canonicalizing = false}) {
-    if (canonicalizing == false) {
-      return Term._(s);
-    }
-    return _canonicalize(s);
-  }
   Term._(this.string) : runes = Int32List.fromList(string.runes.toList());
-  static Term _canonicalize(String s) {
+  factory Term._canonicalize(String s) {
     var ret = _canonicalized[s];
     if (ret != null) {
       return ret;
     }
     return _canonicalized[s] = Term._(s);
   }
-
-  static Term canonicalize(Term t) => _canonicalize(t.string);
+  factory Term(String s, {bool canonicalizing = false}) {
+    if (canonicalizing == false) {
+      return Term._(s);
+    }
+    return Term._canonicalize(s);
+  }
+  factory Term.canonicalize(Term t) => Term._canonicalize(t.string);
   int get length => runes.length;
   String toJson() => string;
   @override
@@ -51,22 +50,21 @@ class Term implements Comparable<Term> {
 class Entry implements Comparable<Entry> {
   static final _canonicalized = <String, Entry>{};
   final String string;
-  factory Entry(String s, {bool canonicalizing = false}) {
-    if (canonicalizing == false) {
-      return Entry._(s);
-    }
-    return _canonicalize(s);
-  }
   Entry._(this.string);
-  static Entry _canonicalize(String s) {
+  factory Entry._canonicalize(String s) {
     var ret = _canonicalized[s];
     if (ret != null) {
       return ret;
     }
     return _canonicalized[s] = Entry._(s);
   }
-
-  static Entry canonicalize(Entry e) => _canonicalize(e.string);
+  factory Entry(String s, {bool canonicalizing = false}) {
+    if (canonicalizing == false) {
+      return Entry._(s);
+    }
+    return Entry._canonicalize(s);
+  }
+  factory Entry.canonicalize(Entry e) => Entry._canonicalize(e.string);
   int get length => string.length;
   String toJson() => string;
   @override
@@ -86,14 +84,17 @@ class Preprocessed {
 class LetReplaced {
   final String name;
   final LetType letType;
-  const LetReplaced(this.name, this.letType);
+  LetReplaced(this.name, this.letType);
 }
 
 class Preprocessor with Configs {
   bool hasIllegalCharacter(String name) {
+    if (name == ''){
+      return false;
+    }
     var m = legalChars.firstMatch(name);
     if (m == null) {
-      return false;
+      return true;
     }
     return m.end != name.length;
   }
@@ -101,18 +102,18 @@ class Preprocessor with Configs {
   final _htSpaces = regExp(r'^\s+|\s+$');
   final _mSpaces = regExp(r'\s+');
 
-  String normalizeAndCapitalize(String checked) {
+  Entry normalizeAndCapitalize(String checked , {bool canonicalizing = false}) {
     var uNormalized = unorm.nfkd(checked);
     var uwNormalized = uNormalized.replaceAll(_htSpaces, '');
     var normalized = uwNormalized.replaceAll(_mSpaces, ' ');
     var capitalized = normalized.toUpperCase();
-    return capitalized;
+    return Entry(capitalized, canonicalizing: canonicalizing);
   }
 
-  Preprocessed preprocess(String capitalized, [bool canonicalizing = false]) {
-    var characterReplaced = replaceCharacters(capitalized);
+  Preprocessed preprocess(Entry capitalized, {bool canonicalizing = false}) {
+    var characterReplaced = replaceCharacters(capitalized.string);
     var stringReplaced = replaceStrings(characterReplaced);
-    var letReplaced = replaceLegalEntiyTypes(stringReplaced);
+    var letReplaced = replaceLegalEntityTypes(stringReplaced);
     var wordized = wordize(letReplaced);
     return replaceWords(wordized, canonicalizing);
   }
@@ -133,7 +134,7 @@ class Preprocessor with Configs {
     return stringReplaced;
   }
 
-  LetReplaced replaceLegalEntiyTypes(String stringReplaced) {
+  LetReplaced replaceLegalEntityTypes(String stringReplaced) {
     String letReplaced;
     for (var letRepl in legalEntryTypeReplacements) {
       letReplaced =

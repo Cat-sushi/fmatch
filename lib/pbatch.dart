@@ -10,6 +10,7 @@ import 'package:async/async.dart';
 
 import 'batch.dart';
 import 'fmatch.dart';
+import 'fmclasses.dart';
 import 'server.dart';
 
 late File resultFile;

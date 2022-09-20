@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'fmatch.dart';
+import 'fmclasses.dart';
 import 'preprocess.dart';
 import 'util.dart';
 

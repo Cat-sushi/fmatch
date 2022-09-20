@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:isolate';
 
 import 'fmatch.dart';
+import 'fmclasses.dart';
 
 class Server {
   final FMatcher matcher;

@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:async/async.dart';
 
 import 'package:fmatch/fmatch.dart';
+import 'package:fmatch/fmclasses.dart';
 // import 'package:fmatch/pbatch.dart';
 import 'package:fmatch/server.dart';
 import 'package:fmatch/util.dart';

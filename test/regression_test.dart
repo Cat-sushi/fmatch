@@ -28,12 +28,12 @@ Future<void> main() async {
     await initMatcher();
     await doBatch();
     expect(results, equals(queries));
-  });
+  },timeout: Timeout(Duration(minutes: 2)));
   test('Regression 2', () async {
     await initMatcher();
     await doBatch();
     expect(results, equals(queries));
-  });
+  },timeout: Timeout(Duration(minutes: 1)));
 }
 
 Future<void> initMatcher() async {

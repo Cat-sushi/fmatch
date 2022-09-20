@@ -160,15 +160,15 @@ mixin Configs {
   Future<void> _readCharacterReplacementConf(String path) async {
     characterRreplacements = {};
     await for (var l in readCsvLines(path)) {
-      if(l.length < 2){
+      if (l.length < 2) {
         continue;
       }
       var replacement = l.removeAt(0);
       if (replacement == null) {
         continue;
       }
-      if (replacement.runes.length != 1){
-          print('error: bad replacement $replacement');
+      if (replacement.runes.length != 1) {
+        print('error: bad replacement $replacement');
         continue;
       }
       for (var p in l) {
@@ -180,11 +180,11 @@ mixin Configs {
           continue;
         }
         var r = characterRreplacements[p];
-        if(r != null && r != replacement) {
+        if (r != null && r != replacement) {
           print('error: conflicted replacements $r $replacement $p');
           continue;
         }
-        if(r == p){
+        if (r == p) {
           print('warning: useless conversion $r $p');
           continue;
         }
@@ -294,7 +294,7 @@ mixin Configs {
     wordReplacements = wordRpl.toList(growable: false);
   }
 
-  Future<void>_readWhiteQueries(String path) async {
+  Future<void> _readWhiteQueries(String path) async {
     rawWhiteQueries = <String>[];
     await for (var line in readCsvLines(path)) {
       if (line.isEmpty) {

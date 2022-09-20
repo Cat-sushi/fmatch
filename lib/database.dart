@@ -272,7 +272,7 @@ class IDb {
             growable: false);
     var len = list.first.key.term.length;
     var start = 0;
-    var end = 0;
+    int end;
     for (end = 0; end < list.length; end++) {
       var idbeln = list[end].key.term.length;
       if (idbeln != len) {

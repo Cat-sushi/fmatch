@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:fmatch/database.dart';
 import 'package:fmatch/fmatch.dart';
+import 'package:fmatch/fmclasses.dart';
 import 'package:test/test.dart';
 
 Future<void> main() async {
@@ -35,8 +36,8 @@ Future<void> main() async {
     expect(
         jsonString,
         endsWith('"inputString":"def co","rawQuery":"DEF CO",'
-            '"cachedResult":{"cachedQuery":{"letType":"postfix","terms":["DEF","CO"],'
-            '"perfectMatching":false},"queryScore":0.4628958000823221,"matchedEntiries":['
+            '"cachedResult":{"cachedQuery":{"letType":"postfix","terms":["DEF","CO"],"perfectMatching":false},'
+            '"queryScore":0.4628958000823221,"queryFallenBack":false,"matchedEntiries":['
             '{"entry":"DEF COMPANY","score":0.4628958000823221},'
             '{"entry":"DEF GHI CO.","score":0.4628958000823221},'
             '{"entry":"COMPANY","score":0.006317690713281352},'

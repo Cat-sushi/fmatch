@@ -4,6 +4,7 @@
 
 import 'package:fmatch/configs.dart';
 import 'package:fmatch/fmatch.dart';
+import 'package:fmatch/fmclasses.dart';
 import 'package:test/test.dart';
 
 Future<void> main() async {

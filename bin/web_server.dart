@@ -5,7 +5,9 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
+import 'package:args/args.dart';
 import 'package:async/async.dart';
 
 import 'package:fmatch/fmatch.dart';
@@ -24,16 +26,37 @@ class Command {
 
 var commandStreamController = StreamController<Command>();
 var commandStreamQueue = StreamQueue(commandStreamController.stream);
+var commandQueueLength = 0;
+var maxCommandQueueLength = 10;
 var josonEncoderWithIdent = JsonEncoder.withIndent('  ');
 var servers = <Server>[];
 
 Future main(List<String> args) async {
+  var argParser = ArgParser()
+    ..addFlag('help', abbr: 'h', negatable: false, help: 'print tis help')
+    ..addOption('server', abbr: 's', valueHelp: 'number of servers')
+    ..addOption('queue', abbr: 'q', valueHelp: 'length of command queue')
+    ..addOption('cache', abbr: 'c', valueHelp: 'size of result cache');
+  var options = argParser.parse(args);
+  if (options['help'] == true) {
+    print(argParser.usage);
+    exit(0);
+  }
   print('Start Server');
   var matcher = FMatcher();
   await time(() => matcher.readSettings(null), 'Settings.read');
-  if (args.isNotEmpty) {
-    matcher.queryResultCacheSize =
-        int.tryParse(args[0]) ?? matcher.queryResultCacheSize;
+  if (options['cache'] != null) {
+    matcher.queryResultCacheSize = int.tryParse(options['cache']! as String) ??
+        matcher.queryResultCacheSize;
+  }
+  if (options['server'] != null) {
+    matcher.serverCount = max(
+        int.tryParse(options['server'] as String) ?? matcher.serverCount, 1);
+  }
+  if (options['queue'] != null) {
+    maxCommandQueueLength = max(
+        int.tryParse(options['queue'] as String) ?? maxCommandQueueLength,
+        matcher.serverCount);
   }
   await time(() => matcher.preper.readConfigs(), 'Configs.read');
   await time(() => matcher.buildDb(), 'buildDb');
@@ -54,9 +77,17 @@ Future main(List<String> args) async {
     var response = req.response;
 
     if (req.method == 'GET') {
+      if (commandQueueLength >= maxCommandQueueLength) {
+        response
+          ..statusCode = HttpStatus.serviceUnavailable
+          ..write('Server busiy');
+        await response.close();
+        continue;
+      }
       try {
         var inputString = req.uri.queryParameters['q']!;
         commandStreamController.add(Command(req, inputString));
+        commandQueueLength++;
       } catch (e) {
         response
           ..statusCode = HttpStatus.internalServerError
@@ -88,6 +119,7 @@ Future<void> sendReceiveResponse(int id) async {
     server.csp.send(query);
     await server.cri.moveNext();
     var result = server.cri.current as QueryResult;
+    commandQueueLength--;
     result.serverId = id;
     var responseContent = josonEncoderWithIdent.convert(result);
     req.response

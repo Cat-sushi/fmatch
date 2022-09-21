@@ -99,8 +99,8 @@ class Preprocessor with Configs {
     return m.end != name.length;
   }
 
-  final _htSpaces = regExp(r'^\s+|\s+$');
-  final _mSpaces = regExp(r'\s+');
+  static final _htSpaces = regExp(r'^\s+|\s+$');
+  static final _mSpaces = regExp(r'\s+');
 
   Entry normalizeAndCapitalize(String checked , {bool canonicalizing = false}) {
     var uNormalized = unorm.nfkd(checked);

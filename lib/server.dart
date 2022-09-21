@@ -29,7 +29,7 @@ class Server {
     var ssp = message[0] as SendPort;
     var matcher = message[1] as FMatcher;
     var ccsp = message[2] as SendPort;
-    matcher.resultCache = CacheClient(ccsp);
+    matcher.resultCache = CacheClient(ccsp); // overwriting local cache
     final srp = ReceivePort();
     ssp.send(srp.sendPort);
     await for (dynamic query in srp) {

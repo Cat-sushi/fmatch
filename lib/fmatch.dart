@@ -41,7 +41,7 @@ class FMatcher with Settings, Tools {
         DateTime.now(),
         inputString,
         rawQuery,
-        'Safe Customer: "${preprocessed.terms.map((e) => e.string).join(' ')}"',
+        'White query: "${preprocessed.terms.map((e) => e.string).join(' ')}"',
       );
     }
     var cachedResult = await resultCache.get(cachedQuery);

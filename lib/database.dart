@@ -8,8 +8,6 @@ import 'dart:io';
 import 'preprocess.dart';
 import 'util.dart';
 
-const bufferSize = 128 * 1024;
-
 class Db {
   final Map<Entry, Preprocessed> _map = {};
   Db();
@@ -176,20 +174,6 @@ class IDbEntryValue {
       };
 }
 
-class JsonChankSink implements Sink<List<int>> {
-  final RandomAccessFile raFile;
-  JsonChankSink.fromRaFile(this.raFile);
-  @override
-  void add(List<int> data) {
-    raFile.writeFromSync(data);
-  }
-
-  @override
-  void close() {
-    raFile.closeSync();
-  }
-}
-
 class IDb {
   final _map = <IDbEntryKey, IDbEntryValue>{};
   late final int maxTermLength;
@@ -286,7 +270,7 @@ class IDb {
 
   void write(String path) {
     var jcs =
-        JsonChankSink.fromRaFile(File(path).openSync(mode: FileMode.write));
+        FileChankSink.fromRaFile(File(path).openSync(mode: FileMode.write));
     var encoder = JsonUtf8Encoder('  ', null, bufferSize);
     var ccs = encoder.startChunkedConversion(jcs);
     ccs.add(this);

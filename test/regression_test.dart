@@ -4,11 +4,12 @@
 
 import 'dart:io';
 
-import 'package:fmatch/batch.dart';
 import 'package:fmatch/configs.dart';
 import 'package:fmatch/fmatch.dart';
 import 'package:fmatch/util.dart';
 import 'package:test/test.dart';
+
+import '../bin/batch.dart';
 
 late FMatcher matcher;
 late List<String> queries;

@@ -4,9 +4,10 @@
 
 import 'package:fmatch/configs.dart';
 import 'package:fmatch/fmatch.dart';
-import 'package:fmatch/pbatch.dart';
 import 'package:fmatch/util.dart';
 import 'package:test/test.dart';
+
+import '../bin/pbatch.dart';
 
 Future<void> main() async {
   var env = 'test/env0';

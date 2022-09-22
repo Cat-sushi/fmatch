@@ -8,39 +8,29 @@ import 'dart:math';
 
 import 'package:args/args.dart';
 import 'package:async/async.dart';
-import 'package:fmatch/batch.dart';
+import 'package:fmatch/bparts.dart';
 
-import 'package:fmatch/fmatch.dart';
 import 'package:fmatch/fmclasses.dart';
-import 'package:fmatch/server.dart';
 import 'package:fmatch/util.dart';
+
+var multiplicity = 1;
 
 void main(List<String> args) async {
   var argParser = ArgParser()
     ..addFlag('help', abbr: 'h', negatable: false, help: 'print tis help')
-    ..addOption('server', abbr: 's', valueHelp: 'number of servers')
-    ..addOption('queue', abbr: 'q', valueHelp: 'length of command queue')
-    ..addOption('cache', abbr: 'c', valueHelp: 'size of result cache');
+    ..addOption('multiplicity',
+        abbr: 'm', valueHelp: 'multiplicity of request');
   var options = argParser.parse(args);
   if (options['help'] == true) {
     print(argParser.usage);
     exit(0);
   }
-  var matcher = FMatcher();
-  print('Start Parallel Batch');
-  await time(() => matcher.readSettings(null), 'settings.read');
-  if (options['cache'] != null) {
-    matcher.queryResultCacheSize = int.tryParse(options['cache']! as String) ??
-        matcher.queryResultCacheSize;
+  print('Start Web Batch');
+  if (options['multiplicity'] != null) {
+    multiplicity =
+        max(int.tryParse(options['multiplicity'] as String) ?? multiplicity, 1);
   }
-  if (options['server'] != null) {
-    matcher.serverCount = max(
-        int.tryParse(options['server'] as String) ?? matcher.serverCount, 1);
-  }
-  await time(() => matcher.preper.readConfigs(), 'Configs.read');
-  await time(() => matcher.buildDb(), 'buildDb');
-  await time(() => pbatch(matcher), 'pbatch');
-  exit(0);
+  await time(() => wbatch(), 'wbatch');
 }
 
 late IOSink resultSink;
@@ -49,9 +39,7 @@ late DateTime startTime;
 late DateTime currentLap;
 late DateTime lastLap;
 
-CacheServer? cacheServer;
-
-Future<void> pbatch(FMatcher matcher, [String path = 'batch']) async {
+Future<void> wbatch([String path = 'batch']) async {
   var batchQueryPath = '$path/queries.csv';
   var batchResultPath = '$path/results.csv';
   var batchLogPath = '$path/log.txt';
@@ -63,30 +51,19 @@ Future<void> pbatch(FMatcher matcher, [String path = 'batch']) async {
   lastLap = startTime;
   currentLap = lastLap;
   var queries = StreamQueue<String>(openQueryListStream(batchQueryPath));
-  if(cacheServer == null){
-    cacheServer = CacheServer();
-    await cacheServer!.spawn(matcher.queryResultCacheSize);
-  }
-  final servers = <Server>[];
-  for (var id = 0; id < matcher.serverCount; id++) {
-    var server = Server(matcher, cacheServer!);
-    await server.spawn(id);
-    servers.add(server);
-  }
-  await Dispatcher(servers, queries).dispatch();
+  await Dispatcher(queries).dispatch();
 }
 
 class Dispatcher {
-  final List<Server> servers;
   final StreamQueue<String> queries;
   final results = <int, QueryResult>{};
   var maxResultsLength = 0;
   var ixS = 0;
   var ixO = 0;
-  Dispatcher(this.servers, this.queries);
+  Dispatcher(this.queries);
   Future<void> dispatch() async {
     var futures = <Future>[];
-    for (var id = 0; id < servers.length; id++) {
+    for (var id = 0; id < multiplicity; id++) {
       futures.add(sendReceve(id));
     }
     await Future.wait<void>(futures);
@@ -96,21 +73,24 @@ class Dispatcher {
   }
 
   Future<void> sendReceve(int id) async {
-    var server = servers[id];
+    var httpClient = HttpClient();
     while (await queries.hasNext) {
       var ix = ixS;
       ixS++;
       var query = await queries.next;
-      server.csp.send(query);
-      await server.cri.moveNext();
-      var result = server.cri.current as QueryResult;
+      var path = Uri.encodeQueryComponent(query);
+      var request =
+          await httpClient.get('localhost', 4049, '/?q=$path');
+      var response = await request.close();
+      var jsonString = await response.transform(utf8.decoder).join();
+      var result =
+          QueryResult.fromJson(jsonDecode(jsonString) as Map<String, dynamic>);
       result.serverId = id;
       results[ix] = result;
-      maxResultsLength =
-          results.length > maxResultsLength ? results.length : maxResultsLength;
+      maxResultsLength = max(results.length, maxResultsLength);
       printResultsInOrder();
     }
-    servers[id].csp.send(null);
+    httpClient.close();
   }
 
   void printResultsInOrder() {
@@ -119,7 +99,7 @@ class Dispatcher {
       if (result == null) {
         return;
       }
-      if (result.cachedResult.cachedQuery.terms.isEmpty){
+      if (result.cachedResult.cachedQuery.terms.isEmpty) {
         continue;
       }
       if (result.message != '') {

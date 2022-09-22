@@ -11,7 +11,6 @@ import 'package:args/args.dart';
 import 'package:async/async.dart';
 
 import 'package:fmatch/fmatch.dart';
-import 'package:fmatch/fmclasses.dart';
 // import 'package:fmatch/pbatch.dart';
 import 'package:fmatch/server.dart';
 import 'package:fmatch/util.dart';
@@ -19,9 +18,9 @@ import 'package:fmatch/util.dart';
 String _host = InternetAddress.loopbackIPv4.host;
 
 class Command {
-  final HttpRequest request;
+  final HttpResponse response;
   final String query;
-  Command(this.request, this.query);
+  Command(this.response, this.query);
 }
 
 var commandStreamController = StreamController<Command>();
@@ -29,7 +28,6 @@ var commandStreamQueue = StreamQueue(commandStreamController.stream);
 var commandQueueLength = 0;
 var maxCommandQueueLength = 10;
 var josonEncoderWithIdent = JsonEncoder.withIndent('  ');
-var servers = <Server>[];
 
 Future main(List<String> args) async {
   var argParser = ArgParser()
@@ -65,10 +63,7 @@ Future main(List<String> args) async {
   final cacheServer = CacheServer();
   await cacheServer.spawn(matcher.queryResultCacheSize);
   for (var id = 0; id < matcher.serverCount; id++) {
-    var server = Server(matcher, cacheServer);
-    await server.spawn(id);
-    servers.add(server);
-    sendReceiveResponse(id);
+    sendReceiveResponse(id, matcher, cacheServer);
   }
 
   var httpServer = await HttpServer.bind(_host, 4049);
@@ -86,7 +81,7 @@ Future main(List<String> args) async {
       }
       try {
         var inputString = req.uri.queryParameters['q']!;
-        commandStreamController.add(Command(req, inputString));
+        commandStreamController.add(Command(req.response, inputString));
         commandQueueLength++;
       } catch (e) {
         response
@@ -109,24 +104,22 @@ Future main(List<String> args) async {
   }
 }
 
-Future<void> sendReceiveResponse(int id) async {
-  var server = servers[id];
+Future<void> sendReceiveResponse(
+    int id, FMatcher matcher, CacheServer cacheServer) async {
+  var client = Client(matcher, cacheServer);
+  await client.spawnServer();
   while (await commandStreamQueue.hasNext) {
     var command = await commandStreamQueue.next;
-    var query = command.query;
-    var req = command.request;
-    var response = req.response;
-    server.csp.send(query);
-    await server.cri.moveNext();
-    var result = server.cri.current as QueryResult;
+    var result = await client.fmatch(command.query);
     commandQueueLength--;
     result.serverId = id;
     var responseContent = josonEncoderWithIdent.convert(result);
-    req.response
+    command.response
       ..statusCode = HttpStatus.ok
       ..write(responseContent);
-    await response.close();
+    command.response.close();
   }
+  client.closeServer();
 }
 
 // Future<void> pbatch(FMatcher matcher, HttpRequest request) async {

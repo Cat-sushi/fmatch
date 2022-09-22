@@ -16,11 +16,12 @@ doc/api/
 pubspec.lock
 git_ignore/
 bin/batch
-bin/pbatch
-bin/web_server
+bin/batchp
+bin/batchw
 bin/process_results
-batch
-database
+bin/wserver
+batch/
+database/
 test/env0/db.csv
 test/env0/idb.json
 test/env0/log.txt

@@ -8,24 +8,33 @@ import 'dart:isolate';
 import 'fmatch.dart';
 import 'fmclasses.dart';
 
-class Server {
-  final FMatcher matcher;
-  final CacheServer cacheServer;
-  final crp = ReceivePort();
-  late final StreamIterator<dynamic> cri;
-  late final SendPort csp;
-  late final Isolate isolate;
-  Server(this.matcher, this.cacheServer) {
-    cri = StreamIterator<dynamic>(crp);
+class Client {
+  final FMatcher _matcher;
+  final CacheServer _cacheServer;
+  final _crp = ReceivePort();
+  late final StreamIterator<dynamic> _cri;
+  late final SendPort _csp;
+  Client(this._matcher, this._cacheServer) {
+    _cri = StreamIterator<dynamic>(_crp);
   }
-  Future<void> spawn(int id) async {
-    isolate = await Isolate.spawn<List<dynamic>>(
-        main, <dynamic>[crp.sendPort, matcher, cacheServer.csp]);
-    await cri.moveNext();
-    csp = cri.current as SendPort;
+  Future<void> spawnServer() async {
+    await Isolate.spawn<List<dynamic>>(
+        serverMain, <dynamic>[_crp.sendPort, _matcher, _cacheServer._csp]);
+    await _cri.moveNext();
+    _csp = _cri.current as SendPort;
   }
 
-  static Future<void> main(List<dynamic> message) async {
+  Future<QueryResult> fmatch(String query) async {
+    _csp.send(query);
+    await _cri.moveNext();
+    return _cri.current as QueryResult;
+  }
+
+  void closeServer() {
+    _csp.send(null);
+  }
+
+  static Future<void> serverMain(List<dynamic> message) async {
     var ssp = message[0] as SendPort;
     var matcher = message[1] as FMatcher;
     var ccsp = message[2] as SendPort;
@@ -43,13 +52,11 @@ class Server {
 }
 
 class CacheServer {
-  final crp = ReceivePort();
-  late final SendPort csp;
-  late final Isolate isolate;
+  final _crp = ReceivePort();
+  late final SendPort _csp;
   Future<void> spawn(int size) async {
-    isolate =
-        await Isolate.spawn<List<dynamic>>(main, <dynamic>[crp.sendPort, size]);
-    csp = await crp.first as SendPort;
+    await Isolate.spawn<List<dynamic>>(main, <dynamic>[_crp.sendPort, size]);
+    _csp = await _crp.first as SendPort;
   }
 
   static Future<void> main(List<dynamic> message) async {
@@ -76,23 +83,23 @@ class CacheServer {
 }
 
 class CacheClient implements ResultCache {
-  final ccrp = ReceivePort();
-  late final StreamIterator ccri;
-  final SendPort ccsp;
+  final _ccrp = ReceivePort();
+  late final StreamIterator _ccri;
+  final SendPort _ccsp;
 
-  CacheClient(this.ccsp) {
-    ccri = StreamIterator<dynamic>(ccrp);
+  CacheClient(this._ccsp) {
+    _ccri = StreamIterator<dynamic>(_ccrp);
   }
 
   @override
   Future<CachedResult?> get(CachedQuery query) async {
-    ccsp.send([query, ccrp.sendPort]);
-    await ccri.moveNext();
-    return ccri.current as CachedResult?;
+    _ccsp.send([query, _ccrp.sendPort]);
+    await _ccri.moveNext();
+    return _ccri.current as CachedResult?;
   }
 
   @override
   void put(CachedQuery query, CachedResult result) {
-    ccsp.send([query, result]);
+    _ccsp.send([query, result]);
   }
 }

@@ -8,7 +8,7 @@ import 'dart:math';
 
 import 'package:args/args.dart';
 
-import 'package:fmatch/batch.dart';
+import 'package:fmatch/bparts.dart';
 import 'package:fmatch/fmatch.dart';
 import 'package:fmatch/util.dart';
 

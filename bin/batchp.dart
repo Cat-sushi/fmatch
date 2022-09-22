@@ -8,7 +8,7 @@ import 'dart:math';
 
 import 'package:args/args.dart';
 import 'package:async/async.dart';
-import 'package:fmatch/batch.dart';
+import 'package:fmatch/bparts.dart';
 
 import 'package:fmatch/fmatch.dart';
 import 'package:fmatch/fmclasses.dart';
@@ -19,7 +19,6 @@ void main(List<String> args) async {
   var argParser = ArgParser()
     ..addFlag('help', abbr: 'h', negatable: false, help: 'print tis help')
     ..addOption('server', abbr: 's', valueHelp: 'number of servers')
-    ..addOption('queue', abbr: 'q', valueHelp: 'length of command queue')
     ..addOption('cache', abbr: 'c', valueHelp: 'size of result cache');
   var options = argParser.parse(args);
   if (options['help'] == true) {
@@ -67,26 +66,20 @@ Future<void> pbatch(FMatcher matcher, [String path = 'batch']) async {
     cacheServer = CacheServer();
     await cacheServer!.spawn(matcher.queryResultCacheSize);
   }
-  final servers = <Server>[];
-  for (var id = 0; id < matcher.serverCount; id++) {
-    var server = Server(matcher, cacheServer!);
-    await server.spawn(id);
-    servers.add(server);
-  }
-  await Dispatcher(servers, queries).dispatch();
+  await Dispatcher(matcher, queries).dispatch();
 }
 
 class Dispatcher {
-  final List<Server> servers;
+  final FMatcher matcher;
   final StreamQueue<String> queries;
   final results = <int, QueryResult>{};
   var maxResultsLength = 0;
   var ixS = 0;
   var ixO = 0;
-  Dispatcher(this.servers, this.queries);
+  Dispatcher(this.matcher, this.queries);
   Future<void> dispatch() async {
     var futures = <Future>[];
-    for (var id = 0; id < servers.length; id++) {
+    for (var id = 0; id < matcher.serverCount; id++) {
       futures.add(sendReceve(id));
     }
     await Future.wait<void>(futures);
@@ -96,21 +89,19 @@ class Dispatcher {
   }
 
   Future<void> sendReceve(int id) async {
-    var server = servers[id];
+    var client = Client(matcher, cacheServer!);
+    await client.spawnServer();
     while (await queries.hasNext) {
       var ix = ixS;
       ixS++;
       var query = await queries.next;
-      server.csp.send(query);
-      await server.cri.moveNext();
-      var result = server.cri.current as QueryResult;
+      var result = await client.fmatch(query);
       result.serverId = id;
       results[ix] = result;
-      maxResultsLength =
-          results.length > maxResultsLength ? results.length : maxResultsLength;
+      maxResultsLength = max(results.length, maxResultsLength);
       printResultsInOrder();
     }
-    servers[id].csp.send(null);
+    client.closeServer();
   }
 
   void printResultsInOrder() {

@@ -7,7 +7,7 @@ import 'package:fmatch/fmatch.dart';
 import 'package:fmatch/util.dart';
 import 'package:test/test.dart';
 
-import '../bin/pbatch.dart';
+import '../bin/batchp.dart';
 
 Future<void> main() async {
   var env = 'test/env0';

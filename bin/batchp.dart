@@ -23,6 +23,7 @@ late DateTime currentLap;
 late DateTime lastLap;
 
 SendPort? cacheServer;
+int serverCount = Platform.numberOfProcessors;
 
 void main(List<String> args) async {
   var argParser = ArgParser()
@@ -42,8 +43,8 @@ void main(List<String> args) async {
         matcher.queryResultCacheSize;
   }
   if (options['server'] != null) {
-    matcher.serverCount = max(
-        int.tryParse(options['server'] as String) ?? matcher.serverCount, 1);
+    serverCount = max(
+        int.tryParse(options['server'] as String) ?? serverCount, 1);
   }
   await time(() => matcher.preper.readConfigs(), 'Configs.read');
   await time(() => matcher.buildDb(), 'buildDb');
@@ -77,7 +78,7 @@ class Dispatcher {
   Dispatcher(this.matcher, this.queries);
   Future<void> dispatch() async {
     var futures = <Future>[];
-    for (var id = 0; id < matcher.serverCount; id++) {
+    for (var id = 0; id < serverCount; id++) {
       futures.add(sendReceve(id));
     }
     await Future.wait<void>(futures);

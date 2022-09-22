@@ -2,7 +2,6 @@
 // All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
 import 'dart:math';
 
 import 'util.dart';
@@ -37,7 +36,6 @@ mixin Settings {
   int fallbackMaxQueryTermMobility = 6;
   double queryMatchingTermOrderCoefficent = 0.5;
   int queryResultCacheSize = 10000;
-  int serverCount = Platform.numberOfProcessors;
 
   Future<void> readSettings(String? path) async {
     path ??= Pathes.setting;
@@ -88,9 +86,6 @@ mixin Settings {
           break;
         case 'queryResultCacheSize':
           queryResultCacheSize = val.toInt();
-          break;
-        case 'serverCount':
-          serverCount = val.toInt();
           break;
         default:
           break;

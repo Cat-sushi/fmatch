@@ -30,10 +30,6 @@ Future<void> main(List<String> args) async {
     matcher.queryResultCacheSize = int.tryParse(options['cache']! as String) ??
         matcher.queryResultCacheSize;
   }
-  if (options['server'] != null) {
-    matcher.serverCount = max(
-        int.tryParse(options['server'] as String) ?? matcher.serverCount, 1);
-  }
   await time(() => matcher.preper.readConfigs(), 'Configs.read');
   await time(() => matcher.buildDb(), 'buildDb');
   await time(() => batch(matcher), 'batch');

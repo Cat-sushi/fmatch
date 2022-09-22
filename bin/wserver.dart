@@ -12,11 +12,11 @@ import 'package:args/args.dart';
 import 'package:async/async.dart';
 
 import 'package:fmatch/fmatch.dart';
-// import 'package:fmatch/pbatch.dart';
 import 'package:fmatch/server.dart';
 import 'package:fmatch/util.dart';
 
 String _host = InternetAddress.loopbackIPv4.host;
+int serverCount = Platform.numberOfProcessors;
 
 class Command {
   final HttpResponse response;
@@ -49,20 +49,20 @@ Future main(List<String> args) async {
         matcher.queryResultCacheSize;
   }
   if (options['server'] != null) {
-    matcher.serverCount = max(
-        int.tryParse(options['server'] as String) ?? matcher.serverCount, 1);
+    serverCount = max(
+        int.tryParse(options['server'] as String) ?? serverCount, 1);
   }
   if (options['queue'] != null) {
     maxCommandQueueLength = max(
         int.tryParse(options['queue'] as String) ?? maxCommandQueueLength,
-        matcher.serverCount);
+        serverCount);
   }
   await time(() => matcher.preper.readConfigs(), 'Configs.read');
   await time(() => matcher.buildDb(), 'buildDb');
   print('Min Score: ${matcher.minScore}');
 
   final cacheServer = await CacheServer.spawn(matcher.queryResultCacheSize);
-  for (var id = 0; id < matcher.serverCount; id++) {
+  for (var id = 0; id < serverCount; id++) {
     sendReceiveResponse(id, matcher, cacheServer);
   }
 

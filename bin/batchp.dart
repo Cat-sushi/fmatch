@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:math';
 
 import 'package:args/args.dart';
@@ -14,6 +15,14 @@ import 'package:fmatch/fmatch.dart';
 import 'package:fmatch/fmclasses.dart';
 import 'package:fmatch/server.dart';
 import 'package:fmatch/util.dart';
+
+late IOSink resultSink;
+late IOSink logSink;
+late DateTime startTime;
+late DateTime currentLap;
+late DateTime lastLap;
+
+SendPort? cacheServer;
 
 void main(List<String> args) async {
   var argParser = ArgParser()
@@ -42,14 +51,6 @@ void main(List<String> args) async {
   exit(0);
 }
 
-late IOSink resultSink;
-late IOSink logSink;
-late DateTime startTime;
-late DateTime currentLap;
-late DateTime lastLap;
-
-CacheServer? cacheServer;
-
 Future<void> pbatch(FMatcher matcher, [String path = 'batch']) async {
   var batchQueryPath = '$path/queries.csv';
   var batchResultPath = '$path/results.csv';
@@ -62,10 +63,7 @@ Future<void> pbatch(FMatcher matcher, [String path = 'batch']) async {
   lastLap = startTime;
   currentLap = lastLap;
   var queries = StreamQueue<String>(openQueryListStream(batchQueryPath));
-  if(cacheServer == null){
-    cacheServer = CacheServer();
-    await cacheServer!.spawn(matcher.queryResultCacheSize);
-  }
+  cacheServer ??= await CacheServer.spawn(matcher.queryResultCacheSize);
   await Dispatcher(matcher, queries).dispatch();
 }
 
@@ -89,8 +87,8 @@ class Dispatcher {
   }
 
   Future<void> sendReceve(int id) async {
-    var client = Client(matcher, cacheServer!);
-    await client.spawnServer();
+    var client = Client();
+    await client.spawnServer(matcher, cacheServer!);
     while (await queries.hasNext) {
       var ix = ixS;
       ixS++;

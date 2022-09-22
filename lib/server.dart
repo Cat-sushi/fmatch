@@ -9,17 +9,14 @@ import 'fmatch.dart';
 import 'fmclasses.dart';
 
 class Client {
-  final FMatcher _matcher;
-  final CacheServer _cacheServer;
-  final _crp = ReceivePort();
   late final StreamIterator<dynamic> _cri;
   late final SendPort _csp;
-  Client(this._matcher, this._cacheServer) {
-    _cri = StreamIterator<dynamic>(_crp);
-  }
-  Future<void> spawnServer() async {
+
+  Future<void> spawnServer(FMatcher matcher, SendPort cacheServer) async {
+    var crp = ReceivePort();
+    _cri = StreamIterator<dynamic>(crp);
     await Isolate.spawn<List<dynamic>>(
-        serverMain, <dynamic>[_crp.sendPort, _matcher, _cacheServer._csp]);
+        serverMain, <dynamic>[crp.sendPort, matcher, cacheServer]);
     await _cri.moveNext();
     _csp = _cri.current as SendPort;
   }
@@ -52,11 +49,10 @@ class Client {
 }
 
 class CacheServer {
-  final _crp = ReceivePort();
-  late final SendPort _csp;
-  Future<void> spawn(int size) async {
-    await Isolate.spawn<List<dynamic>>(main, <dynamic>[_crp.sendPort, size]);
-    _csp = await _crp.first as SendPort;
+  static Future<SendPort> spawn(int size) async {
+    var crp = ReceivePort();
+    await Isolate.spawn<List<dynamic>>(main, <dynamic>[crp.sendPort, size]);
+    return await crp.first as SendPort;
   }
 
   static Future<void> main(List<dynamic> message) async {

@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:math';
 
 import 'package:args/args.dart';
@@ -60,8 +61,7 @@ Future main(List<String> args) async {
   await time(() => matcher.buildDb(), 'buildDb');
   print('Min Score: ${matcher.minScore}');
 
-  final cacheServer = CacheServer();
-  await cacheServer.spawn(matcher.queryResultCacheSize);
+  final cacheServer = await CacheServer.spawn(matcher.queryResultCacheSize);
   for (var id = 0; id < matcher.serverCount; id++) {
     sendReceiveResponse(id, matcher, cacheServer);
   }
@@ -105,9 +105,9 @@ Future main(List<String> args) async {
 }
 
 Future<void> sendReceiveResponse(
-    int id, FMatcher matcher, CacheServer cacheServer) async {
-  var client = Client(matcher, cacheServer);
-  await client.spawnServer();
+    int id, FMatcher matcher, SendPort cacheServer) async {
+  var client = Client();
+  await client.spawnServer(matcher, cacheServer);
   while (await commandStreamQueue.hasNext) {
     var command = await commandStreamQueue.next;
     var result = await client.fmatch(command.query);

@@ -13,6 +13,12 @@ import 'package:fmatch/bparts.dart';
 import 'package:fmatch/fmclasses.dart';
 import 'package:fmatch/util.dart';
 
+late IOSink resultSink;
+late IOSink logSink;
+late DateTime startTime;
+late DateTime currentLap;
+late DateTime lastLap;
+
 var multiplicity = 1;
 
 void main(List<String> args) async {
@@ -32,12 +38,6 @@ void main(List<String> args) async {
   }
   await time(() => wbatch(), 'wbatch');
 }
-
-late IOSink resultSink;
-late IOSink logSink;
-late DateTime startTime;
-late DateTime currentLap;
-late DateTime lastLap;
 
 Future<void> wbatch([String path = 'batch']) async {
   var batchQueryPath = '$path/queries.csv';

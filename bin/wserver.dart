@@ -23,8 +23,11 @@ var commandStreamQueue = StreamQueue(commandStreamController.stream);
 var commandQueueLength = 0;
 var maxCommandQueueLength = 10;
 var josonEncoderWithIdent = JsonEncoder.withIndent('  ');
+
+var batchStreamController = StreamController<HttpRequest>();
+var batchStreamQueue = StreamQueue(batchStreamController.stream);
 var batchQueueLength = 0;
-const maxBatchQueueLength = 1;
+var maxBatchQueueLength = 10;
 
 late final FMatcher matcher;
 late final SendPort cacheServer;
@@ -62,6 +65,7 @@ Future main(List<String> args) async {
     maxCommandQueueLength = max(
         int.tryParse(options['queue'] as String) ?? maxCommandQueueLength,
         serverCount);
+    maxBatchQueueLength = maxCommandQueueLength;
   }
   await time(() => matcher.preper.readConfigs(), 'Configs.read');
   await time(() => matcher.buildDb(), 'buildDb');
@@ -77,6 +81,7 @@ Future main(List<String> args) async {
     await c.spawnServer(matcher, cacheServer);
     serverPool.add(c);
   }
+  sendReceiveResponseMulti();
 
   var httpServer = await HttpServer.bind(_host, 4049);
   await for (var req in httpServer) {
@@ -111,7 +116,8 @@ Future main(List<String> args) async {
         continue;
       }
       try {
-        pbatch(req);
+        batchStreamController.add(req);
+        batchQueueLength++;
       } catch (e) {
         response
           ..statusCode = HttpStatus.methodNotAllowed
@@ -145,13 +151,15 @@ Future<void> sendReceiveResponseOne(
   client.closeServer();
 }
 
-Future<void> pbatch(HttpRequest req) async {
-  batchQueueLength++;
-  var jsonString = await req.cast<List<int>>().transform(utf8.decoder).join();
-  var queryList = (jsonDecode(jsonString) as List<dynamic>).cast<String>();
-  var queries = StreamQueue<String>(Stream.fromIterable(queryList));
-  await Dispatcher(matcher, queries, req.response).dispatch();
-  batchQueueLength--;
+Future<void> sendReceiveResponseMulti() async {
+  while (await batchStreamQueue.hasNext) {
+    var req = await batchStreamQueue.next;
+    var jsonString = await req.cast<List<int>>().transform(utf8.decoder).join();
+    var queryList = (jsonDecode(jsonString) as List<dynamic>).cast<String>();
+    var queries = StreamQueue<String>(Stream.fromIterable(queryList));
+    await Dispatcher(matcher, queries, req.response).dispatch();
+    batchQueueLength--;
+  }
 }
 
 class Dispatcher {
@@ -187,7 +195,7 @@ class Dispatcher {
       maxResultsLength = max(results.length, maxResultsLength);
       printResultsInOrder();
     }
- }
+  }
 
   void printResultsInOrder() {
     for (; ixO < ixS; ixO++) {
@@ -195,7 +203,7 @@ class Dispatcher {
       if (result == null) {
         return;
       }
-      if(first){
+      if (first) {
         first = false;
       } else {
         response.write(',');

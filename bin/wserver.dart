@@ -24,7 +24,7 @@ var commandQueueLength = 0;
 var maxCommandQueueLength = 10;
 var josonEncoderWithIdent = JsonEncoder.withIndent('  ');
 var batchQueueLength = 0;
-var maxBatchQueueLength = 1;
+const maxBatchQueueLength = 1;
 
 late final FMatcher matcher;
 late final SendPort cacheServer;
@@ -73,7 +73,6 @@ Future main(List<String> args) async {
   }
 
   for (var id = 0; id < serverCount; id++) {
-    // for batch
     var c = Client();
     await c.spawnServer(matcher, cacheServer);
     serverPool.add(c);

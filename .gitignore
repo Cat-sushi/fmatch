@@ -18,6 +18,7 @@ git_ignore/
 bin/batch
 bin/batchp
 bin/batchw
+bin/batchwb
 bin/process_results
 bin/wserver
 batch/

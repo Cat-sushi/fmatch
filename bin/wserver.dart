@@ -102,8 +102,8 @@ Future main(List<String> args) async {
           ..write('Parameter missing: $e.');
         await response.close();
       }
-    } else if (req.method == 'POST'/* &&
-        contentType?.mimeType == 'application/json'*/) {
+    } else if (req.method == 'POST' &&
+        contentType?.mimeType == 'application/json') {
       if (batchQueueLength >= maxBatchQueueLength) {
         response
           ..statusCode = HttpStatus.serviceUnavailable
@@ -195,9 +195,6 @@ class Dispatcher {
       var result = results[ixO];
       if (result == null) {
         return;
-      }
-      if (result.cachedResult.cachedQuery.terms.isEmpty) {
-        continue;
       }
       if(first){
         first = false;

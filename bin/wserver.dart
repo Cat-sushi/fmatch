@@ -12,23 +12,29 @@ import 'package:args/args.dart';
 import 'package:async/async.dart';
 
 import 'package:fmatch/fmatch.dart';
+import 'package:fmatch/fmclasses.dart';
 import 'package:fmatch/server.dart';
 import 'package:fmatch/util.dart';
 
 String _host = InternetAddress.loopbackIPv4.host;
 int serverCount = Platform.numberOfProcessors;
+var commandStreamController = StreamController<Command>();
+var commandStreamQueue = StreamQueue(commandStreamController.stream);
+var commandQueueLength = 0;
+var maxCommandQueueLength = 10;
+var josonEncoderWithIdent = JsonEncoder.withIndent('  ');
+var batchQueueLength = 0;
+var maxBatchQueueLength = 1;
+
+late final FMatcher matcher;
+late final SendPort cacheServer;
+final serverPool = <Client>[];
 
 class Command {
   final HttpResponse response;
   final String query;
   Command(this.response, this.query);
 }
-
-var commandStreamController = StreamController<Command>();
-var commandStreamQueue = StreamQueue(commandStreamController.stream);
-var commandQueueLength = 0;
-var maxCommandQueueLength = 10;
-var josonEncoderWithIdent = JsonEncoder.withIndent('  ');
 
 Future main(List<String> args) async {
   var argParser = ArgParser()
@@ -42,15 +48,15 @@ Future main(List<String> args) async {
     exit(0);
   }
   print('Start Server');
-  var matcher = FMatcher();
+  matcher = FMatcher();
   await time(() => matcher.readSettings(null), 'Settings.read');
   if (options['cache'] != null) {
     matcher.queryResultCacheSize = int.tryParse(options['cache']! as String) ??
         matcher.queryResultCacheSize;
   }
   if (options['server'] != null) {
-    serverCount = max(
-        int.tryParse(options['server'] as String) ?? serverCount, 1);
+    serverCount =
+        max(int.tryParse(options['server'] as String) ?? serverCount, 1);
   }
   if (options['queue'] != null) {
     maxCommandQueueLength = max(
@@ -61,9 +67,16 @@ Future main(List<String> args) async {
   await time(() => matcher.buildDb(), 'buildDb');
   print('Min Score: ${matcher.minScore}');
 
-  final cacheServer = await CacheServer.spawn(matcher.queryResultCacheSize);
+  cacheServer = await CacheServer.spawn(matcher.queryResultCacheSize);
   for (var id = 0; id < serverCount; id++) {
-    sendReceiveResponse(id, matcher, cacheServer);
+    sendReceiveResponseOne(id, matcher, cacheServer);
+  }
+
+  for (var id = 0; id < serverCount; id++) {
+    // for batch
+    var c = Client();
+    await c.spawnServer(matcher, cacheServer);
+    serverPool.add(c);
   }
 
   var httpServer = await HttpServer.bind(_host, 4049);
@@ -89,12 +102,23 @@ Future main(List<String> args) async {
           ..write('Parameter missing: $e.');
         await response.close();
       }
-    } else if (req.method == 'POST' &&
-        contentType?.mimeType == 'application/json') {
-      response
-        ..statusCode = HttpStatus.methodNotAllowed
-        ..write('Unsupported request: ${req.method}.');
-      await response.close();
+    } else if (req.method == 'POST'/* &&
+        contentType?.mimeType == 'application/json'*/) {
+      if (batchQueueLength >= maxBatchQueueLength) {
+        response
+          ..statusCode = HttpStatus.serviceUnavailable
+          ..write('Batch server busiy');
+        await response.close();
+        continue;
+      }
+      try {
+        pbatch(req);
+      } catch (e) {
+        response
+          ..statusCode = HttpStatus.methodNotAllowed
+          ..write('Unsupported request: ${req.method}.');
+        await response.close();
+      }
     } else {
       response
         ..statusCode = HttpStatus.methodNotAllowed
@@ -104,7 +128,7 @@ Future main(List<String> args) async {
   }
 }
 
-Future<void> sendReceiveResponse(
+Future<void> sendReceiveResponseOne(
     int id, FMatcher matcher, SendPort cacheServer) async {
   var client = Client();
   await client.spawnServer(matcher, cacheServer);
@@ -122,23 +146,66 @@ Future<void> sendReceiveResponse(
   client.closeServer();
 }
 
-// Future<void> pbatch(FMatcher matcher, HttpRequest request) async {
-//   var batchResultPath = 'batch/results.csv';
-//   var batchLogPath = 'batch/log.txt';
-//   var resultFile = File(batchResultPath);
-//   resultFile.writeAsBytesSync([0xEF, 0xBB, 0xBF]);
-//   resultSink = resultFile.openWrite(mode: FileMode.append, encoding: utf8);
-//   logSink = File(batchLogPath).openWrite(encoding: utf8);
-//   startTime = DateTime.now();
-//   lastLap = startTime;
-//   currentLap = lastLap;
-//   var queries = StreamQueue<String>(Stream.fromIterable([]) /* request.transform<String>() */);
-//   // queries = StreamQueue<String>((await request.first);
-//   final servers = <Server>[];
-//   for (var id = 0; id < matcher.serverCount; id++) {
-//     var server = Server(matcher);
-//     await server.spawn(id);
-//     servers.add(server);
-//   }
-//   await Dispatcher(servers, queries).dispatch();
-// }
+Future<void> pbatch(HttpRequest req) async {
+  batchQueueLength++;
+  var jsonString = await req.cast<List<int>>().transform(utf8.decoder).join();
+  var queryList = (jsonDecode(jsonString) as List<dynamic>).cast<String>();
+  var queries = StreamQueue<String>(Stream.fromIterable(queryList));
+  await Dispatcher(matcher, queries, req.response).dispatch();
+  batchQueueLength--;
+}
+
+class Dispatcher {
+  final FMatcher matcher;
+  final StreamQueue<String> queries;
+  final HttpResponse response;
+  final results = <int, QueryResult>{};
+  var maxResultsLength = 0;
+  var ixS = 0;
+  var ixO = 0;
+  var first = true;
+  Dispatcher(this.matcher, this.queries, this.response);
+  Future<void> dispatch() async {
+    response.write('[');
+    var futures = <Future>[];
+    for (var id = 0; id < serverCount; id++) {
+      futures.add(sendReceve(id));
+    }
+    await Future.wait<void>(futures);
+    response.write(']');
+    response.close();
+  }
+
+  Future<void> sendReceve(int id) async {
+    var client = serverPool[id];
+    while (await queries.hasNext) {
+      var ix = ixS;
+      ixS++;
+      var query = await queries.next;
+      var result = await client.fmatch(query);
+      result.serverId = id;
+      results[ix] = result;
+      maxResultsLength = max(results.length, maxResultsLength);
+      printResultsInOrder();
+    }
+ }
+
+  void printResultsInOrder() {
+    for (; ixO < ixS; ixO++) {
+      var result = results[ixO];
+      if (result == null) {
+        return;
+      }
+      if (result.cachedResult.cachedQuery.terms.isEmpty) {
+        continue;
+      }
+      if(first){
+        first = false;
+      } else {
+        response.write(',');
+      }
+      response.write(jsonEncode(result));
+      results.remove(ixO);
+    }
+  }
+}

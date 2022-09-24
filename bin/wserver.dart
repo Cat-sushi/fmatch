@@ -42,12 +42,16 @@ Future main(List<String> args) async {
     ..addOption('queue', abbr: 'q', valueHelp: 'length of command queue')
     ..addOption('cache', abbr: 'c', valueHelp: 'size of result cache');
   var options = argParser.parse(args);
+
   if (options['help'] == true) {
     print(argParser.usage);
     exit(0);
   }
+  
   print('Start Server');
+  
   await time(() => matcher.readSettings(null), 'Settings.read');
+
   if (options['cache'] != null) {
     matcher.queryResultCacheSize = int.tryParse(options['cache']! as String) ??
         matcher.queryResultCacheSize;
@@ -62,6 +66,7 @@ Future main(List<String> args) async {
         serverCount);
     maxBatchQueueLength = maxCommandQueueLength;
   }
+  
   await time(() => matcher.preper.readConfigs(), 'Configs.read');
   await time(() => matcher.buildDb(), 'buildDb');
   print('Min Score: ${matcher.minScore}');
@@ -146,7 +151,7 @@ Future<void> sendReceiveResponseMulti() async {
           await req.cast<List<int>>().transform(utf8.decoder).join();
       var queryList = (jsonDecode(jsonString) as List<dynamic>).cast<String>();
       var queries = StreamQueue<String>(Stream.fromIterable(queryList));
-      await Dispatcher(matcher, queries, req.response).dispatch();
+      await Dispatcher(queries, req.response).dispatch();
     } catch (e) {
       req.response
         ..statusCode = HttpStatus.internalServerError
@@ -159,7 +164,6 @@ Future<void> sendReceiveResponseMulti() async {
 }
 
 class Dispatcher {
-  final FMatcher matcher;
   final StreamQueue<String> queries;
   final HttpResponse response;
   final results = <int, QueryResult>{};
@@ -167,19 +171,20 @@ class Dispatcher {
   var ixS = 0;
   var ixO = 0;
   var first = true;
-  Dispatcher(this.matcher, this.queries, this.response);
+  Dispatcher(this.queries, this.response);
+  
   Future<void> dispatch() async {
     response.write('[');
     var futures = <Future>[];
-    for (var id = 0; id < serverCount; id++) {
-      futures.add(sendReceve(id));
+    for (var i = 0; i < serverCount; i++) {
+      futures.add(sendReceve());
     }
     await Future.wait<void>(futures);
     response.write(']');
     response.close();
   }
 
-  Future<void> sendReceve(int id) async {
+  Future<void> sendReceve() async {
     while (await queries.hasNext) {
       var ix = ixS;
       ixS++;
@@ -187,7 +192,6 @@ class Dispatcher {
       var client = await serverPool.next;
       var result = await client.fmatch(query);
       serverPoolController.add(client);
-      result.serverId = id;
       results[ix] = result;
       maxResultsLength = max(results.length, maxResultsLength);
       printResultsInOrder();

@@ -53,6 +53,7 @@ class Db {
       throw "Too small database";
     }
   }
+
   static Future<Db> fromStringStream(
       Preprocessor preper, Stream<String> entries) async {
     var ret = Db();

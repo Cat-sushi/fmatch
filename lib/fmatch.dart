@@ -16,22 +16,27 @@ class FMatcher with Settings, Tools {
 
   Future<QueryResult> fmatch(String inputString) async {
     var start = DateTime.now();
+
     if (preper.hasIllegalCharacter(inputString)) {
       return QueryResult.fromError(
           inputString, 'Illegal characters in query: "$inputString"');
     }
+
     var rawQuery = preper.normalizeAndCapitalize(inputString);
+
     bool perfectMatching = false;
     var perfMatchQueryMatcher = _perfMatchQuery.firstMatch(rawQuery.string);
     if (perfMatchQueryMatcher != null) {
       perfectMatching = true;
       rawQuery = Entry(perfMatchQueryMatcher[1]!);
     }
+
     var preprocessed = preper.preprocess(rawQuery);
     if (preprocessed.terms.isEmpty) {
       return QueryResult.fromError(
           inputString, 'No valid terms in query: "$inputString"');
     }
+
     var cachedQuery =
         CachedQuery.fromPreprocessed(preprocessed, perfectMatching);
     if (!perfectMatching && whiteQueries.contains(cachedQuery)) {
@@ -44,6 +49,7 @@ class FMatcher with Settings, Tools {
         'White query: "${preprocessed.terms.map((e) => e.string).join(' ')}"',
       );
     }
+
     var cachedResult = await resultCache.get(cachedQuery);
     if (cachedResult != null) {
       return QueryResult.fromCachedResult(
@@ -55,6 +61,7 @@ class FMatcher with Settings, Tools {
         'Cached result',
       );
     }
+
     var query = Query.fromPreprocessed(preprocessed, perfectMatching);
     var qtc = query.terms.length;
     var queryTermOccurrences =
@@ -65,6 +72,7 @@ class FMatcher with Settings, Tools {
       var qto = queryTermMatch(qterm, isLet, query.perfectMatching);
       queryTermOccurrences[qti] = qto;
     }
+
     var maxMissedTC = query.perfectMatching ? 0 : maxMissedTermCount(qtc);
     bool queryFallenBack = false;
     if (estimateCombination(query, queryTermOccurrences, maxMissedTC) >
@@ -78,9 +86,13 @@ class FMatcher with Settings, Tools {
       qtc = query.terms.length;
       maxMissedTC = maxMissedTermCount(qtc);
     }
+
     caliculateQueryTermWeight(query);
+
     var resultUnsorted = queryMatch(query, queryTermOccurrences, maxMissedTC);
+
     var sorted = sortAndDedupResults(resultUnsorted);
+
     var ret = QueryResult.fromQueryOccurrences(
       sorted,
       start,

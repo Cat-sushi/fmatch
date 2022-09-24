@@ -148,7 +148,7 @@ class CachedResult {
           (json['matchedEntiries'] as List<dynamic>)
               .map<MatchedEntry>((dynamic e) =>
                   MatchedEntry.fromJson(e as Map<String, dynamic>))
-              .toList(growable: false),
+              .toList(),
         );
   Map toJson() => <String, dynamic>{
         'cachedQuery': cachedQuery,
@@ -223,6 +223,7 @@ class ResultCache {
   // ignore: prefer_collection_literals
   final _map = LinkedHashMap<CachedQuery, CachedResult>();
   ResultCache(int size) : _queryResultCacheSize = size;
+
   Future<CachedResult?> get(CachedQuery query) async {
     if (_queryResultCacheSize == 0) {
       return null;

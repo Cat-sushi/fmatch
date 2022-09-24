@@ -19,6 +19,7 @@ bin/batch
 bin/batchp
 bin/batchw
 bin/batchwb
+bin/batchwr
 bin/process_results
 bin/wserver
 batch/

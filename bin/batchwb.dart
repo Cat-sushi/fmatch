@@ -30,10 +30,13 @@ void main(List<String> args) async {
     print(argParser.usage);
     exit(0);
   }
+
   print('Start Web Bulk Batch');
+
   if (options['bulk'] != null) {
     bulkSize = max(int.tryParse(options['bulk'] as String) ?? bulkSize, 1);
   }
+
   await time(() => wbatch(), 'wbatch');
 }
 
@@ -61,8 +64,10 @@ Future<void> wbatch([String path = 'batch']) async {
     var response = await request.close();
     var jsonString = await response.transform(utf8.decoder).join();
     var jsons = (jsonDecode(jsonString) as List);
-    var results = jsons.map<QueryResult>(
-        (dynamic e) => QueryResult.fromJson(e as Map<String, dynamic>)).toList();
+    var results = jsons
+        .map<QueryResult>(
+            (dynamic e) => QueryResult.fromJson(e as Map<String, dynamic>))
+        .toList();
     for (var result in results) {
       ++lc;
       if (result.cachedResult.cachedQuery.terms.isEmpty) {

@@ -88,14 +88,13 @@ class Dispatcher {
   }
 
   Future<void> sendReceve(int id) async {
-    var client = Client();
+    var client = Client(id);
     await client.spawnServer(matcher, cacheServer!);
     while (await queries.hasNext) {
       var ix = ixS;
       ixS++;
       var query = await queries.next;
       var result = await client.fmatch(query);
-      result.serverId = id;
       results[ix] = result;
       maxResultsLength = max(results.length, maxResultsLength);
       printResultsInOrder();

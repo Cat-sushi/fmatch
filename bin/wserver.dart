@@ -18,26 +18,22 @@ import 'package:fmatch/util.dart';
 
 String _host = InternetAddress.loopbackIPv4.host;
 int serverCount = Platform.numberOfProcessors;
-var commandStreamController = StreamController<Command>();
-var commandStreamQueue = StreamQueue(commandStreamController.stream);
+final commandStreamController = StreamController<HttpRequest>();
+final commandStreamQueue = StreamQueue(commandStreamController.stream);
 var commandQueueLength = 0;
 var maxCommandQueueLength = 10;
 var josonEncoderWithIdent = JsonEncoder.withIndent('  ');
 
-var batchStreamController = StreamController<HttpRequest>();
-var batchStreamQueue = StreamQueue(batchStreamController.stream);
+final batchStreamController = StreamController<HttpRequest>();
+final batchStreamQueue = StreamQueue(batchStreamController.stream);
 var batchQueueLength = 0;
 var maxBatchQueueLength = 10;
 
-late final FMatcher matcher;
-late final SendPort cacheServer;
-final serverPool = <Client>[];
+final serverPoolController = StreamController<Client>();
+final serverPool = StreamQueue(serverPoolController.stream);
 
-class Command {
-  final HttpResponse response;
-  final String query;
-  Command(this.response, this.query);
-}
+final matcher = FMatcher();
+late final SendPort cacheServer;
 
 Future main(List<String> args) async {
   var argParser = ArgParser()
@@ -51,7 +47,6 @@ Future main(List<String> args) async {
     exit(0);
   }
   print('Start Server');
-  matcher = FMatcher();
   await time(() => matcher.readSettings(null), 'Settings.read');
   if (options['cache'] != null) {
     matcher.queryResultCacheSize = int.tryParse(options['cache']! as String) ??
@@ -72,15 +67,17 @@ Future main(List<String> args) async {
   print('Min Score: ${matcher.minScore}');
 
   cacheServer = await CacheServer.spawn(matcher.queryResultCacheSize);
-  for (var id = 0; id < serverCount; id++) {
-    sendReceiveResponseOne(id, matcher, cacheServer);
-  }
 
   for (var id = 0; id < serverCount; id++) {
-    var c = Client();
+    var c = Client(id);
     await c.spawnServer(matcher, cacheServer);
-    serverPool.add(c);
+    serverPoolController.add(c);
   }
+
+  for (var i = 0; i < serverCount; i++) {
+    sendReceiveResponseOne();
+  }
+
   sendReceiveResponseMulti();
 
   var httpServer = await HttpServer.bind(_host, 4049);
@@ -96,16 +93,8 @@ Future main(List<String> args) async {
         await response.close();
         continue;
       }
-      try {
-        var inputString = req.uri.queryParameters['q']!;
-        commandStreamController.add(Command(req.response, inputString));
-        commandQueueLength++;
-      } catch (e) {
-        response
-          ..statusCode = HttpStatus.internalServerError
-          ..write('Parameter missing: $e.');
-        await response.close();
-      }
+      commandQueueLength++;
+      commandStreamController.add(req);
     } else if (req.method == 'POST' &&
         contentType?.mimeType == 'application/json') {
       if (batchQueueLength >= maxBatchQueueLength) {
@@ -115,15 +104,8 @@ Future main(List<String> args) async {
         await response.close();
         continue;
       }
-      try {
-        batchStreamController.add(req);
-        batchQueueLength++;
-      } catch (e) {
-        response
-          ..statusCode = HttpStatus.methodNotAllowed
-          ..write('Unsupported request: ${req.method}.');
-        await response.close();
-      }
+      batchQueueLength++;
+      batchStreamController.add(req);
     } else {
       response
         ..statusCode = HttpStatus.methodNotAllowed
@@ -133,32 +115,46 @@ Future main(List<String> args) async {
   }
 }
 
-Future<void> sendReceiveResponseOne(
-    int id, FMatcher matcher, SendPort cacheServer) async {
-  var client = Client();
-  await client.spawnServer(matcher, cacheServer);
+Future<void> sendReceiveResponseOne() async {
   while (await commandStreamQueue.hasNext) {
-    var command = await commandStreamQueue.next;
-    var result = await client.fmatch(command.query);
-    commandQueueLength--;
-    result.serverId = id;
-    var responseContent = josonEncoderWithIdent.convert(result);
-    command.response
-      ..statusCode = HttpStatus.ok
-      ..write(responseContent);
-    command.response.close();
+    var req = await commandStreamQueue.next;
+    try {
+      var query = req.uri.queryParameters['q']!;
+      var client = await serverPool.next;
+      var result = await client.fmatch(query);
+      serverPoolController.add(client);
+      var responseContent = josonEncoderWithIdent.convert(result);
+      req.response
+        ..statusCode = HttpStatus.ok
+        ..write(responseContent);
+    } catch (e) {
+      req.response
+        ..statusCode = HttpStatus.internalServerError
+        ..write('Internal Server Error: $e.');
+    } finally {
+      req.response.close();
+      commandQueueLength--;
+    }
   }
-  client.closeServer();
 }
 
 Future<void> sendReceiveResponseMulti() async {
   while (await batchStreamQueue.hasNext) {
     var req = await batchStreamQueue.next;
-    var jsonString = await req.cast<List<int>>().transform(utf8.decoder).join();
-    var queryList = (jsonDecode(jsonString) as List<dynamic>).cast<String>();
-    var queries = StreamQueue<String>(Stream.fromIterable(queryList));
-    await Dispatcher(matcher, queries, req.response).dispatch();
-    batchQueueLength--;
+    try {
+      var jsonString =
+          await req.cast<List<int>>().transform(utf8.decoder).join();
+      var queryList = (jsonDecode(jsonString) as List<dynamic>).cast<String>();
+      var queries = StreamQueue<String>(Stream.fromIterable(queryList));
+      await Dispatcher(matcher, queries, req.response).dispatch();
+    } catch (e) {
+      req.response
+        ..statusCode = HttpStatus.internalServerError
+        ..write('Internal Server Error: $e.');
+      req.response.close();
+    } finally {
+      batchQueueLength--;
+    }
   }
 }
 
@@ -184,12 +180,13 @@ class Dispatcher {
   }
 
   Future<void> sendReceve(int id) async {
-    var client = serverPool[id];
     while (await queries.hasNext) {
       var ix = ixS;
       ixS++;
       var query = await queries.next;
+      var client = await serverPool.next;
       var result = await client.fmatch(query);
+      serverPoolController.add(client);
       result.serverId = id;
       results[ix] = result;
       maxResultsLength = max(results.length, maxResultsLength);

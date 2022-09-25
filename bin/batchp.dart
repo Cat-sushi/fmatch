@@ -43,8 +43,8 @@ void main(List<String> args) async {
         matcher.queryResultCacheSize;
   }
   if (options['server'] != null) {
-    serverCount = max(
-        int.tryParse(options['server'] as String) ?? serverCount, 1);
+    serverCount =
+        max(int.tryParse(options['server'] as String) ?? serverCount, 1);
   }
   await time(() => matcher.preper.readConfigs(), 'Configs.read');
   await time(() => matcher.buildDb(), 'buildDb');
@@ -77,10 +77,7 @@ class Dispatcher {
   var ixO = 0;
   Dispatcher(this.matcher, this.queries);
   Future<void> dispatch() async {
-    var futures = <Future>[];
-    for (var id = 0; id < serverCount; id++) {
-      futures.add(sendReceve(id));
-    }
+    var futures = List<Future>.generate(serverCount, (id) => sendReceve(id));
     await Future.wait<void>(futures);
     print('Max result buffer length: $maxResultsLength');
     await logSink.close();
@@ -108,7 +105,7 @@ class Dispatcher {
       if (result == null) {
         return;
       }
-      if (result.cachedResult.cachedQuery.terms.isEmpty){
+      if (result.cachedResult.cachedQuery.terms.isEmpty) {
         continue;
       }
       if (result.message != '') {

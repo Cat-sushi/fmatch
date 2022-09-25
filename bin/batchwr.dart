@@ -80,17 +80,14 @@ class Dispatcher {
   var ixO = 0;
   Dispatcher(this.queries);
   Future<void> dispatch() async {
-    var futures = <Future>[];
-    for (var id = 0; id < multiplicity; id++) {
-      futures.add(sendReceve(id));
-    }
+    var futures = List<Future>.generate(multiplicity, (i) => sendReceve());
     await Future.wait<void>(futures);
     print('Max result buffer length: $maxResultsLength');
     await logSink.close();
     await resultSink.close();
   }
 
-  Future<void> sendReceve(int id) async {
+  Future<void> sendReceve() async {
     var httpClient = HttpClient();
     while (await queries.hasNext) {
       var ix = ixS;
@@ -102,7 +99,6 @@ class Dispatcher {
       var jsonString = await response.transform(utf8.decoder).join();
       var result =
           QueryResult.fromJson(jsonDecode(jsonString) as Map<String, dynamic>);
-      result.serverId = id;
       results[ix] = result;
       maxResultsLength = max(results.length, maxResultsLength);
       printResultsInOrder();

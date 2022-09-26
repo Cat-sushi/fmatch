@@ -9,11 +9,11 @@ import 'fmatch.dart';
 import 'fmclasses.dart';
 
 class Client {
-  final int id;
+  final int serverId;
   late final StreamIterator<dynamic> _cri;
   late final SendPort _csp;
 
-  Client(this.id);
+  Client(this.serverId);
 
   Future<void> spawnServer(FMatcher matcher, SendPort cacheServer) async {
     var crp = ReceivePort();
@@ -27,9 +27,7 @@ class Client {
   Future<QueryResult> fmatch(String query) async {
     _csp.send(query);
     await _cri.moveNext();
-    var ret = _cri.current as QueryResult;
-    ret.serverId = id;
-    return ret;
+    return (_cri.current as QueryResult)..serverId = serverId;
   }
 
   void closeServer() {
@@ -58,6 +56,10 @@ class CacheServer {
     var crp = ReceivePort();
     await Isolate.spawn<List<dynamic>>(main, <dynamic>[crp.sendPort, size]);
     return await crp.first as SendPort;
+  }
+
+  static void close(SendPort ccsp){
+    ccsp.send(null);
   }
 
   static Future<void> main(List<dynamic> message) async {

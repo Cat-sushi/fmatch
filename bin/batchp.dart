@@ -2,6 +2,7 @@
 // All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
@@ -22,8 +23,11 @@ late DateTime startTime;
 late DateTime currentLap;
 late DateTime lastLap;
 
-SendPort? cacheServer;
+late SendPort cacheServer;
 int serverCount = Platform.numberOfProcessors;
+
+final serverPoolController = StreamController<Client>();
+final serverPool = StreamQueue(serverPoolController.stream);
 
 void main(List<String> args) async {
   var argParser = ArgParser()
@@ -48,7 +52,22 @@ void main(List<String> args) async {
   }
   await time(() => matcher.preper.readConfigs(), 'Configs.read');
   await time(() => matcher.buildDb(), 'buildDb');
+
+  cacheServer = await CacheServer.spawn(matcher.queryResultCacheSize);
+
+  for (var id = 0; id < serverCount; id++) {
+    var c = Client(id);
+    await c.spawnServer(matcher, cacheServer);
+    serverPoolController.add(c);
+  }
+
   await time(() => pbatch(matcher), 'pbatch');
+
+  CacheServer.close(cacheServer);
+  for (var i = 0; i < serverCount; i++) {
+    (await serverPool.next).closeServer();
+  }
+
   exit(0);
 }
 
@@ -64,7 +83,6 @@ Future<void> pbatch(FMatcher matcher, [String path = 'batch']) async {
   lastLap = startTime;
   currentLap = lastLap;
   var queries = StreamQueue<String>(openQueryListStream(batchQueryPath));
-  cacheServer ??= await CacheServer.spawn(matcher.queryResultCacheSize);
   await Dispatcher(matcher, queries).dispatch();
 }
 
@@ -77,26 +95,25 @@ class Dispatcher {
   var ixO = 0;
   Dispatcher(this.matcher, this.queries);
   Future<void> dispatch() async {
-    var futures = List<Future>.generate(serverCount, (id) => sendReceve(id));
+    var futures = List<Future>.generate(serverCount, (i) => sendReceve());
     await Future.wait<void>(futures);
     print('Max result buffer length: $maxResultsLength');
     await logSink.close();
     await resultSink.close();
   }
 
-  Future<void> sendReceve(int id) async {
-    var client = Client(id);
-    await client.spawnServer(matcher, cacheServer!);
+  Future<void> sendReceve() async {
     while (await queries.hasNext) {
       var ix = ixS;
       ixS++;
       var query = await queries.next;
+      var client = await serverPool.next;
       var result = await client.fmatch(query);
+      serverPoolController.add(client);
       results[ix] = result;
       maxResultsLength = max(results.length, maxResultsLength);
       printResultsInOrder();
     }
-    client.closeServer();
   }
 
   void printResultsInOrder() {

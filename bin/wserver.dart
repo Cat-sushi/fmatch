@@ -27,7 +27,7 @@ var josonEncoderWithIdent = JsonEncoder.withIndent('  ');
 final batchStreamController = StreamController<HttpRequest>();
 final batchStreamQueue = StreamQueue(batchStreamController.stream);
 var batchQueueLength = 0;
-var maxBatchQueueLength = 10;
+var maxBatchQueueLength = serverCount * 2;
 
 final serverPoolController = StreamController<Client>();
 final serverPool = StreamQueue(serverPoolController.stream);
@@ -53,7 +53,7 @@ Future main(List<String> args) async {
   await time(() => matcher.readSettings(null), 'Settings.read');
 
   if (options['cache'] != null) {
-    matcher.queryResultCacheSize = int.tryParse(options['cache']! as String) ??
+    matcher.queryResultCacheSize = int.tryParse(options['cache'] as String) ??
         matcher.queryResultCacheSize;
   }
   if (options['server'] != null) {
@@ -66,7 +66,7 @@ Future main(List<String> args) async {
         serverCount);
     maxBatchQueueLength = maxCommandQueueLength;
   }
-  
+
   await time(() => matcher.preper.readConfigs(), 'Configs.read');
   await time(() => matcher.buildDb(), 'buildDb');
   print('Min Score: ${matcher.minScore}');

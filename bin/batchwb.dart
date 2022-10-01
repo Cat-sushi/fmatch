@@ -20,11 +20,13 @@ late DateTime currentLap;
 late DateTime lastLap;
 
 var bulkSize = 100;
+var lc = 0;
 
 void main(List<String> args) async {
   var argParser = ArgParser()
     ..addFlag('help', abbr: 'h', negatable: false, help: 'print tis help')
-    ..addOption('bulk', abbr: 'b', valueHelp: 'bulk size of request');
+    ..addOption('bulk', abbr: 'b', valueHelp: 'bulk size of request')
+    ..addOption('input', abbr: 'i', valueHelp: 'input file');
   var options = argParser.parse(args);
   if (options['help'] == true) {
     print(argParser.usage);
@@ -36,23 +38,23 @@ void main(List<String> args) async {
   if (options['bulk'] != null) {
     bulkSize = max(int.tryParse(options['bulk'] as String) ?? bulkSize, 1);
   }
+  var queryPath = options['input'] as String? ?? 'batch/queries.csv';
 
-  await time(() => wbatch(), 'wbatch');
+  await time(() => wbatch(queryPath), 'wbatch');
 }
 
-Future<void> wbatch([String path = 'batch']) async {
-  var batchQueryPath = '$path/queries.csv';
-  var batchResultPath = '$path/results.csv';
-  var batchLogPath = '$path/log.txt';
-  var resultFile = File(batchResultPath);
+Future<void> wbatch(String queryPath) async {
+  var queries = StreamQueue<String>(openQueryListStream(queryPath));
+  var trank = queryPath.substring(0, queryPath.lastIndexOf('.csv'));
+  var resultPath = '${trank}_results.csv';
+  var logPath = '${trank}_log.txt';
+  var resultFile = File(resultPath);
   resultFile.writeAsBytesSync([0xEF, 0xBB, 0xBF]);
   resultSink = resultFile.openWrite(mode: FileMode.append, encoding: utf8);
-  logSink = File(batchLogPath).openWrite(encoding: utf8);
-  var lc = 0;
+  logSink = File(logPath).openWrite(encoding: utf8);
   startTime = DateTime.now();
   lastLap = startTime;
   currentLap = lastLap;
-  var queries = StreamQueue<String>(openQueryListStream(batchQueryPath));
   var httpClient = HttpClient();
   var jsonEnc = JsonUtf8Encoder();
 
@@ -68,26 +70,28 @@ Future<void> wbatch([String path = 'batch']) async {
         .map<QueryResult>(
             (dynamic e) => QueryResult.fromJson(e as Map<String, dynamic>))
         .toList();
-    for (var result in results) {
-      ++lc;
-      if (result.cachedResult.cachedQuery.terms.isEmpty) {
-        continue;
-      }
-      if (result.message != '') {
-        logSink.writeln(result.message);
-      }
-      resultSink.write(formatOutput(lc, result));
-      if ((lc % 100) == 0) {
-        currentLap = DateTime.now();
-        print('$lc: ${currentLap.difference(lastLap).inMilliseconds} '
-            '${currentLap.difference(startTime).inMilliseconds}');
-        lastLap = currentLap;
-        await resultSink.flush();
-        await logSink.flush();
-      }
-    }
+    outputResults(results);
   }
   httpClient.close();
   await logSink.close();
   await resultSink.close();
+}
+
+Future<void> outputResults(Iterable<QueryResult> results) async {
+  for (var result in results) {
+    ++lc;
+    if (result.cachedResult.cachedQuery.terms.isEmpty) {
+      continue;
+    }
+    if (result.message != '') {
+      logSink.writeln(result.message);
+    }
+    resultSink.write(formatOutput(lc, result));
+    if ((lc % 100) == 0) {
+      currentLap = DateTime.now();
+      print('$lc: ${currentLap.difference(startTime).inMilliseconds} '
+          '${currentLap.difference(lastLap).inMilliseconds}');
+      lastLap = currentLap;
+    }
+  }
 }

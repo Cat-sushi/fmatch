@@ -16,7 +16,8 @@ Future<void> main(List<String> args) async {
     ..addFlag('help', abbr: 'h', negatable: false, help: 'print tis help')
     ..addOption('server', abbr: 's', valueHelp: 'number of servers')
     ..addOption('queue', abbr: 'q', valueHelp: 'length of command queue')
-    ..addOption('cache', abbr: 'c', valueHelp: 'size of result cache');
+    ..addOption('cache', abbr: 'c', valueHelp: 'size of result cache')
+    ..addOption('input', abbr: 'i', valueHelp: 'input file');
   var options = argParser.parse(args);
   if (options['help'] == true) {
     print(argParser.usage);
@@ -29,25 +30,27 @@ Future<void> main(List<String> args) async {
     matcher.queryResultCacheSize = int.tryParse(options['cache']! as String) ??
         matcher.queryResultCacheSize;
   }
+  var queryPath = options['input'] as String? ?? 'batch/queries.csv';
   await time(() => matcher.preper.readConfigs(), 'Configs.read');
   await time(() => matcher.buildDb(), 'buildDb');
-  await time(() => batch(matcher), 'batch');
+  await time(() => batch(matcher, queryPath), 'batch');
 }
 
-Future<void> batch(FMatcher matcher, [String path = 'batch']) async {
-  var batchQueryPath = '$path/queries.csv';
-  var batchResultPath = '$path/results.csv';
-  var batchLogPath = '$path/log.txt';
-  var resultFile = File(batchResultPath);
+Future<void> batch(FMatcher matcher, String queryPath) async {
+  var queries = openQueryListStream(queryPath);
+  var trank = queryPath.substring(0, queryPath.lastIndexOf('.csv'));
+  var resultPath = '${trank}_results.csv';
+  var logPath = '${trank}_log.txt';
+  var resultFile = File(resultPath);
   resultFile.writeAsBytesSync([0xEF, 0xBB, 0xBF]);
   var resultSink = resultFile.openWrite(mode: FileMode.append, encoding: utf8);
-  var logSink = File(batchLogPath).openWrite(encoding: utf8);
+  var logSink = File(logPath).openWrite(encoding: utf8);
   var lc = 0;
   var startTime = DateTime.now();
   var lastLap = startTime;
   var currentLap = lastLap;
 
-  await for (var query in openQueryListStream(batchQueryPath)) {
+  await for (var query in queries) {
     ++lc;
     var result = await matcher.fmatch(query);
     if (result.cachedResult.cachedQuery.terms.isEmpty) {
@@ -59,8 +62,8 @@ Future<void> batch(FMatcher matcher, [String path = 'batch']) async {
     resultSink.write(formatOutput(lc, result));
     if ((lc % 100) == 0) {
       currentLap = DateTime.now();
-      print('$lc: ${currentLap.difference(lastLap).inMilliseconds} '
-          '${currentLap.difference(startTime).inMilliseconds}');
+      print('$lc: ${currentLap.difference(startTime).inMilliseconds} '
+          '${currentLap.difference(lastLap).inMilliseconds}');
       lastLap = currentLap;
       await resultSink.flush();
       await logSink.flush();

@@ -25,7 +25,8 @@ void main(List<String> args) async {
   var argParser = ArgParser()
     ..addFlag('help', abbr: 'h', negatable: false, help: 'print tis help')
     ..addOption('multiplicity',
-        abbr: 'm', valueHelp: 'multiplicity of request');
+        abbr: 'm', valueHelp: 'multiplicity of request')
+    ..addOption('input', abbr: 'i', valueHelp: 'input file');
   var options = argParser.parse(args);
   if (options['help'] == true) {
     print(argParser.usage);
@@ -36,21 +37,22 @@ void main(List<String> args) async {
     multiplicity =
         max(int.tryParse(options['multiplicity'] as String) ?? multiplicity, 1);
   }
-  await time(() => wbatch(), 'wbatch');
+  var queryPath = options['input'] as String? ?? 'batch/queries.csv';
+  await time(() => wbatch(queryPath), 'wbatch');
 }
 
-Future<void> wbatch([String path = 'batch']) async {
-  var batchQueryPath = '$path/queries.csv';
-  var batchResultPath = '$path/results.csv';
-  var batchLogPath = '$path/log.txt';
-  var resultFile = File(batchResultPath);
+Future<void> wbatch(String queryPath) async {
+  var queries = StreamQueue<String>(openQueryListStream(queryPath));
+  var trank = queryPath.substring(0, queryPath.lastIndexOf('.csv'));
+  var resultPath = '${trank}_results.csv';
+  var logPath = '${trank}_log.txt';
+  var resultFile = File(resultPath);
   resultFile.writeAsBytesSync([0xEF, 0xBB, 0xBF]);
   resultSink = resultFile.openWrite(mode: FileMode.append, encoding: utf8);
-  logSink = File(batchLogPath).openWrite(encoding: utf8);
+  logSink = File(logPath).openWrite(encoding: utf8);
   startTime = DateTime.now();
   lastLap = startTime;
   currentLap = lastLap;
-  var queries = StreamQueue<String>(openQueryListStream(batchQueryPath));
   await Dispatcher(queries).dispatch();
 }
 
@@ -84,12 +86,12 @@ class Dispatcher {
           QueryResult.fromJson(jsonDecode(jsonString) as Map<String, dynamic>);
       results[ix] = result;
       maxResultsLength = max(results.length, maxResultsLength);
-      printResultsInOrder();
+      outputResultsInOrder();
     }
     httpClient.close();
   }
 
-  void printResultsInOrder() {
+  Future<void> outputResultsInOrder() async {
     for (; ixO < ixS; ixO++) {
       var result = results[ixO];
       if (result == null) {
@@ -104,8 +106,8 @@ class Dispatcher {
       resultSink.write(formatOutput(ixO + 1, result));
       if (((ixO + 1) % 100) == 0) {
         currentLap = DateTime.now();
-        print('${ixO + 1}: ${currentLap.difference(lastLap).inMilliseconds} '
-            '${currentLap.difference(startTime).inMilliseconds}');
+        print('${ixO + 1}: ${currentLap.difference(startTime).inMilliseconds} '
+            '${currentLap.difference(lastLap).inMilliseconds}');
         lastLap = currentLap;
       }
       results.remove(ixO);

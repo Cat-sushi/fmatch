@@ -32,8 +32,14 @@ String formatOutput(int ix, QueryResult result) {
     csvLine.write(r',');
     csvLine.write(ix);
     csvLine.write(r',');
-    csvLine
-        .write((e.score / result.cachedResult.queryScore).toStringAsFixed(2));
+    if (result.cachedResult.queryScore == 0) {
+      csvLine.write('-1.0');
+    } else {
+      csvLine
+          .write((e.score / result.cachedResult.queryScore).toStringAsFixed(2));
+    }
+    csvLine.write(r',');
+    csvLine.write(e.score.toStringAsFixed(2));
     csvLine.write(r',');
     csvLine.write(result.cachedResult.matchedEntiries.length);
     csvLine.write(r',');

@@ -31,14 +31,14 @@ class Term implements Comparable<Term> {
     }
     return _canonicalized[s] = Term._(s);
   }
-  
+
   factory Term(String s, {bool canonicalizing = false}) {
     if (canonicalizing == false) {
       return Term._(s);
     }
     return Term._canonicalize(s);
   }
-  
+
   factory Term.canonicalize(Term t) => Term._canonicalize(t.string);
   int get length => runes.length;
   String toJson() => string;
@@ -54,7 +54,7 @@ class Entry implements Comparable<Entry> {
   static final _canonicalized = <String, Entry>{};
   final String string;
   Entry._(this.string);
-  
+
   factory Entry._canonicalize(String s) {
     var ret = _canonicalized[s];
     if (ret != null) {
@@ -62,14 +62,14 @@ class Entry implements Comparable<Entry> {
     }
     return _canonicalized[s] = Entry._(s);
   }
-  
+
   factory Entry(String s, {bool canonicalizing = false}) {
     if (canonicalizing == false) {
       return Entry._(s);
     }
     return Entry._canonicalize(s);
   }
-  
+
   factory Entry.canonicalize(Entry e) => Entry._canonicalize(e.string);
   int get length => string.length;
   String toJson() => string;
@@ -95,7 +95,7 @@ class LetReplaced {
 
 class Preprocessor with Configs {
   bool hasIllegalCharacter(String name) {
-    if (name == ''){
+    if (name == '') {
       return false;
     }
     var m = legalChars.firstMatch(name);
@@ -108,7 +108,7 @@ class Preprocessor with Configs {
   static final _htSpaces = regExp(r'^\s+|\s+$');
   static final _mSpaces = regExp(r'\s+');
 
-  Entry normalizeAndCapitalize(String checked , {bool canonicalizing = false}) {
+  Entry normalizeAndCapitalize(String checked, {bool canonicalizing = false}) {
     var uNormalized = unorm.nfkd(checked);
     var uwNormalized = uNormalized.replaceAll(_htSpaces, '');
     var normalized = uwNormalized.replaceAll(_mSpaces, ' ');

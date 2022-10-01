@@ -29,35 +29,30 @@ class Query {
 class QueryTermOccurrence {
   final Entry entry;
   final int position;
-  final int df;
   final double termSimilarity;
   final bool partial;
   QueryTermOccurrence(
-      this.entry, this.position, this.df, this.termSimilarity, this.partial);
+      this.entry, this.position, this.termSimilarity, this.partial);
 }
 
 class QueryTermInQueryOccurrnece {
   int position;
   int sequenceNo;
-  int df; // redundant for performance optimization
   double termSimilarity;
   bool partial;
   QueryTermInQueryOccurrnece()
       : position = -1,
         sequenceNo = 0,
-        df = 0,
         termSimilarity = 0.0,
         partial = false;
   QueryTermInQueryOccurrnece.fromQueryTermOccurrence(QueryTermOccurrence qto)
       : position = qto.position,
         sequenceNo = 0,
-        df = 0,
         termSimilarity = qto.termSimilarity,
         partial = qto.partial;
   QueryTermInQueryOccurrnece.of(QueryTermInQueryOccurrnece o)
       : position = o.position,
         sequenceNo = o.sequenceNo,
-        df = o.df,
         termSimilarity = o.termSimilarity,
         partial = o.partial;
 }
@@ -68,7 +63,17 @@ class QueryOccurrence implements Comparable<QueryOccurrence> {
   final List<QueryTermInQueryOccurrnece> queryTerms;
   QueryOccurrence(this.entry, this.score, this.queryTerms);
   @override
-  int compareTo(QueryOccurrence other) => -score.compareTo(other.score);
+  int compareTo(QueryOccurrence other) {
+    var c = -score.compareTo(other.score);
+    if (c != 0) {
+      return c;
+    }
+    c = entry.length.compareTo(other.entry.length);
+    if (c != 0) {
+      return c;
+    }
+    return entry.compareTo(other.entry);
+  }
 }
 
 class MatchedEntry {

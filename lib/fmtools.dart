@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:math';
-import 'dart:typed_data';
 
 import 'configs.dart';
 import 'database.dart';
+import 'distance.dart';
 import 'fmclasses.dart';
 import 'preprocess.dart';
 
@@ -52,8 +52,7 @@ mixin Tools on Settings {
       }
       qterm.df += idbv.df * 1.0;
       var os = idbv.occurrences
-          .map((o) =>
-              QueryTermOccurrence(o.entry, o.position, idbv.df, 1.0, false))
+          .map((o) => QueryTermOccurrence(o.entry, o.position, 1.0, false))
           .toList(growable: false);
       return os;
     }
@@ -85,8 +84,8 @@ mixin Tools on Settings {
           partial = true;
           qterm.df += 0;
         }
-        var os = idbe.value.occurrences.map((o) => QueryTermOccurrence(
-            o.entry, o.position, idbe.value.df, sim, partial));
+        var os = idbe.value.occurrences
+            .map((o) => QueryTermOccurrence(o.entry, o.position, sim, partial));
         occurrences.addAll(os);
       }
     }
@@ -135,52 +134,6 @@ mixin Tools on Settings {
       return 0.0;
     }
     return sim;
-  }
-
-  static int distance(Term s1, Term s2) {
-    int min(int a, int b) => a < b ? a : b;
-    if (s1.string == s2.string) {
-      return 0;
-    }
-    var l1 = s1.length;
-    var l2 = s2.length;
-    if (l1 == 0) {
-      return l2;
-    }
-    if (l2 == 0) {
-      return l1;
-    }
-    Int32List r1;
-    Int32List r2;
-    if (l2 > l1) {
-      r1 = s2.runes;
-      r2 = s1.runes;
-      var lt = l1;
-      l1 = l2;
-      l2 = lt;
-    } else {
-      r1 = s1.runes;
-      r2 = s2.runes;
-    }
-    var size2 = l2 + 1;
-    var v0 = Int32List(size2);
-    var v1 = Int32List(size2);
-    Int32List vtemp;
-    for (var i = 0; i < size2; i++) {
-      v0[i] = i;
-    }
-    int cost;
-    for (var i = 0; i < l1; i++) {
-      v1[0] = i + 1;
-      for (var j = 0; j < l2; j++) {
-        cost = (r1[i] == r2[j]) ? 0 : 1;
-        v1[j + 1] = min(v1[j] + 1, min(v0[j + 1] + 1, v0[j] + cost));
-      }
-      vtemp = v0;
-      v0 = v1;
-      v1 = vtemp;
-    }
-    return v0[l2];
   }
 
   double partialSimilarity(Term dbTerm, Term queryTerm) {
@@ -456,7 +409,6 @@ mixin Tools on Settings {
                 1)) {
       tmpQueryTermsInQueryOccurrence[qti]
         ..position = -1
-        ..df = 0
         ..termSimilarity = 0.0
         ..sequenceNo = 0;
       joinQueryTermOccurrencesRecursively(
@@ -490,8 +442,7 @@ mixin Tools on Settings {
       tmpQueryTermsInQueryOccurrence[qti]
         ..position = qto.position
         ..partial = qto.partial
-        ..termSimilarity = qto.termSimilarity
-        ..df = qto.df;
+        ..termSimilarity = qto.termSimilarity;
       joinQueryTermOccurrencesRecursively(
           query,
           entry,

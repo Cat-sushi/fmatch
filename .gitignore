@@ -26,8 +26,8 @@ batch/
 database/
 test/env0/db.csv
 test/env0/idb.json
-test/env0/log.txt
-test/env0/results.csv
+test/env0/queries_log.txt
+test/env0/queries_results.csv
 test/env1/db.csv
 test/env1/idb.json
 test/env1/log.txt

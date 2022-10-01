@@ -55,14 +55,14 @@ Future<void> initMatcher() async {
 }
 
 Future<void> doBatch() async {
-  await batch(matcher, env);
+  await batch(matcher, '$env/queries.csv');
   results = <String>[];
-  await for (var l in readCsvLines('$env/results.csv')) {
+  await for (var l in readCsvLines('$env/queries_results.csv')) {
     if (l.length < 7) {
       continue;
     }
-    if (l[5] == l[6]) {
-      results.add(l[5]!);
+    if (l[6] == l[7]) {
+      results.add(l[6]!);
     }
   }
 }

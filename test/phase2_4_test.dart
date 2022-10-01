@@ -80,7 +80,7 @@ Future<void> main() async {
   test('R PROJECT', () async {
     var q = r'R PROJECT';
     var r = await matcher.fmatch(q);
-    expect(r.cachedResult.matchedEntiries.length, lessThan(5));
+    expect(r.cachedResult.matchedEntiries.length, lessThan(8));
   });
   test('CIT LLC', () async {
     var q = r'CIT LLC';
@@ -262,7 +262,7 @@ Future<void> main() async {
   test('A&D Company, Limited', () async {
     var q = r'A&D Company, Limited';
     var r = await matcher.fmatch(q);
-    expect(r.cachedResult.cachedQuery.terms.map((e)=>e.string), ['A&D', 'CO_LTD']);
+    expect(r.cachedResult.cachedQuery.terms.map((e)=>e.string), ['A', 'AND', 'D', 'CO_LTD']);
   });
   test('HONG CO TECHNOLOGY COMPANY LIMITED', () async {
     var q = r'HONG CO TECHNOLOGY COMPANY LIMITED';
@@ -384,12 +384,12 @@ Future<void> main() async {
   test('I&I CO., LTD.', () async {
     var q = r'I&I CO., LTD.';
     var r = await matcher.fmatch(q);
-    expect(r.cachedResult.matchedEntiries, <MatchedEntry>[]);
+    expect(r.cachedResult.matchedEntiries.length, lessThan(5));
   });
   test('K&S KOREA', () async {
     var q = r'K&S KOREA';
     var r = await matcher.fmatch(q);
-    expect(r.cachedResult.matchedEntiries, <MatchedEntry>[]);
+    expect(r.cachedResult.matchedEntiries.length, lessThan(5));
   });
   test('N C&C CO., LTD.', () async {
     var q = r'N C&C CO., LTD.';

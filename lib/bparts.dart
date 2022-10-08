@@ -33,15 +33,19 @@ String formatOutput(int ix, QueryResult result) {
     csvLine.write(ix);
     csvLine.write(r',');
     if (result.cachedResult.queryScore == 0) {
-      csvLine.write('-1.0');
+      csvLine.write('0.00');
     } else {
       csvLine
           .write((e.score / result.cachedResult.queryScore).toStringAsFixed(2));
     }
     csvLine.write(r',');
-    csvLine.write(e.score.toStringAsFixed(2));
+    csvLine.write(result.cachedResult.queryScore.toStringAsFixed(2));
     csvLine.write(r',');
-    csvLine.write(result.cachedResult.matchedEntiries.length);
+    if (result.cachedResult.matchedEntiries[0].entry.string == '') {
+      csvLine.write('0');
+    } else {
+      csvLine.write(result.cachedResult.matchedEntiries.length);
+    }
     csvLine.write(r',');
     csvLine.write(quoteCsvCell(result.rawQuery.string));
     csvLine.write(r',');

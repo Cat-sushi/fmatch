@@ -12,7 +12,7 @@ Future<void> main(List<String> args) async {
   var f2 =
       File(forQueryStats).openSync(mode: FileMode.writeOnly);
   var lastIx = -1;
-  await for (var l in readCsvLines('batch/results.csv')) {
+  await for (var l in readCsvLines(filePath)) {
     sb.clear();
     sb.write('${l[2]},${l[3]},${l[4]},${l[5]},${quoteCsvCell(l[6]!)},${quoteCsvCell(l[7]!)},${l[8]!}');
     l.sublist(9).map((e)=>',${quoteCsvCell(e!)}').forEach((e) => sb.write(e));

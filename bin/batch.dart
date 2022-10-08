@@ -37,6 +37,10 @@ Future<void> main(List<String> args) async {
 }
 
 Future<void> batch(FMatcher matcher, String queryPath) async {
+  if(! queryPath.endsWith('.csv')) {
+    print('Invalid input file name: $queryPath');
+    exit(1);
+  }
   var queries = openQueryListStream(queryPath);
   var trank = queryPath.substring(0, queryPath.lastIndexOf('.csv'));
   var resultPath = '${trank}_results.csv';

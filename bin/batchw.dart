@@ -42,6 +42,10 @@ void main(List<String> args) async {
 }
 
 Future<void> wbatch(String queryPath) async {
+  if(! queryPath.endsWith('.csv')) {
+    print('Invalid input file name: $queryPath');
+    exit(1);
+  }
   var queries = StreamQueue<String>(openQueryListStream(queryPath));
   var trank = queryPath.substring(0, queryPath.lastIndexOf('.csv'));
   var resultPath = '${trank}_results.csv';

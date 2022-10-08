@@ -60,7 +60,10 @@ class Db {
     await entries.where((s) => s != '').forEach((e) {
       var entry = preper.normalizeAndCapitalize(e, canonicalizing: true);
       if (!ret.containsKey(entry)) {
-        ret._map[entry] = preper.preprocess(entry, canonicalizing: true);
+        var prepd = preper.preprocess(entry, canonicalizing: true);
+        if (prepd.terms.isNotEmpty) {
+          ret._map[entry] = prepd;
+        }
       }
     });
     if (ret.length < 2) {

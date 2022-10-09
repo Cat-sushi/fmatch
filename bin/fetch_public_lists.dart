@@ -27,11 +27,12 @@ final fulList = '$pls/ful_list.csv';
 
 final concatList = '$pls/list.csv';
 
-final rSpliter = RegExp(r'[\r\n]+ *[・･]', multiLine: true, unicode: true);
-final rCr = RegExp(r'[\r\n]', multiLine: true, unicode: true);
+final rBulletSplitter = RegExp(r'[\r\n]+ *[・･]', multiLine: true, unicode: true);
+final rSemicolonSplitter = RegExp(' *; *(and;?)? *');
+final rCrConnector = RegExp(r'[\r\n]', multiLine: true, unicode: true);
 final rTrailCamma = RegExp(r'^(.*) *,$', unicode: true);
 final rBullet = RegExp(r'^[・･] *', unicode: true);
-final rDouble = RegExp(r'^["”] *(.*) *["”]$', unicode: true);
+final rDoubleQuate = RegExp(r'^["”] *(.*) *["”]$', unicode: true);
 
 Future<void> main(List<String> args) async {
   await fetchConsolidated();
@@ -66,8 +67,6 @@ Future<void> fetchConsolidated() async {
   await outSink.close();
 }
 
-final rSemiSplitter = RegExp(' *; *(and )?');
-
 Future<void> extConsolidated() async {
   final jsonString = File(consolidatedJsonIndent).readAsStringSync();
   final jsonObject = jsonDecode(jsonString) as Map<String, dynamic>;
@@ -87,11 +86,11 @@ Future<void> extConsolidated() async {
       if (altName == '') {
         continue;
       }
-      var altNames2 = altName.split(rSemiSplitter);
+      var altNames2 = altName.split(rSemicolonSplitter);
       for (var a in altNames2) {
         a = a.trim();
         a = a.replaceFirstMapped(rTrailCamma, (match) => match.group(1)!);
-        a = a.replaceFirstMapped(rDouble, (match) => match.group(1)!);
+        a = a.replaceFirstMapped(rDoubleQuate, (match) => match.group(1)!);
         if (a == '') {
           continue;
         }
@@ -155,7 +154,7 @@ Future<void> extFul() async {
   final fl = File(fulList).openWrite();
   await for (var l in readCsvLines(fulCsv).skip(1)) {
     var n = l[2]!;
-    n = n.replaceAll(rCr, ' ');
+    n = n.replaceAll(rCrConnector, ' ');
     n = n.trim();
     n = n.replaceFirstMapped(rTrailCamma, (match) => match.group(1)!);
     fl.write(quoteCsvCell(n));
@@ -164,13 +163,13 @@ Future<void> extFul() async {
     if (a == null) {
       continue;
     }
-    var aliases = a.split(rSpliter);
+    var aliases = a.split(rBulletSplitter);
     for (var a in aliases) {
-      a = a.replaceAll(rCr, ' ');
+      a = a.replaceAll(rCrConnector, ' ');
       a = a.trim();
       a = a.replaceFirstMapped(rTrailCamma, (match) => match.group(1)!);
       a = a.replaceFirst(rBullet, '');
-      a = a.replaceFirstMapped(rDouble, (match) => match.group(1)!);
+      a = a.replaceFirstMapped(rDoubleQuate, (match) => match.group(1)!);
       if (a == '') {
         continue;
       }
@@ -180,8 +179,6 @@ Future<void> extFul() async {
   }
   await fl.close();
 }
-
-// space retrun double-quate comma return-in-alias 全角カッコ
 
 Future<void> concatCsvs(List<String> lists) async {
   var oSink = File(concatList).openWrite();

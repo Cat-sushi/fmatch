@@ -4,6 +4,7 @@
 
 import 'package:fmatch/configs.dart';
 import 'package:fmatch/fmatch.dart';
+import 'package:fmatch/server.dart';
 import 'package:fmatch/util.dart';
 import 'package:test/test.dart';
 
@@ -14,12 +15,22 @@ Future<void> main() async {
   Pathes.list = '$env/list.csv';
   Pathes.db = '$env/db.csv';
   Pathes.idb = '$env/idb.json';
+  var queriesPath = '$env/queries.csv';
 
   var matcher = FMatcher();
   await matcher.readSettings(null);
   await matcher.preper.readConfigs();
   await matcher.buildDb();
-  await pbatch(matcher, env);
+
+  cacheServer = await CacheServer.spawn(matcher.queryResultCacheSize);
+
+  for (var id = 0; id < serverCount; id++) {
+    var c = Client(id);
+    await c.spawnServer(matcher, cacheServer);
+    serverPoolController.add(c);
+  }
+
+  await pbatch(matcher, queriesPath);
 
   var queries = <String>[];
   await for (var l in readCsvLines( Pathes.list)) {

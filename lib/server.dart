@@ -86,17 +86,20 @@ class CacheServer {
 }
 
 class CacheClient implements ResultCache {
-  final _ccrp = ReceivePort();
-  late final StreamIterator _ccri;
+  final SendPort _cssp;
+  final StreamIterator _ccri;
   final SendPort _ccsp;
 
-  CacheClient(this._ccsp) {
-    _ccri = StreamIterator<dynamic>(_ccrp);
+  CacheClient._(this._cssp, this._ccri, this._ccsp);
+  factory CacheClient(SendPort ccsp) {
+    var ccrp = ReceivePort();
+    var ccri = StreamIterator<dynamic>(ccrp);
+    return CacheClient._(ccrp.sendPort, ccri, ccsp);
   }
 
   @override
   Future<CachedResult?> get(CachedQuery query) async {
-    _ccsp.send([query, _ccrp.sendPort]);
+    _ccsp.send([query, _cssp]);
     await _ccri.moveNext();
     return _ccri.current as CachedResult?;
   }

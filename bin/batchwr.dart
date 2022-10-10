@@ -43,9 +43,8 @@ Future<void> wbatch([String path = 'batch']) async {
   var batchResultPath = '$path/results.csv';
   var batchLogPath = '$path/log.txt';
   var resultFile = File(batchResultPath);
-  resultFile.writeAsBytesSync(utf8Bom);
-  resultSink = resultFile.openWrite(mode: FileMode.append, encoding: utf8);
-  logSink = File(batchLogPath).openWrite(encoding: utf8);
+  resultSink = resultFile.openWrite()..add(utf8Bom);
+  logSink = File(batchLogPath).openWrite();
   startTime = DateTime.now();
   lastLap = startTime;
   currentLap = lastLap;

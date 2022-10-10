@@ -82,9 +82,8 @@ Future<void> pbatch(FMatcher matcher, String queryPath) async {
   var trank = queryPath.substring(0, queryPath.lastIndexOf('.csv'));
   var resultPath = '${trank}_results.csv';
   var logPath = '${trank}_log.txt';  var resultFile = File(resultPath);
-  resultFile.writeAsBytesSync(utf8Bom);
-  resultSink = resultFile.openWrite(mode: FileMode.append, encoding: utf8);
-  logSink = File(logPath).openWrite(encoding: utf8);
+  resultSink = resultFile.openWrite()..write(utf8Bom);
+  logSink = File(logPath).openWrite();
   startTime = DateTime.now();
   lastLap = startTime;
   currentLap = lastLap;

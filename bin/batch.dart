@@ -46,9 +46,8 @@ Future<void> batch(FMatcher matcher, String queryPath) async {
   var resultPath = '${trank}_results.csv';
   var logPath = '${trank}_log.txt';
   var resultFile = File(resultPath);
-  resultFile.writeAsBytesSync(utf8Bom);
-  var resultSink = resultFile.openWrite(mode: FileMode.append, encoding: utf8);
-  var logSink = File(logPath).openWrite(encoding: utf8);
+  var resultSink = resultFile.openWrite()..add(utf8Bom);
+  var logSink = File(logPath).openWrite();
   var lc = 0;
   var startTime = DateTime.now();
   var lastLap = startTime;

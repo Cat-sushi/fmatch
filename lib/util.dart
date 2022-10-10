@@ -12,6 +12,8 @@ RegExp _escapedDoubleQuate = RegExp(r'""');
 RegExp _mlDetecter = regExp(r'^(("(""|[^"])*"|[^",]+|),)*"(""|[^"])*$');
 RegExp _csvParser = regExp(r'(?:"((?:""|[^"])*)"|([^",]+)|())(?:,|$)');
 
+const utf8Bom = [0xEF, 0xBB, 0xBF];
+
 Stream<List<String?>> readCsvLines(String filepath) async* {
   var row = '';
   var lineStream = File(filepath)
@@ -83,4 +85,24 @@ class FileChankSink implements Sink<List<int>> {
   void close() {
     raFile.closeSync();
   }
+}
+
+Future<void> catFilesWithUtf8Bom(List<String> lists, String outPath) async {
+  var oSink = File(outPath).openWrite()..add(utf8Bom);
+  for (var list in lists) {
+    var inStream = File(list).openRead();
+    var first = true;
+    await for (var chank in inStream) {
+      if (first) {
+        first = false;
+        if (chank[0] == utf8Bom[0] &&
+            chank[1] == utf8Bom[1] &&
+            chank[2] == utf8Bom[2]) {
+          chank = chank.sublist(3);
+        }
+      }
+      oSink.add(chank);
+    }
+  }
+  await oSink.close();
 }

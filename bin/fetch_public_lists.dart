@@ -57,7 +57,7 @@ Future<void> main(List<String> args) async {
   await extFul();
 
   print("Concatanating lists.");
-  await concatCsvs([consolidatedList, fulList]);
+  await catFilesWithUtf8Bom([consolidatedList, fulList], concatList);
 
   print("Building db and idb.");
   final matcher = FMatcher();
@@ -92,7 +92,7 @@ Future<void> extConsolidated() async {
   final jsonString = File(consolidatedJsonIndent).readAsStringSync();
   final jsonObject = jsonDecode(jsonString) as Map<String, dynamic>;
   final results = jsonObject['results'] as List<dynamic>;
-  final outSink = File(consolidatedList).openWrite();
+  final outSink = File(consolidatedList).openWrite()..add(utf8Bom);
   for (var r in results) {
     var result = r as Map<String, dynamic>;
     var name = result['name'] as String;
@@ -172,7 +172,7 @@ Future<void> fetchFul() async {
 }
 
 Future<void> extFul() async {
-  final fl = File(fulList).openWrite();
+  final fl = File(fulList).openWrite()..add(utf8Bom);
   await for (var l in readCsvLines(fulCsv).skip(1)) {
     var n = l[2]!;
     n = n.replaceAll(rCrConnector, ' ');
@@ -199,15 +199,4 @@ Future<void> extFul() async {
     }
   }
   await fl.close();
-}
-
-Future<void> concatCsvs(List<String> lists) async {
-  var oSink = File(concatList).openWrite();
-  for (var list in lists) {
-    var inStream = File(list).openRead();
-    await for (var chank in inStream) {
-      oSink.add(chank);
-    }
-  }
-  await oSink.close();
 }

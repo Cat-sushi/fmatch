@@ -1,10 +1,11 @@
-// Copyright (c) 2020, 2022 Yako.
+// Copyright (c) 2022, Yako.
 // All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:fmatch/fmatch.dart';
 import 'package:fmatch/util.dart';
 import 'package:html/parser.dart';
 
@@ -40,18 +41,28 @@ Future<void> main(List<String> args) async {
   var fetching = !consolidatedJsonFile.existsSync() ||
       DateTime.now()
               .difference(consolidatedJsonFile.lastModifiedSync())
-              .inMinutes >
-          24 * 60 - 1;
+              .inHours >
+          24 - 1;
 
   if (fetching) {
+    print("Fetching consolidated list.");
     await fetchConsolidated();
+    print("Fetching foreign user list.");
     await fetchFul();
   }
 
+  print("Extracting entries from consolidated list.");
   await extConsolidated();
+  print("Extracting entries from foreign user list.");
   await extFul();
 
+  print("Concatanating lists.");
   await concatCsvs([consolidatedList, fulList]);
+
+  print("Building db and idb.");
+  final matcher = FMatcher();
+  await matcher.preper.readConfigs();
+  await matcher.buildDb();
 }
 
 Future<void> fetchConsolidated() async {
@@ -80,11 +91,11 @@ Future<void> fetchConsolidated() async {
 Future<void> extConsolidated() async {
   final jsonString = File(consolidatedJsonIndent).readAsStringSync();
   final jsonObject = jsonDecode(jsonString) as Map<String, dynamic>;
-  final results = jsonObject['results']! as List<dynamic>;
+  final results = jsonObject['results'] as List<dynamic>;
   final outSink = File(consolidatedList).openWrite();
   for (var r in results) {
     var result = r as Map<String, dynamic>;
-    var name = result['name']! as String;
+    var name = result['name'] as String;
     outSink.write(quoteCsvCell(name));
     outSink.write('\r\n');
     var altNames = result['alt_names'] as List<dynamic>?;

@@ -27,7 +27,8 @@ final fulList = '$pls/ful_list.csv';
 
 final concatList = '$pls/list.csv';
 
-final rBulletSplitter = RegExp(r'[\r\n]+ *[・･]', multiLine: true, unicode: true);
+final rBulletSplitter =
+    RegExp(r'[\r\n]+ *[・･]', multiLine: true, unicode: true);
 final rSemicolonSplitter = RegExp(' *; *(and;?)? *');
 final rCrConnector = RegExp(r'[\r\n]', multiLine: true, unicode: true);
 final rTrailCamma = RegExp(r'^(.*) *,$', unicode: true);
@@ -35,10 +36,19 @@ final rBullet = RegExp(r'^[・･] *', unicode: true);
 final rDoubleQuate = RegExp(r'^["”] *(.*) *["”]$', unicode: true);
 
 Future<void> main(List<String> args) async {
-  await fetchConsolidated();
-  await extConsolidated();
+  var consolidatedJsonFile = File(consolidatedJson);
+  var fetching = !consolidatedJsonFile.existsSync() ||
+      DateTime.now()
+              .difference(consolidatedJsonFile.lastModifiedSync())
+              .inMinutes >
+          24 * 60 - 1;
 
-  await fetchFul();
+  if (fetching) {
+    await fetchConsolidated();
+    await fetchFul();
+  }
+
+  await extConsolidated();
   await extFul();
 
   await concatCsvs([consolidatedList, fulList]);
@@ -182,7 +192,6 @@ Future<void> extFul() async {
 
 Future<void> concatCsvs(List<String> lists) async {
   var oSink = File(concatList).openWrite();
-  oSink.add([0xEF, 0xBB, 0xBF]);
   for (var list in lists) {
     var inStream = File(list).openRead();
     await for (var chank in inStream) {

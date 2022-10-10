@@ -2,19 +2,20 @@ import 'dart:io';
 import 'package:fmatch/util.dart';
 
 Future<void> main(List<String> args) async {
-  var filePath = args[0];
-  var trank = filePath.substring(0, filePath.lastIndexOf('.csv'));
-  var forCompare = '${trank}_4c.csv';
-  var forQueryStats = '${trank}_4q.csv';
+  var queryPath = args[0];
+  var trank = queryPath.substring(0, queryPath.lastIndexOf('.csv'));
+  var resultsPath = '${trank}_results.csv';
+  var forCompare = '${trank}_results_4c.csv';
+  var forQueryStats = '${trank}_results_4q.csv';
   var sb = StringBuffer();
   var f1 =
       File(forCompare).openSync(mode: FileMode.writeOnly);
   var f2 =
       File(forQueryStats).openSync(mode: FileMode.writeOnly);
   var lastIx = -1;
-  await for (var l in readCsvLines(filePath)) {
+  await for (var l in readCsvLines(resultsPath)) {
     sb.clear();
-    sb.write('${l[2]},${l[3]},${l[4]},${l[5]},${quoteCsvCell(l[6]!)},${quoteCsvCell(l[7]!)},${l[8]!}');
+    sb.write('${l[3]},${l[4]},${l[5]},${quoteCsvCell(l[6]!)},${quoteCsvCell(l[7]!)},${l[8]!}');
     l.sublist(9).map((e)=>',${quoteCsvCell(e!)}').forEach((e) => sb.write(e));
     sb.write('\r\n');
     f1.writeStringSync(sb.toString());

@@ -91,7 +91,7 @@ Future<void> outputResults(Iterable<QueryResult> results) async {
       logSink.writeln(result.message);
     }
     resultSink.write(formatOutput(lc, result));
-    if ((lc % 100) == 0) {
+    if ((lc % bulkSize) == 0) {
       currentLap = DateTime.now();
       print('$lc: ${currentLap.difference(startTime).inMilliseconds} '
           '${currentLap.difference(lastLap).inMilliseconds}');

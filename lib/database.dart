@@ -87,8 +87,7 @@ class Db {
   Future<void> write(String path) async {
     var csvLine = StringBuffer();
     var f = File(path);
-    f.writeAsBytesSync(utf8Bom);
-    var fs = f.openWrite(mode: FileMode.append, encoding: utf8);
+    var fs = f.openWrite()..add(utf8Bom);
     var keys = this.keys.toList(growable: false);
     keys.sort();
     for (var key in keys) {

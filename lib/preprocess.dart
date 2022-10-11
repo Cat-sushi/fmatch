@@ -88,9 +88,9 @@ class Preprocessed {
 }
 
 class LetReplaced {
-  final String name;
+  final String replaced;
   final LetType letType;
-  LetReplaced(this.name, this.letType);
+  LetReplaced(this.replaced, this.letType);
 }
 
 class Preprocessor with Configs {
@@ -169,7 +169,7 @@ class Preprocessor with Configs {
     return Preprocessed(
         letReplaced.letType,
         words
-            .allMatches(letReplaced.name)
+            .allMatches(letReplaced.replaced)
             .map((m) => Term(m.group(0)!))
             .toList(growable: false));
   }

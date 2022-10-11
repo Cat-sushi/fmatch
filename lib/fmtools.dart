@@ -162,23 +162,33 @@ mixin Tools on Settings {
     var qtc = queryTermOccurrences.length;
     var ris = List<RangeIndices>.generate(qtc, (i) => RangeIndices(),
         growable: false);
-    var etmc = <int>[];
-    var etmcr = <List<int>>[[]];
+    var etmcs = <int>[];
+    var etmcsr = <List<int>>[[]];
     var maxCombi = 1.0;
     for (var currentEntry = setRangeIndices(Entry(''), query,
-            queryTermOccurrences, ris, maxMissedTermCount, etmcr);
+            queryTermOccurrences, ris, maxMissedTermCount, etmcsr);
         currentEntry.string != '';
         currentEntry = setRangeIndices(currentEntry, query,
-            queryTermOccurrences, ris, maxMissedTermCount, etmcr)) {
-      etmc = etmcr[0];
+            queryTermOccurrences, ris, maxMissedTermCount, etmcsr)) {
+      etmcs = etmcsr[0];
       var combi = 1.0;
       for (var qti = 0; qti < qtc; qti++) {
         var e = ris[qti];
         if (e.end == e.start) {
           continue;
         }
-        if (e.end == e.start + 1 &&
-            etmc[queryTermOccurrences[qti][e.start].position] == 1) {
+        var cnt = false;
+        for (var i = e.start; i < e.end; i++) {
+          var qto = queryTermOccurrences[qti][i];
+          if (qto.partial) {
+            continue;
+          }
+          if (etmcs[qto.position] == 1) {
+            cnt = true;
+            break;
+          }
+        }
+        if (cnt) {
           continue;
         }
         combi *= (e.end - e.start + 1);
@@ -292,19 +302,31 @@ mixin Tools on Settings {
     var ris = List<RangeIndices>.generate(qtc, (i) => RangeIndices(),
         growable: false);
     var ret = <QueryOccurrence>[];
-    var etmc = <int>[];
-    var etmcr = <List<int>>[[]];
+    var etmcs = <int>[];
+    var etmcsr = <List<int>>[[]];
     for (var currentEntry = setRangeIndices(Entry(''), query,
-            queryTermOccurrences, ris, maxMissedTermCount, etmcr);
+            queryTermOccurrences, ris, maxMissedTermCount, etmcsr);
         currentEntry.string != '';
         currentEntry = setRangeIndices(currentEntry, query,
-            queryTermOccurrences, ris, maxMissedTermCount, etmcr)) {
-      etmc = etmcr[0];
-      var tqto = List<QueryTermInQueryOccurrnece>.generate(
+            queryTermOccurrences, ris, maxMissedTermCount, etmcsr)) {
+      etmcs = etmcsr[0];
+      var wqtso = List<QueryTermInQueryOccurrnece>.generate(
           qtc, (i) => QueryTermInQueryOccurrnece(),
           growable: false);
-      ret = joinQueryTermOccurrencesRecursively(query, currentEntry,
-          queryTermOccurrences, ris, etmc, maxMissedTermCount, 0, 0, tqto, ret);
+      var qo = joinQueryTermOccurrencesRecursively(
+          query,
+          currentEntry,
+          queryTermOccurrences,
+          ris,
+          etmcs,
+          maxMissedTermCount,
+          0,
+          0,
+          wqtso,
+          null);
+      if (qo != null) {
+        ret.add(qo);
+      }
     }
     return ret;
   }
@@ -368,69 +390,46 @@ mixin Tools on Settings {
     return nextEntry;
   }
 
-  List<QueryOccurrence> joinQueryTermOccurrencesRecursively(
+  QueryOccurrence? joinQueryTermOccurrencesRecursively(
       Query query,
       Entry entry,
-      List<List<QueryTermOccurrence>> queryTermOccurrences,
+      List<List<QueryTermOccurrence>> queryTermsOccurrences,
       List<RangeIndices> rangeIndices,
       List<int> matchedQueryTermCounts,
       int maxMissedTermCount,
       int missedTermCount,
       int qti,
-      List<QueryTermInQueryOccurrnece> tmpQueryTermsInQueryOccurrence,
-      List<QueryOccurrence> ret) {
-    if (qti == queryTermOccurrences.length) {
-      var tmpTmpQueryTermsInQueryOccurrence =
+      List<QueryTermInQueryOccurrnece> workQueryTermsInQueryOccurrence,
+      QueryOccurrence? retCandidate) {
+    if (qti == queryTermsOccurrences.length) {
+      var newQueryTermsInQueryOccurrence =
           List<QueryTermInQueryOccurrnece>.generate(
-              tmpQueryTermsInQueryOccurrence.length,
+              workQueryTermsInQueryOccurrence.length,
               (i) => QueryTermInQueryOccurrnece.of(
-                  tmpQueryTermsInQueryOccurrence[i]),
+                  workQueryTermsInQueryOccurrence[i]),
               growable: false);
-      if (!checkDevidedMatch(query, entry, tmpTmpQueryTermsInQueryOccurrence)) {
-        return ret;
+      if (!checkDevidedMatch(query, entry, newQueryTermsInQueryOccurrence)) {
+        return retCandidate;
       }
-      var qo = QueryOccurrence(entry, 0.0, tmpTmpQueryTermsInQueryOccurrence);
+      var qo = QueryOccurrence(entry, newQueryTermsInQueryOccurrence);
       caliulateScore(qo, query);
       if (query.perfectMatching && qo.score == query.queryScore ||
           !query.perfectMatching &&
               (qo.score >= minScore || missedTermCount == 0)) {
-        ret.add(qo);
+        if (retCandidate == null || retCandidate.score < qo.score) {
+          return qo;
+        }
       }
-      return ret;
-    }
-    if (missedTermCount < maxMissedTermCount &&
-        (rangeIndices[qti].end == rangeIndices[qti].start ||
-            rangeIndices[qti].end > rangeIndices[qti].start + 1 ||
-            queryTermOccurrences[qti][rangeIndices[qti].start].partial ==
-                true ||
-            matchedQueryTermCounts[queryTermOccurrences[qti]
-                        [rangeIndices[qti].start]
-                    .position] >
-                1)) {
-      tmpQueryTermsInQueryOccurrence[qti]
-        ..position = -1
-        ..termSimilarity = 0.0
-        ..sequenceNo = 0;
-      joinQueryTermOccurrencesRecursively(
-          query,
-          entry,
-          queryTermOccurrences,
-          rangeIndices,
-          matchedQueryTermCounts,
-          maxMissedTermCount,
-          missedTermCount + 1,
-          qti + 1,
-          tmpQueryTermsInQueryOccurrence,
-          ret);
+      return retCandidate;
     }
     for (var i = rangeIndices[qti].start; i < rangeIndices[qti].end; i++) {
-      var qto = queryTermOccurrences[qti][i];
+      var qto = queryTermsOccurrences[qti][i];
       var collision = false;
       for (var qtj = 0; qtj < qti; qtj++) {
-        if (tmpQueryTermsInQueryOccurrence[qtj].position != qto.position) {
+        if (workQueryTermsInQueryOccurrence[qtj].position != qto.position) {
           continue;
         }
-        if (qto.partial && tmpQueryTermsInQueryOccurrence[qtj].partial) {
+        if (qto.partial && workQueryTermsInQueryOccurrence[qtj].partial) {
           continue;
         }
         collision = true;
@@ -439,23 +438,49 @@ mixin Tools on Settings {
       if (collision) {
         continue;
       }
-      tmpQueryTermsInQueryOccurrence[qti]
+      workQueryTermsInQueryOccurrence[qti]
         ..position = qto.position
         ..partial = qto.partial
         ..termSimilarity = qto.termSimilarity;
-      joinQueryTermOccurrencesRecursively(
+      retCandidate = joinQueryTermOccurrencesRecursively(
           query,
           entry,
-          queryTermOccurrences,
+          queryTermsOccurrences,
           rangeIndices,
           matchedQueryTermCounts,
           maxMissedTermCount,
           missedTermCount,
           qti + 1,
-          tmpQueryTermsInQueryOccurrence,
-          ret);
+          workQueryTermsInQueryOccurrence,
+          retCandidate);
     }
-    return ret;
+    if (missedTermCount == maxMissedTermCount) {
+      return retCandidate;
+    }
+    for (var i = rangeIndices[qti].start; i < rangeIndices[qti].end; i++) {
+      var qto = queryTermsOccurrences[qti][i];
+      if (qto.partial) {
+        continue;
+      }
+      if (matchedQueryTermCounts[qto.position] == 1) {
+        return retCandidate;
+      }
+    }
+    workQueryTermsInQueryOccurrence[qti]
+      ..position = -1
+      ..termSimilarity = 0.0
+      ..sequenceNo = 0;
+    return joinQueryTermOccurrencesRecursively(
+        query,
+        entry,
+        queryTermsOccurrences,
+        rangeIndices,
+        matchedQueryTermCounts,
+        maxMissedTermCount,
+        missedTermCount + 1,
+        qti + 1,
+        workQueryTermsInQueryOccurrence,
+        retCandidate);
   }
 
   bool checkDevidedMatch(Query query, Entry entry,
@@ -552,30 +577,5 @@ mixin Tools on Settings {
     }
     var termOrderSimilarity = 1.0 - (totalNormDistance / qtc.toDouble());
     queryOccurrence.score = scro * termOrderSimilarity;
-  }
-
-  List<QueryOccurrence> sortAndDedupResults(
-      List<QueryOccurrence> resultUnsorted) {
-    var ret = <QueryOccurrence>[];
-    if (resultUnsorted.isEmpty) {
-      return ret;
-    }
-    var topO = resultUnsorted.first;
-    for (var e in resultUnsorted) {
-      if (e == topO) {
-        continue;
-      }
-      if (e.entry == topO.entry) {
-        if (e.score > topO.score) {
-          topO = e;
-        }
-        continue;
-      }
-      ret.add(topO);
-      topO = e;
-    }
-    ret.add(topO);
-    ret.sort();
-    return ret;
   }
 }

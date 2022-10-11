@@ -59,9 +59,9 @@ class QueryTermInQueryOccurrnece {
 
 class QueryOccurrence implements Comparable<QueryOccurrence> {
   final Entry entry;
-  double score;
   final List<QueryTermInQueryOccurrnece> queryTerms;
-  QueryOccurrence(this.entry, this.score, this.queryTerms);
+  double score = 0.0;
+  QueryOccurrence(this.entry, this.queryTerms);
   @override
   int compareTo(QueryOccurrence other) {
     var c = -score.compareTo(other.score);

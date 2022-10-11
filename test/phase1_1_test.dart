@@ -236,13 +236,13 @@ Future<void> main() async {
 
   group('replaceLET', () {
     test('replaceLET1', () {
-      expect(cntxt.replaceLegalEntityTypes(r'AAA CO., LTD.').name, r'AAA <*CO_LTD*>');
+      expect(cntxt.replaceLegalEntityTypes(r'AAA CO., LTD.').replaced, r'AAA <*CO_LTD*>');
     });
     test('replaceLET2', () {
-      expect(cntxt.replaceLegalEntityTypes(r'CO., LTD. AAA').name, r'<*CO_LTD*> AAA');
+      expect(cntxt.replaceLegalEntityTypes(r'CO., LTD. AAA').replaced, r'<*CO_LTD*> AAA');
     });
     test('replaceLET3', () {
-      expect(cntxt.replaceLegalEntityTypes(r'AAA CO., LTD. AAA').name, r'AAA CO., LTD. AAA');
+      expect(cntxt.replaceLegalEntityTypes(r'AAA CO., LTD. AAA').replaced, r'AAA CO., LTD. AAA');
     });
   });
 

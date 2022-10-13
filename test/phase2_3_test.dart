@@ -21,38 +21,68 @@ Future<void> main() async {
   matcher.db = await Db.fromStringStream(matcher.preper, Stream.fromIterable(rawEntries));
   matcher.idb = IDb.fromDb(matcher.db);
 
-  test('query 1', () async {
+  test(r'aaa ... iii', () async {
     var q = r'aaa bbb ccc ddd eee fff ggg hhh iii';
     var r = await matcher.fmatch(q);
     expect(r.cachedResult.cachedQuery.terms.length, 9);
   });
-  test('query 2', () async {
+  test(r'aaa .. jjj', () async {
     var q = r'aaa bbb ccc ddd eee fff ggg hhh iii jjj';
     var r = await matcher.fmatch(q);
     expect(r.cachedResult.cachedQuery.terms.length, 10);
   });
-  test('query 3', () async {
-    var q = r'aaa bbb ccc ddd eee fff ggg hhh iii jjj '
-    'kkk';
+  test(r'aaa ... kkk', () async {
+    var q = r'aaa bbb ccc ddd eee fff ggg hhh iii jjj kkk';
     var r = await matcher.fmatch(q);
     expect(r.cachedResult.cachedQuery.terms.length, 11);
   });
-  test('query 4', () async {
-    var q = r'aaa bbb ccc ddd eee fff ggg hhh iii jjj '
-    'kkk lll mmm nnn ooo ppp qqq rrr sss';
+  test(r'aaa ... lll', () async {
+    var q = r'aaa bbb ccc ddd eee fff ggg hhh iii jjj kkk lll';
+    var r = await matcher.fmatch(q);
+    expect(r.cachedResult.cachedQuery.terms.length, 12);
+  });
+  test(r'aaa ... mmm', () async {
+    var q = r'aaa bbb ccc ddd eee fff ggg hhh iii jjj kkk lll mmm';
+    var r = await matcher.fmatch(q);
+    expect(r.cachedResult.cachedQuery.terms.length, 13);
+  });
+  test(r'aaa ... nnn', () async {
+    var q = r'aaa bbb ccc ddd eee fff ggg hhh iii jjj kkk lll mmm nnn';
+    var r = await matcher.fmatch(q);
+    expect(r.cachedResult.cachedQuery.terms.length, 14);
+  });
+  test(r'aaa ... ooo', () async {
+    var q = r'aaa bbb ccc ddd eee fff ggg hhh iii jjj kkk lll mmm nnn ooo';
+    var r = await matcher.fmatch(q);
+    expect(r.cachedResult.cachedQuery.terms.length, 15);
+  });
+  test(r'aaa ... ppp', () async {
+    var q = r'aaa bbb ccc ddd eee fff ggg hhh iii jjj kkk lll mmm nnn ooo ppp';
+    var r = await matcher.fmatch(q);
+    expect(r.cachedResult.cachedQuery.terms.length, 16);
+  });
+  test(r'aaa ... qqq', () async {
+    var q = r'aaa bbb ccc ddd eee fff ggg hhh iii jjj kkk lll mmm nnn ooo ppp qqq';
+    var r = await matcher.fmatch(q);
+    expect(r.cachedResult.cachedQuery.terms.length, 17);
+  });
+  test(r'aaa ... rrr', () async {
+    var q = r'aaa bbb ccc ddd eee fff ggg hhh iii jjj kkk lll mmm nnn ooo ppp qqq rrr';
+    var r = await matcher.fmatch(q);
+    expect(r.cachedResult.cachedQuery.terms.length, 18);
+  });
+  test(r'aaa ... sss', () async {
+    var q = r'aaa bbb ccc ddd eee fff ggg hhh iii jjj kkk lll mmm nnn ooo ppp qqq rrr sss';
     var r = await matcher.fmatch(q);
     expect(r.cachedResult.cachedQuery.terms.length, 19);
   });
-  test('query 5', () async {
-    var q = r'aaa bbb ccc ddd eee fff ggg hhh iii jjj '
-    'kkk lll mmm nnn ooo ppp qqq rrr sss ttt';
+  test(r'aaa ... ttt', () async {
+    var q = r'aaa bbb ccc ddd eee fff ggg hhh iii jjj kkk lll mmm nnn ooo ppp qqq rrr sss ttt';
     var r = await matcher.fmatch(q);
     expect(r.cachedResult.cachedQuery.terms.length, 20);
   });
-  test('query 6', () async {
-    var q = r'aaa bbb ccc ddd eee fff ggg hhh iii jjj '
-    'kkk lll mmm nnn ooo ppp qqq rrr sss ttt '
-    'uuu';
+  test(r'aaa ... uuu', () async {
+    var q = r'aaa bbb ccc ddd eee fff ggg hhh iii jjj kkk lll mmm nnn ooo ppp qqq rrr sss ttt uuu';
     var r = await matcher.fmatch(q);
     expect(r.cachedResult.cachedQuery.terms.length, 21);
   });

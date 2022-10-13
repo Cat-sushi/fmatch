@@ -63,33 +63,21 @@ class FMatcher with Settings, Tools {
     }
 
     var query = Query.fromPreprocessed(preprocessed, perfectMatching);
-    var qtc = query.terms.length;
-    var queryTermOccurrences =
-        List<List<QueryTermOccurrence>>.filled(qtc, [], growable: false);
-    for (var qti = 0; qti < query.terms.length; qti++) {
-      var qterm = query.terms[qti];
-      var isLet = Tools.isLetByQueryTerm(query, qti);
-      var qto = queryTermMatch(qterm, isLet, query.perfectMatching);
-      queryTermOccurrences[qti] = qto;
-    }
+    var queryTermsMatchMap = queryTermsMatch(query);
 
-    var maxMissedTC = query.perfectMatching ? 0 : maxMissedTermCount(qtc);
+    var maxMissedTC =
+        query.perfectMatching ? 0 : maxMissedTermCount(query.terms.length);
     bool queryFallenBack = false;
-    if (estimateCombination(query, queryTermOccurrences, maxMissedTC) >
+    if (estimateCombination(query, queryTermsMatchMap, maxMissedTC) >
         fallbackThresholdCombinations) {
       queryFallenBack = true;
-      queryTermOccurrences = reduceQueryTerms(query, queryTermOccurrences);
-      for (var i = 0; i < queryTermOccurrences.length; i++) {
-        queryTermOccurrences[i] =
-            reduceQueryTermOccurrences(queryTermOccurrences[i], query);
-      }
-      qtc = query.terms.length;
-      maxMissedTC = maxMissedTermCount(qtc);
+      reduceQueryTerms(query, queryTermsMatchMap);
+      maxMissedTC = maxMissedTermCount(query.terms.length);
     }
 
     caliculateQueryTermWeight(query);
 
-    var result = queryMatch(query, queryTermOccurrences, maxMissedTC);
+    var result = queryMatch(query, queryTermsMatchMap, maxMissedTC);
 
     result.sort();
 

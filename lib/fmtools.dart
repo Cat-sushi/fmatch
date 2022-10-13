@@ -40,68 +40,76 @@ mixin Tools on Settings {
     return qtc - minMatchedTC;
   }
 
-  List<QueryTermOccurrence> queryTermMatch(
-      QueryTerm qterm, bool isLet, bool perfectMatching) {
-    if (isLet ||
-        perfectMatching ||
-        qterm.term.length < termMatchingMinLetters &&
-            qterm.term.length < termPartialMatchingMinLetters) {
-      var idbv = idb[IDbEntryKey(qterm.term, isLet)];
-      if (idbv == null) {
-        return <QueryTermOccurrence>[];
-      }
-      qterm.df += idbv.df * 1.0;
-      var os = idbv.occurrences
-          .map((o) => QueryTermOccurrence(o.entry, o.position, 1.0, false))
-          .toList(growable: false);
-      return os;
-    }
-    var occurrences = <QueryTermOccurrence>[];
-    var lqt = qterm.term.length.toDouble();
-    var ls1 = (lqt * termMatchingMinLetterRatio).ceil();
-    var ls2 = (lqt * termPartialMatchingMinLetterRatio).ceil();
-    var ls3 = min<int>(termMatchingMinLetters, termPartialMatchingMinLetters);
-    var ls = min<int>(max<int>(min<int>(ls1, ls2), ls3), idb.maxTermLength);
-    var le1 = (lqt / termPartialMatchingMinLetterRatio).truncate();
-    var le2 = (lqt / termMatchingMinLetterRatio).truncate();
-    var le = min<int>(max<int>(le1, le2), idb.maxTermLength);
-    for (var l = ls; l <= le; l++) {
-      var list = idb.listsByTermLength[l];
-      if (list == null) {
+  QueryTermsOccurrencesInEntryMap queryTermsMatch(Query query) {
+    QueryTermsOccurrencesInEntryMap queryTermsMatchMap = {};
+    for (var qti = 0; qti < query.terms.length; qti++) {
+      var qterm = query.terms[qti];
+      var isLet = isLetByQueryTerm(query, qti);
+      if (isLet ||
+          query.perfectMatching ||
+          qterm.term.length < termMatchingMinLetters &&
+              qterm.term.length < termPartialMatchingMinLetters) {
+        var idbv = idb[IDbEntryKey(qterm.term, isLet)];
+        if (idbv == null) {
+          continue;
+        }
+        qterm.df += idbv.df * 1.0;
+        for (var o in idbv.occurrences) {
+          if (queryTermsMatchMap[o.entry] == null) {
+            queryTermsMatchMap[o.entry] =
+                List<List<QueryTermOccurrence>>.generate(
+                    query.terms.length, (i) => []);
+          }
+          queryTermsMatchMap[o.entry]![qti]
+              .add(QueryTermOccurrence(o.position, 1.0, false));
+        }
         continue;
       }
-      for (var idbe in list) {
-        bool partial;
-        var sim = similarity(idbe.key.term, qterm.term);
-        if (sim > 0) {
-          partial = false;
-          qterm.df += idbe.value.df * sim;
-        } else {
-          sim = partialSimilarity(idbe.key.term, qterm.term);
-          if (sim == 0) {
-            continue;
-          }
-          partial = true;
-          qterm.df += 0;
+      var lqt = qterm.term.length.toDouble();
+      var ls1 = (lqt * termMatchingMinLetterRatio).ceil();
+      var ls2 = (lqt * termPartialMatchingMinLetterRatio).ceil();
+      var ls3 = min<int>(termMatchingMinLetters, termPartialMatchingMinLetters);
+      var ls = min<int>(max<int>(min<int>(ls1, ls2), ls3), idb.maxTermLength);
+      var le1 = (lqt / termPartialMatchingMinLetterRatio).truncate();
+      var le2 = (lqt / termMatchingMinLetterRatio).truncate();
+      var le = min<int>(max<int>(le1, le2), idb.maxTermLength);
+      for (var l = ls; l <= le; l++) {
+        var list = idb.listsByTermLength[l];
+        if (list == null) {
+          continue;
         }
-        var os = idbe.value.occurrences
-            .map((o) => QueryTermOccurrence(o.entry, o.position, sim, partial));
-        occurrences.addAll(os);
+        for (var idbe in list) {
+          bool partial;
+          var sim = similarity(idbe.key.term, qterm.term);
+          if (sim > 0) {
+            partial = false;
+            qterm.df += idbe.value.df * sim;
+          } else {
+            sim = partialSimilarity(idbe.key.term, qterm.term);
+            if (sim == 0) {
+              continue;
+            }
+            partial = true;
+            qterm.df += 0;
+          }
+          for (var o in idbe.value.occurrences) {
+            if (queryTermsMatchMap[o.entry] == null) {
+              queryTermsMatchMap[o.entry] =
+                  List<List<QueryTermOccurrence>>.generate(
+                      query.terms.length, (i) => []);
+            }
+            queryTermsMatchMap[o.entry]![qti]
+                .add(QueryTermOccurrence(o.position, sim, partial));
+          }
+        }
       }
     }
-    occurrences = occurrences.toList(growable: false);
-    occurrences.sort((a, b) {
-      var c = a.entry.compareTo(b.entry);
-      if (c != 0) {
-        return c;
+    for (var e in queryTermsMatchMap.entries) {
+      for (var qtos in e.value) {
+        qtos.sort((a, b) => -a.termSimilarity.compareTo(b.termSimilarity));
       }
-      c = b.termSimilarity.compareTo(a.termSimilarity);
-      if (c != 0) {
-        return c;
-      }
-      return a.position.compareTo(b.position);
-    });
-    return occurrences;
+    }
+    return queryTermsMatchMap;
   }
 
   double similarity(Term dbTerm, Term queryTerm) {
@@ -157,29 +165,22 @@ mixin Tools on Settings {
 
   double estimateCombination(
       Query query,
-      List<List<QueryTermOccurrence>> queryTermOccurrences,
+      QueryTermsOccurrencesInEntryMap queryTermsMatchMap,
       int maxMissedTermCount) {
-    var qtc = queryTermOccurrences.length;
-    var ris = List<RangeIndices>.generate(qtc, (i) => RangeIndices(),
-        growable: false);
-    var etmcs = <int>[];
-    var etmcsr = <List<int>>[[]];
+    var qtc = query.terms.length;
     var maxCombi = 1.0;
-    for (var currentEntry = setRangeIndices(Entry(''), query,
-            queryTermOccurrences, ris, maxMissedTermCount, etmcsr);
-        currentEntry.string != '';
-        currentEntry = setRangeIndices(currentEntry, query,
-            queryTermOccurrences, ris, maxMissedTermCount, etmcsr)) {
-      etmcs = etmcsr[0];
+    for (var e in queryTermsMatchMap.entries) {
+      var queryTermsOccurrences = e.value;
+      var etmcs = entryTermsQueryTermMatchCount(e.key, queryTermsMatchMap);
       var combi = 1.0;
       for (var qti = 0; qti < qtc; qti++) {
-        var e = ris[qti];
-        if (e.end == e.start) {
+        var queryTermOccurrences = queryTermsOccurrences[qti];
+        if (queryTermOccurrences.isEmpty) {
           continue;
         }
         var cnt = false;
-        for (var i = e.start; i < e.end; i++) {
-          var qto = queryTermOccurrences[qti][i];
+        for (var i = 0; i < queryTermOccurrences.length; i++) {
+          var qto = queryTermOccurrences[i];
           if (qto.partial) {
             continue;
           }
@@ -191,69 +192,51 @@ mixin Tools on Settings {
         if (cnt) {
           continue;
         }
-        combi *= (e.end - e.start + 1);
+        combi *= (queryTermOccurrences.length + 1);
       }
       maxCombi = max<double>(maxCombi, combi);
     }
     return maxCombi;
   }
 
-  List<List<QueryTermOccurrence>> reduceQueryTerms(
-      Query query, List<List<QueryTermOccurrence>> queryTermOccurrences) {
-    var ret = <List<QueryTermOccurrence>>[];
-    if (query.terms.length <= fallbackMaxQueryTerms) {
-      return queryTermOccurrences;
+  void reduceQueryTerms(
+      Query query, QueryTermsOccurrencesInEntryMap queryTermMatchMap) {
+    var queryTermIndices = List<int>.generate(query.terms.length, (i) => i);
+    if (queryTermIndices.length > fallbackMaxQueryTerms) {
+      queryTermIndices
+          .sort((a, b) => query.terms[a].df.compareTo(query.terms[b].df));
+      queryTermIndices = queryTermIndices.sublist(0, fallbackMaxQueryTerms);
+      queryTermIndices.sort();
+      var newLetType = LetType.na;
+      var newTerms =
+          List<QueryTerm>.generate(queryTermIndices.length, (newQti) {
+        var qti = queryTermIndices[newQti];
+        if (query.letType == LetType.postfix && qti == query.terms.length - 1) {
+          newLetType = LetType.na;
+        } else if (query.letType == LetType.prefix && qti == 0) {
+          newLetType = LetType.na;
+        }
+        return query.terms[queryTermIndices[newQti]];
+      });
+      query.terms = newTerms;
+      query.letType = newLetType;
     }
-    var tqts = <QueryTerm>[];
-    var tqti = <QueryTerm, int>{};
-    for (var i = 0; i < query.terms.length; i++) {
-      tqts.add(query.terms[i]);
-      tqti[query.terms[i]] = i;
-    }
-    tqts.sort((a, b) => a.df.compareTo(b.df));
-    tqts = tqts.sublist(0, fallbackMaxQueryTerms).toList(growable: false);
-    tqts.sort((a, b) => tqti[a]!.compareTo(tqti[b]!));
-    var tLetType = LetType.na;
-    for (var e in tqts) {
-      var qti = tqti[e]!;
-      ret.add(queryTermOccurrences[qti]);
-      if (isLetByQueryTerm(query, qti)) {
-        tLetType = query.letType;
+    for (var e in queryTermMatchMap.entries.toList()) {
+      var queryTermsOccurrences = e.value;
+      var newQueryTermMatchesInEntry = List<List<QueryTermOccurrence>>.generate(
+          query.terms.length,
+          (newQti) => queryTermsOccurrences[queryTermIndices[newQti]]);
+      for (var qti = 0; qti < newQueryTermMatchesInEntry.length; qti++) {
+        var queryTermOccurrences = newQueryTermMatchesInEntry[qti];
+        queryTermOccurrences
+            .sort(((a, b) => -a.termSimilarity.compareTo(b.termSimilarity)));
+        if (queryTermOccurrences.length > fallbackMaxQueryTermMobility) {
+          newQueryTermMatchesInEntry[qti] =
+              queryTermOccurrences.sublist(0, fallbackMaxQueryTermMobility);
+        }
       }
+      queryTermMatchMap[e.key] = newQueryTermMatchesInEntry;
     }
-    query.terms = tqts;
-    query.letType = tLetType;
-    return ret.toList(growable: false);
-  }
-
-  List<QueryTermOccurrence> reduceQueryTermOccurrences(
-      List<QueryTermOccurrence> queryTermOccurrences, Query query) {
-    var ose = <QueryTermOccurrence>[];
-    var ret = <QueryTermOccurrence>[];
-    var currentEntry = Entry('');
-    for (var o in queryTermOccurrences) {
-      if (currentEntry.string == '') {
-        ose = [o];
-        currentEntry = o.entry;
-        continue;
-      }
-      if (currentEntry == o.entry) {
-        ose.add(o);
-        continue;
-      }
-      if (ose.length > fallbackMaxQueryTermMobility) {
-        ose = ose.sublist(0, fallbackMaxQueryTermMobility);
-      }
-      ret.addAll(ose);
-      ose = [o];
-      currentEntry = o.entry;
-    }
-    if (ose.length > fallbackMaxQueryTermMobility) {
-      ose.sort((a, b) => -a.termSimilarity.compareTo(b.termSimilarity));
-      ose = ose.sublist(0, fallbackMaxQueryTermMobility);
-    }
-    ret.addAll(ose);
-    return ret.toList(growable: false);
   }
 
   void caliculateQueryTermWeight(Query query) {
@@ -296,34 +279,19 @@ mixin Tools on Settings {
 
   List<QueryOccurrence> queryMatch(
       Query query,
-      List<List<QueryTermOccurrence>> queryTermOccurrences,
+      QueryTermsOccurrencesInEntryMap queryTermsMatchMap,
       int maxMissedTermCount) {
-    var qtc = queryTermOccurrences.length;
-    var ris = List<RangeIndices>.generate(qtc, (i) => RangeIndices(),
-        growable: false);
+    var qtc = query.terms.length;
     var ret = <QueryOccurrence>[];
-    var etmcs = <int>[];
-    var etmcsr = <List<int>>[[]];
-    for (var currentEntry = setRangeIndices(Entry(''), query,
-            queryTermOccurrences, ris, maxMissedTermCount, etmcsr);
-        currentEntry.string != '';
-        currentEntry = setRangeIndices(currentEntry, query,
-            queryTermOccurrences, ris, maxMissedTermCount, etmcsr)) {
-      etmcs = etmcsr[0];
+    for (var e in queryTermsMatchMap.entries) {
+      var entry = e.key;
+      var queryTermOccurrences = e.value;
+      var etmcs = entryTermsQueryTermMatchCount(entry, queryTermsMatchMap);
       var wqtso = List<QueryTermInQueryOccurrnece>.generate(
           qtc, (i) => QueryTermInQueryOccurrnece(),
           growable: false);
-      var qo = joinQueryTermOccurrencesRecursively(
-          query,
-          currentEntry,
-          queryTermOccurrences,
-          ris,
-          etmcs,
-          maxMissedTermCount,
-          0,
-          0,
-          wqtso,
-          null);
+      var qo = joinQueryTermOccurrencesRecursively(query, entry,
+          queryTermOccurrences, etmcs, maxMissedTermCount, 0, 0, wqtso, null);
       if (qo != null) {
         ret.add(qo);
       }
@@ -331,70 +299,22 @@ mixin Tools on Settings {
     return ret;
   }
 
-  Entry setRangeIndices(
-      Entry currentEntry,
-      Query query,
-      List<List<QueryTermOccurrence>> queryTermOccurrences,
-      List<RangeIndices> rangeIndices,
-      int maxMissedTermCount,
-      List<List<int>> matchedQueryTermCountsRef) {
-    var nextEntry = Entry('');
-    var qtc = queryTermOccurrences.length;
-    while (true) {
-      for (var qti = 0; qti < qtc; qti++) {
-        rangeIndices[qti].start = rangeIndices[qti].end;
-        if (queryTermOccurrences[qti] == <QueryTermOccurrence>[]) {
-          continue;
-        }
-        if (rangeIndices[qti].start >= queryTermOccurrences[qti].length) {
-          continue;
-        }
-        var qtse = queryTermOccurrences[qti][rangeIndices[qti].start].entry;
-        if (nextEntry.string == '') {
-          nextEntry = qtse;
-          continue;
-        }
-        if (nextEntry.compareTo(qtse) > 0) {
-          nextEntry = qtse;
-        }
+  List<int> entryTermsQueryTermMatchCount(Entry entry,
+      Map<Entry, List<List<QueryTermOccurrence>>> queryTermsMatchMap) {
+    var matchedQueryTermCounts = List<int>.filled(db[entry]!.terms.length, 0);
+    var queryTermsOccurrences = queryTermsMatchMap[entry]!;
+    for (var queryTermOccurrences in queryTermsOccurrences) {
+      for (var queryTermOccurrence in queryTermOccurrences) {
+        matchedQueryTermCounts[queryTermOccurrence.position]++;
       }
-      if (nextEntry.string == '') {
-        return Entry('');
-      }
-      var etc = db[nextEntry]!.terms.length;
-      matchedQueryTermCountsRef[0] = List<int>.filled(etc, 0, growable: false);
-      var matchedQueryTermCounts = matchedQueryTermCountsRef[0];
-      var matchedQueryTerms = 0;
-      for (var qti = 0; qti < qtc; qti++) {
-        int j;
-        for (j = rangeIndices[qti].start;
-            j < queryTermOccurrences[qti].length;
-            j++) {
-          if (queryTermOccurrences[qti][j].entry != nextEntry) {
-            break;
-          }
-          matchedQueryTermCounts[queryTermOccurrences[qti][j].position]++;
-        }
-        rangeIndices[qti].end = j;
-        if (rangeIndices[qti].start != j) {
-          matchedQueryTerms++;
-        }
-      }
-      if (qtc - matchedQueryTerms > maxMissedTermCount) {
-        currentEntry = nextEntry;
-        nextEntry = Entry('');
-        continue;
-      }
-      break;
     }
-    return nextEntry;
+    return matchedQueryTermCounts;
   }
 
   QueryOccurrence? joinQueryTermOccurrencesRecursively(
       Query query,
       Entry entry,
       List<List<QueryTermOccurrence>> queryTermsOccurrences,
-      List<RangeIndices> rangeIndices,
       List<int> matchedQueryTermCounts,
       int maxMissedTermCount,
       int missedTermCount,
@@ -422,7 +342,7 @@ mixin Tools on Settings {
       }
       return retCandidate;
     }
-    for (var i = rangeIndices[qti].start; i < rangeIndices[qti].end; i++) {
+    for (var i = 0; i < queryTermsOccurrences[qti].length; i++) {
       var qto = queryTermsOccurrences[qti][i];
       var collision = false;
       for (var qtj = 0; qtj < qti; qtj++) {
@@ -446,7 +366,6 @@ mixin Tools on Settings {
           query,
           entry,
           queryTermsOccurrences,
-          rangeIndices,
           matchedQueryTermCounts,
           maxMissedTermCount,
           missedTermCount,
@@ -457,7 +376,7 @@ mixin Tools on Settings {
     if (missedTermCount == maxMissedTermCount) {
       return retCandidate;
     }
-    for (var i = rangeIndices[qti].start; i < rangeIndices[qti].end; i++) {
+    for (var i = 0; i < queryTermsOccurrences[qti].length; i++) {
       var qto = queryTermsOccurrences[qti][i];
       if (qto.partial) {
         continue;
@@ -474,7 +393,6 @@ mixin Tools on Settings {
         query,
         entry,
         queryTermsOccurrences,
-        rangeIndices,
         matchedQueryTermCounts,
         maxMissedTermCount,
         missedTermCount + 1,
@@ -541,8 +459,7 @@ mixin Tools on Settings {
       if (e.position == -1) {
         continue;
       }
-      if (query.letType == LetType.postfix && qti == qtc - 1 ||
-          query.letType == LetType.prefix && qti == 0) {
+      if (isLetByQueryTerm(query, qti)) {
         continue;
       }
       qts.add(e);

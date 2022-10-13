@@ -396,4 +396,9 @@ Future<void> main() async {
     var r = await matcher.fmatch(q);
     expect(r.cachedResult.matchedEntiries, <MatchedEntry>[]);
   });
+  test('13th Research Institute, 9th Academy, China Aerospace Science and Technology Corporation (CASC) (中国航天科技集団公司第九研究院第十三研究所)', () async {
+    var q = r'13th Research Institute, 9th Academy, China Aerospace Science and Technology Corporation (CASC) (中国航天科技集団公司第九研究院第十三研究所)';
+    var r = await matcher.fmatch(q);
+    expect(r.cachedResult.matchedEntiries.length, lessThan(20));
+  });
 }

@@ -26,13 +26,13 @@ class Query {
         queryScore = 0;
 }
 
+typedef QueryTermsOccurrencesInEntryMap = Map<Entry, List<List<QueryTermOccurrence>>>;
+
 class QueryTermOccurrence {
-  final Entry entry;
   final int position;
   final double termSimilarity;
   final bool partial;
-  QueryTermOccurrence(
-      this.entry, this.position, this.termSimilarity, this.partial);
+  QueryTermOccurrence(this.position, this.termSimilarity, this.partial);
 }
 
 class QueryTermInQueryOccurrnece {
@@ -251,9 +251,4 @@ class ResultCache {
       _map.remove(_map.keys.first);
     }
   }
-}
-
-class RangeIndices {
-  int start = -1;
-  int end = 0;
 }

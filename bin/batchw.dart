@@ -24,8 +24,7 @@ var multiplicity = 1;
 void main(List<String> args) async {
   var argParser = ArgParser()
     ..addFlag('help', abbr: 'h', negatable: false, help: 'print tis help')
-    ..addOption('multiplicity',
-        abbr: 'm', valueHelp: 'multiplicity of request')
+    ..addOption('multiplicity', abbr: 'm', valueHelp: 'multiplicity of request')
     ..addOption('input', abbr: 'i', valueHelp: 'input file');
   var options = argParser.parse(args);
   if (options['help'] == true) {
@@ -42,7 +41,7 @@ void main(List<String> args) async {
 }
 
 Future<void> wbatch(String queryPath) async {
-  if(! queryPath.endsWith('.csv')) {
+  if (!queryPath.endsWith('.csv')) {
     print('Invalid input file name: $queryPath');
     exit(1);
   }
@@ -65,6 +64,8 @@ class Dispatcher {
   var maxResultsLength = 0;
   var ixS = 0;
   var ixO = 0;
+  var cacheHits = 0;
+  var cacheHits2 = 0;
   Dispatcher(this.queries);
   Future<void> dispatch() async {
     var futures = List<Future>.generate(multiplicity, (i) => sendReceve());
@@ -81,8 +82,7 @@ class Dispatcher {
       ixS++;
       var query = await queries.next;
       var path = Uri.encodeQueryComponent(query);
-      var request =
-          await httpClient.get('localhost', 4049, '/?q=$path');
+      var request = await httpClient.get('localhost', 4049, '/?q=$path');
       var response = await request.close();
       var jsonString = await response.transform(utf8.decoder).join();
       var result =
@@ -101,16 +101,20 @@ class Dispatcher {
         return;
       }
       if (result.cachedResult.cachedQuery.terms.isEmpty) {
+        logSink.writeln(result.message);
         continue;
       }
       if (result.message != '') {
-        logSink.writeln(result.message);
+        cacheHits++;
+        cacheHits2++;
       }
       resultSink.write(formatOutput(ixO + 1, result));
       if (((ixO + 1) % 100) == 0) {
         currentLap = DateTime.now();
-        print('${ixO + 1}: ${currentLap.difference(startTime).inMilliseconds} '
-            '${currentLap.difference(lastLap).inMilliseconds}');
+        print('${ixO + 1}\t${currentLap.difference(startTime).inMilliseconds}'
+            '\t${currentLap.difference(lastLap).inMilliseconds}'
+            '\t\t$cacheHits2\t$cacheHits');
+        cacheHits2 = 0;
         lastLap = currentLap;
       }
       results.remove(ixO);

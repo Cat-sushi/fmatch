@@ -77,6 +77,9 @@ class Dispatcher {
   var maxResultsLength = 0;
   var ixS = 0;
   var ixO = 0;
+  var cacheHits = 0;
+  var cacheHits2 = 0;
+  List<bool> cacheHits2Buffer = [];
   Dispatcher(this.queries);
   Future<void> dispatch() async {
     var futures = List<Future>.generate(multiplicity, (i) => sendReceve());
@@ -112,12 +115,21 @@ class Dispatcher {
         return;
       }
       if (result.cachedResult.cachedQuery.terms.isEmpty) {
+        print(result.message);
         continue;
       }
       if (result.message != '') {
-        print(result.message);
+        cacheHits++;
+        cacheHits2++;
+        cacheHits2Buffer.add(true);
+        if (cacheHits2Buffer.length > 100) {
+          if (cacheHits2Buffer.removeAt(0)) {
+            cacheHits2--;
+          }
+        }
       }
-      print(formatOutput(ixO + 1, result).trimRight());
+      print(
+          '$cacheHits2 $cacheHits ${formatOutput(ixO + 1, result).trimRight()}');
       results.remove(ixO);
     }
   }

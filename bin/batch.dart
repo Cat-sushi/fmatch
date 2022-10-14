@@ -36,7 +36,7 @@ Future<void> main(List<String> args) async {
 }
 
 Future<void> batch(FMatcher matcher, String queryPath) async {
-  if(! queryPath.endsWith('.csv')) {
+  if (!queryPath.endsWith('.csv')) {
     print('Invalid input file name: $queryPath');
     exit(1);
   }
@@ -48,6 +48,8 @@ Future<void> batch(FMatcher matcher, String queryPath) async {
   var resultSink = resultFile.openWrite()..add(utf8Bom);
   var logSink = File(logPath).openWrite();
   var lc = 0;
+  var cacheHits = 0;
+  var cacheHits2 = 0;
   var startTime = DateTime.now();
   var lastLap = startTime;
   var currentLap = lastLap;
@@ -56,16 +58,20 @@ Future<void> batch(FMatcher matcher, String queryPath) async {
     ++lc;
     var result = await matcher.fmatch(query);
     if (result.cachedResult.cachedQuery.terms.isEmpty) {
+      logSink.writeln(result.message);
       continue;
     }
     if (result.message != '') {
-      logSink.writeln(result.message);
+      cacheHits++;
+      cacheHits2++;
     }
     resultSink.write(formatOutput(lc, result));
     if ((lc % 100) == 0) {
       currentLap = DateTime.now();
-      print('$lc: ${currentLap.difference(startTime).inMilliseconds} '
-          '${currentLap.difference(lastLap).inMilliseconds}');
+      print('$lc\t${currentLap.difference(startTime).inMilliseconds}'
+          '\t${currentLap.difference(lastLap).inMilliseconds}'
+          '\t\t$cacheHits2\t$cacheHits');
+      cacheHits2 = 0;
       lastLap = currentLap;
       await resultSink.flush();
       await logSink.flush();

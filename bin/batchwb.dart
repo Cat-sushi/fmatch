@@ -21,6 +21,8 @@ late DateTime lastLap;
 
 var bulkSize = 100;
 var lc = 0;
+var cacheHits = 0;
+var cacheHits2 = 0;
 
 void main(List<String> args) async {
   var argParser = ArgParser()
@@ -84,16 +86,20 @@ Future<void> outputResults(Iterable<QueryResult> results) async {
   for (var result in results) {
     ++lc;
     if (result.cachedResult.cachedQuery.terms.isEmpty) {
+      logSink.writeln(result.message);
       continue;
     }
     if (result.message != '') {
-      logSink.writeln(result.message);
+      cacheHits++;
+      cacheHits2++;
     }
     resultSink.write(formatOutput(lc, result));
     if ((lc % bulkSize) == 0) {
       currentLap = DateTime.now();
-      print('$lc: ${currentLap.difference(startTime).inMilliseconds} '
-          '${currentLap.difference(lastLap).inMilliseconds}');
+      print('$lc\t${currentLap.difference(startTime).inMilliseconds}'
+          '\t${currentLap.difference(lastLap).inMilliseconds}'
+          '\t\t$cacheHits2\t$cacheHits');
+      cacheHits2 = 0;
       lastLap = currentLap;
     }
   }

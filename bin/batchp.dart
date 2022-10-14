@@ -73,14 +73,15 @@ void main(List<String> args) async {
 }
 
 Future<void> pbatch(FMatcher matcher, String queryPath) async {
-  if(! queryPath.endsWith('.csv')) {
+  if (!queryPath.endsWith('.csv')) {
     print('Invalid input file name: $queryPath');
     exit(1);
   }
   var queries = StreamQueue<String>(openQueryListStream(queryPath));
   var trank = queryPath.substring(0, queryPath.lastIndexOf('.csv'));
   var resultPath = '${trank}_results.csv';
-  var logPath = '${trank}_log.txt';  var resultFile = File(resultPath);
+  var logPath = '${trank}_log.txt';
+  var resultFile = File(resultPath);
   resultSink = resultFile.openWrite()..write(utf8Bom);
   logSink = File(logPath).openWrite();
   startTime = DateTime.now();
@@ -96,6 +97,8 @@ class Dispatcher {
   var maxResultsLength = 0;
   var ixS = 0;
   var ixO = 0;
+  var cacheHits = 0;
+  var cacheHits2 = 0;
   Dispatcher(this.matcher, this.queries);
   Future<void> dispatch() async {
     var futures = List<Future>.generate(serverCount, (i) => sendReceve());
@@ -126,16 +129,20 @@ class Dispatcher {
         return;
       }
       if (result.cachedResult.cachedQuery.terms.isEmpty) {
+        logSink.writeln(result.message);
         continue;
       }
       if (result.message != '') {
-        logSink.writeln(result.message);
+        cacheHits++;
+        cacheHits2++;
       }
       resultSink.write(formatOutput(ixO + 1, result));
       if (((ixO + 1) % 100) == 0) {
         currentLap = DateTime.now();
-        print('${ixO + 1}: ${currentLap.difference(startTime).inMilliseconds} '
-            '${currentLap.difference(lastLap).inMilliseconds}');
+        print('${ixO + 1}\t${currentLap.difference(startTime).inMilliseconds}'
+            '\t${currentLap.difference(lastLap).inMilliseconds}'
+            '\t\t$cacheHits2\t$cacheHits');
+        cacheHits2 = 0;
         lastLap = currentLap;
       }
       results.remove(ixO);

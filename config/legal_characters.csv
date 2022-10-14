@@ -1,6 +1,7 @@
 ﻿\p{Lu},,"				Letter, uppercase"
 \p{Ll},,"				Letter, lowercase"
 \p{M},,"				Mark"
+\p{P},,"				Punctuation"
 [\u{20000}-\u{2B81F}],,"Surrogate Pair"
 (?:[々〇〻\u2E80-\u2FDF\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]),,"Han"
 [0-9],,"				Digit (ASCII)"

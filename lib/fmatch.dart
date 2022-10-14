@@ -122,14 +122,16 @@ class FMatcher with Settings, Tools {
       await time(() async {
         idb = IDb.fromDb(db);
       }, 'IDb.fromDb');
-      await time(() => db.write(Pathes.db), 'Db.write');
+      await time(() => db.write(Pathes.db), 'Db.write'); // for debug configs
       await time(() => idb.write(Pathes.idb), 'IDb.write');
     } else {
       await time(() async {
         idb = await IDb.read(Pathes.idb);
       }, 'IDb.read');
       await time(() => db = Db.fromIDb(idb), 'Db.fromIDb');
-      await time(() => db.write(Pathes.db), 'Db.write');
+      if (!File(Pathes.db).existsSync()) {
+        await time(() => db.write(Pathes.db), 'Db.write'); // for debug reproduction
+      }
     }
   }
 

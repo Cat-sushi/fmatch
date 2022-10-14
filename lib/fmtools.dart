@@ -74,10 +74,7 @@ mixin Tools on Settings {
       var le2 = (lqt / termMatchingMinLetterRatio).truncate();
       var le = min<int>(max<int>(le1, le2), idb.maxTermLength);
       for (var l = ls; l <= le; l++) {
-        var list = idb.listsByTermLength[l];
-        if (list == null) {
-          continue;
-        }
+        var list = idb.listByTermLength(l);
         for (var idbe in list) {
           bool partial;
           var sim = similarity(idbe.key.term, qterm.term);

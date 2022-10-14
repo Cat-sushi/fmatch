@@ -180,8 +180,7 @@ class IDbEntryValue {
 class IDb {
   final _map = <IDbEntryKey, IDbEntryValue>{};
   late final int maxTermLength;
-  late final List<List<MapEntry<IDbEntryKey, IDbEntryValue>>?>
-      listsByTermLength;
+  late final List<List<MapEntry<IDbEntryKey, IDbEntryValue>>> _listsByTermLength;
   IDb();
   IDb.fromDb(Db db) {
     var tmpMap = <IDbEntryKey, IDbEntryValue>{};
@@ -220,6 +219,10 @@ class IDb {
     _initLists();
   }
 
+  List<MapEntry<IDbEntryKey, IDbEntryValue>> listByTermLength(int length) {
+    return _listsByTermLength[length - 1];
+  }
+
   IDbEntryValue? operator [](IDbEntryKey key) => _map[key];
   Iterable<MapEntry<IDbEntryKey, IDbEntryValue>> get entries => _map.entries;
   Iterable<IDbEntryKey> get keys => _map.keys;
@@ -250,25 +253,22 @@ class IDb {
         return ta.compareTo(tb);
       }
     });
-    // `l` of `listsByTermLength[l]` is the length of the terms
-    // `listsByTermLength[0]` isn't used
     maxTermLength = list.last.key.term.length;
-    listsByTermLength =
-        List<List<MapEntry<IDbEntryKey, IDbEntryValue>>?>.filled(
-            maxTermLength + 1, null,
-            growable: false);
+    _listsByTermLength = List<List<MapEntry<IDbEntryKey, IDbEntryValue>>>.filled(
+        maxTermLength, [],
+        growable: false);
     var len = list.first.key.term.length;
     var start = 0;
     int end;
     for (end = 0; end < list.length; end++) {
       var idbeln = list[end].key.term.length;
       if (idbeln != len) {
-        listsByTermLength[len] = list.sublist(start, end);
+        _listsByTermLength[len - 1] = list.sublist(start, end);
         len = idbeln;
         start = end;
       }
     }
-    listsByTermLength[len] = list.sublist(start, end);
+    _listsByTermLength[len - 1] = list.sublist(start, end);
   }
 
   void write(String path) {

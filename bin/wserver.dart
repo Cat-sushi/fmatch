@@ -47,9 +47,9 @@ Future main(List<String> args) async {
     print(argParser.usage);
     exit(0);
   }
-  
+
   print('Start Server');
-  
+
   await time(() => matcher.readSettings(null), 'Settings.read');
 
   if (options['cache'] != null) {
@@ -137,7 +137,7 @@ Future<void> sendReceiveResponseOne() async {
         ..statusCode = HttpStatus.internalServerError
         ..write('Internal Server Error: $e.');
     } finally {
-      req.response.close();
+      await req.response.close();
       commandQueueLength--;
     }
   }
@@ -152,7 +152,8 @@ Future<void> sendReceiveResponseMulti() async {
       var queryList = (jsonDecode(jsonString) as List<dynamic>).cast<String>();
       var queries = StreamQueue<String>(Stream.fromIterable(queryList));
       await Dispatcher(queries, req.response).dispatch();
-    } catch (e) {
+    } catch (e, s) {
+      print(s);
       req.response
         ..statusCode = HttpStatus.internalServerError
         ..write('Internal Server Error: $e.');
@@ -171,8 +172,7 @@ class Dispatcher {
   var ixS = 0;
   var ixO = 0;
   var first = true;
-  Dispatcher(this.queries, this.response);
-  
+
   Future<void> dispatch() async {
     response.write('[');
     var futures = <Future>[];
@@ -181,14 +181,20 @@ class Dispatcher {
     }
     await Future.wait<void>(futures);
     response.write(']');
-    response.close();
+    await response.close();
   }
 
   Future<void> sendReceve() async {
     while (await queries.hasNext) {
       var ix = ixS;
       ixS++;
-      var query = await queries.next;
+      var query = '';
+      try {
+        query = await queries.next; // TODO sometimes unexpectedly throws 'Bad state: No elements'
+      } catch (e, s) {
+        print(e);
+        print(s);
+      }
       var client = await serverPool.next;
       var result = await client.fmatch(query);
       serverPoolController.add(client);

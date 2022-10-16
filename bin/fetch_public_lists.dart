@@ -35,6 +35,7 @@ final rCrConnector = RegExp(r'[\r\n]', multiLine: true, unicode: true);
 final rTrailCamma = RegExp(r'^(.*) *,$', unicode: true);
 final rBullet = RegExp(r'^[・･] *', unicode: true);
 final rDoubleQuate = RegExp(r'^["”] *(.*) *["”]$', unicode: true);
+final rNewLine = RegExp(r'[\r\n]+', unicode: true);
 
 Future<void> main(List<String> args) async {
   var consolidatedJsonFile = File(consolidatedJson);
@@ -96,6 +97,7 @@ Future<void> extConsolidated() async {
   for (var r in results) {
     var result = r as Map<String, dynamic>;
     var name = result['name'] as String;
+    name = name.replaceAll(rNewLine, ' ');
     outSink.write(quoteCsvCell(name));
     outSink.write('\r\n');
     var altNames = result['alt_names'] as List<dynamic>?;

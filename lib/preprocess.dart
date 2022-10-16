@@ -19,18 +19,8 @@ enum LetType {
 }
 
 class Term implements Comparable<Term> {
-  static final _canonicalized = <String, Term>{};
-  final String string; // redundant for performance optimization
-  final Int32List runes;
-  Term._(this.string) : runes = Int32List.fromList(string.runes.toList());
 
-  factory Term._canonicalize(String s) {
-    var ret = _canonicalized[s];
-    if (ret != null) {
-      return ret;
-    }
-    return _canonicalized[s] = Term._(s);
-  }
+  factory Term.canonicalize(Term t) => Term._canonicalize(t.string);
 
   factory Term(String s, {bool canonicalizing = false}) {
     if (canonicalizing == false) {
@@ -39,7 +29,17 @@ class Term implements Comparable<Term> {
     return Term._canonicalize(s);
   }
 
-  factory Term.canonicalize(Term t) => Term._canonicalize(t.string);
+  factory Term._canonicalize(String s) {
+    var ret = _canonicalized[s];
+    if (ret != null) {
+      return ret;
+    }
+    return _canonicalized[s] = Term._(s);
+  }
+  Term._(this.string) : runes = Int32List.fromList(string.runes.toList());
+  static final _canonicalized = <String, Term>{};
+  final String string; // redundant for performance optimization
+  final Int32List runes;
   int get length => runes.length;
   String toJson() => string;
   @override
@@ -51,17 +51,8 @@ class Term implements Comparable<Term> {
 }
 
 class Entry implements Comparable<Entry> {
-  static final _canonicalized = <String, Entry>{};
-  final String string;
-  Entry._(this.string);
 
-  factory Entry._canonicalize(String s) {
-    var ret = _canonicalized[s];
-    if (ret != null) {
-      return ret;
-    }
-    return _canonicalized[s] = Entry._(s);
-  }
+  factory Entry.canonicalize(Entry e) => Entry._canonicalize(e.string);
 
   factory Entry(String s, {bool canonicalizing = false}) {
     if (canonicalizing == false) {
@@ -70,7 +61,16 @@ class Entry implements Comparable<Entry> {
     return Entry._canonicalize(s);
   }
 
-  factory Entry.canonicalize(Entry e) => Entry._canonicalize(e.string);
+  factory Entry._canonicalize(String s) {
+    var ret = _canonicalized[s];
+    if (ret != null) {
+      return ret;
+    }
+    return _canonicalized[s] = Entry._(s);
+  }
+  Entry._(this.string);
+  static final _canonicalized = <String, Entry>{};
+  final String string;
   int get length => string.length;
   String toJson() => string;
   @override
@@ -82,15 +82,15 @@ class Entry implements Comparable<Entry> {
 }
 
 class Preprocessed {
+  Preprocessed(this.letType, this.terms);
   final LetType letType;
   final List<Term> terms;
-  Preprocessed(this.letType, this.terms);
 }
 
 class LetReplaced {
+  LetReplaced(this.replaced, this.letType);
   final String replaced;
   final LetType letType;
-  LetReplaced(this.replaced, this.letType);
 }
 
 class Preprocessor with Configs {

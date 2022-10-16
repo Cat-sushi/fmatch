@@ -91,6 +91,7 @@ Future<void> pbatch(FMatcher matcher, String queryPath) async {
 }
 
 class Dispatcher {
+  Dispatcher(this.matcher, this.queries);
   final FMatcher matcher;
   final StreamQueue<String> queries;
   final results = <int, QueryResult>{};
@@ -99,7 +100,6 @@ class Dispatcher {
   var ixO = 0;
   var cacheHits = 0;
   var cacheHits2 = 0;
-  Dispatcher(this.matcher, this.queries);
   Future<void> dispatch() async {
     var futures = List<Future>.generate(serverCount, (i) => sendReceve());
     await Future.wait<void>(futures);

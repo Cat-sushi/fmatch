@@ -95,23 +95,23 @@ mixin Settings {
 }
 
 class StringReplacement {
+  StringReplacement(this.regexp, this.replacement);
   final RegExp regexp;
   final String replacement;
-  StringReplacement(this.regexp, this.replacement);
 }
 
 class LegalEntityTypeReplacement {
+  LegalEntityTypeReplacement(
+      this.regexpPostfix, this.regexpPrefix, this.replacement);
   final RegExp regexpPostfix;
   final RegExp regexpPrefix;
   final String replacement;
-  LegalEntityTypeReplacement(
-      this.regexpPostfix, this.regexpPrefix, this.replacement);
 }
 
 class WordReplacement {
+  WordReplacement(this.regexps, this.replacement);
   final RegExp regexps;
   final String replacement;
-  WordReplacement(this.regexps, this.replacement);
 }
 
 mixin Configs {

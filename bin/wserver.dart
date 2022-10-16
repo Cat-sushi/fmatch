@@ -165,6 +165,7 @@ Future<void> sendReceiveResponseMulti() async {
 }
 
 class Dispatcher {
+  Dispatcher(this.queries, this.response);
   final StreamQueue<String> queries;
   final HttpResponse response;
   final results = <int, QueryResult>{};

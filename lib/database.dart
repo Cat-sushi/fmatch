@@ -9,7 +9,6 @@ import 'preprocess.dart';
 import 'util.dart';
 
 class Db {
-  final Map<Entry, Preprocessed> _map = {};
   Db();
   Db.fromIDb(IDb idb) {
     var entryTermTable = <Entry, Map<int, Term>>{};
@@ -53,6 +52,7 @@ class Db {
       throw "Too small database";
     }
   }
+  final Map<Entry, Preprocessed> _map = {};
 
   static Future<Db> fromStringStream(
       Preprocessor preper, Stream<String> entries) async {
@@ -111,6 +111,10 @@ class Db {
 }
 
 class IDbEntryKey implements Comparable<IDbEntryKey> {
+  IDbEntryKey.fromJson(Map<String, dynamic> json)
+      : this(Term(json['term'] as String, canonicalizing: true),
+            json['isLet'] as bool);
+  IDbEntryKey(this.term, this.isLet) : hashCode = Object.hash(term, isLet);
   final Term term;
   final bool isLet;
   @override
@@ -134,10 +138,6 @@ class IDbEntryKey implements Comparable<IDbEntryKey> {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is IDbEntryKey && term == other.term && isLet == other.isLet;
-  IDbEntryKey(this.term, this.isLet) : hashCode = Object.hash(term, isLet);
-  IDbEntryKey.fromJson(Map<String, dynamic> json)
-      : this(Term(json['term'] as String, canonicalizing: true),
-            json['isLet'] as bool);
   Map<String, dynamic> toJson() => <String, dynamic>{
         'term': term,
         'isLet': isLet,
@@ -145,12 +145,12 @@ class IDbEntryKey implements Comparable<IDbEntryKey> {
 }
 
 class IDbTermOccurrence {
-  final Entry entry;
-  final int position;
-  IDbTermOccurrence(this.entry, this.position);
   IDbTermOccurrence.fromJson(Map<String, dynamic> json)
       : this(Entry(json['entry'] as String, canonicalizing: true),
             json['position'] as int);
+  IDbTermOccurrence(this.entry, this.position);
+  final Entry entry;
+  final int position;
   Map<String, dynamic> toJson() => <String, dynamic>{
         'entry': entry,
         'position': position,
@@ -158,19 +158,19 @@ class IDbTermOccurrence {
 }
 
 class IDbEntryValue {
-  final int df;
-  final List<IDbTermOccurrence> occurrences;
-  IDbEntryValue()
-      : df = 0,
-        occurrences = [];
-  IDbEntryValue.of(this.df, IDbEntryValue o)
-      : occurrences = o.occurrences.toList(growable: false);
   IDbEntryValue.fromJson(Map<String, dynamic> json)
       : df = json['df'] as int,
         occurrences = (json['occurrences'] as List<dynamic>)
             .map((dynamic e) =>
                 IDbTermOccurrence.fromJson(e as Map<String, dynamic>))
             .toList(growable: false);
+  IDbEntryValue.of(this.df, IDbEntryValue o)
+      : occurrences = o.occurrences.toList(growable: false);
+  IDbEntryValue()
+      : df = 0,
+        occurrences = [];
+  final int df;
+  final List<IDbTermOccurrence> occurrences;
   Map<String, dynamic> toJson() => <String, dynamic>{
         'df': df,
         'occurrences': occurrences,
@@ -178,10 +178,6 @@ class IDbEntryValue {
 }
 
 class IDb {
-  final _map = <IDbEntryKey, IDbEntryValue>{};
-  late final int maxTermLength;
-  late final List<List<MapEntry<IDbEntryKey, IDbEntryValue>>> _listsByTermLength;
-  IDb();
   IDb.fromDb(Db db) {
     var tmpMap = <IDbEntryKey, IDbEntryValue>{};
     var dbKeys = db.keys.toList(growable: false);
@@ -218,6 +214,10 @@ class IDb {
     }
     _initLists();
   }
+  IDb();
+  final _map = <IDbEntryKey, IDbEntryValue>{};
+  late final int maxTermLength;
+  late final List<List<MapEntry<IDbEntryKey, IDbEntryValue>>> _listsByTermLength;
 
   List<MapEntry<IDbEntryKey, IDbEntryValue>> listByTermLength(int length) {
     return _listsByTermLength[length - 1];

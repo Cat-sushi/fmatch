@@ -7,61 +7,61 @@ import 'dart:collection';
 import 'preprocess.dart';
 
 class QueryTerm {
+  QueryTerm(this.term, this.df, this.weight);
   final Term term;
   double df;
   double weight;
-  QueryTerm(this.term, this.df, this.weight);
 }
 
 class Query {
-  LetType letType;
-  List<QueryTerm> terms;
-  bool perfectMatching;
-  double queryScore;
   Query.fromPreprocessed(Preprocessed preped, this.perfectMatching)
       : letType = preped.letType,
         terms = preped.terms
             .map((e) => QueryTerm(e, 0.0, 0.0))
             .toList(growable: false),
         queryScore = 0;
+  LetType letType;
+  List<QueryTerm> terms;
+  bool perfectMatching;
+  double queryScore;
 }
 
 typedef QueryTermsOccurrencesInEntryMap = Map<Entry, List<List<QueryTermOccurrence>>>;
 
 class QueryTermOccurrence {
+  QueryTermOccurrence(this.position, this.termSimilarity, this.partial);
   final int position;
   final double termSimilarity;
   final bool partial;
-  QueryTermOccurrence(this.position, this.termSimilarity, this.partial);
 }
 
 class QueryTermInQueryOccurrnece {
-  int position;
-  int sequenceNo;
-  double termSimilarity;
-  bool partial;
-  QueryTermInQueryOccurrnece()
-      : position = -1,
-        sequenceNo = 0,
-        termSimilarity = 0.0,
-        partial = false;
-  QueryTermInQueryOccurrnece.fromQueryTermOccurrence(QueryTermOccurrence qto)
-      : position = qto.position,
-        sequenceNo = 0,
-        termSimilarity = qto.termSimilarity,
-        partial = qto.partial;
   QueryTermInQueryOccurrnece.of(QueryTermInQueryOccurrnece o)
       : position = o.position,
         sequenceNo = o.sequenceNo,
         termSimilarity = o.termSimilarity,
         partial = o.partial;
+  QueryTermInQueryOccurrnece.fromQueryTermOccurrence(QueryTermOccurrence qto)
+      : position = qto.position,
+        sequenceNo = 0,
+        termSimilarity = qto.termSimilarity,
+        partial = qto.partial;
+  QueryTermInQueryOccurrnece()
+      : position = -1,
+        sequenceNo = 0,
+        termSimilarity = 0.0,
+        partial = false;
+  int position;
+  int sequenceNo;
+  double termSimilarity;
+  bool partial;
 }
 
 class QueryOccurrence implements Comparable<QueryOccurrence> {
+  QueryOccurrence(this.entry, this.queryTerms);
   final Entry entry;
   final List<QueryTermInQueryOccurrnece> queryTerms;
   double score = 0.0;
-  QueryOccurrence(this.entry, this.queryTerms);
   @override
   int compareTo(QueryOccurrence other) {
     var c = -score.compareTo(other.score);
@@ -77,12 +77,12 @@ class QueryOccurrence implements Comparable<QueryOccurrence> {
 }
 
 class MatchedEntry {
-  final Entry entry;
-  final double score;
-  MatchedEntry(this.entry, this.score);
   MatchedEntry.fromJson(Map<String, dynamic> json)
       : entry = Entry(json['entry'] as String),
         score = json['score'] as double;
+  MatchedEntry(this.entry, this.score);
+  final Entry entry;
+  final double score;
   Map toJson() => <String, dynamic>{
         'entry': entry,
         'score': score,
@@ -90,15 +90,6 @@ class MatchedEntry {
 }
 
 class CachedQuery {
-  final LetType letType;
-  final List<Term> terms;
-  final bool perfectMatching;
-  @override
-  final int hashCode;
-  CachedQuery(this.letType, this.terms, this.perfectMatching)
-      : hashCode = Object.hashAll([letType, perfectMatching, ...terms]);
-  CachedQuery.fromPreprocessed(Preprocessed preped, bool perfectMatching)
-      : this(preped.letType, preped.terms, perfectMatching);
   CachedQuery.fromJson(Map<String, dynamic> json)
       : this(
           LetType.fromJson(json['letType'] as String),
@@ -107,6 +98,15 @@ class CachedQuery {
               .toList(growable: false),
           json['perfectMatching'] as bool,
         );
+  CachedQuery.fromPreprocessed(Preprocessed preped, bool perfectMatching)
+      : this(preped.letType, preped.terms, perfectMatching);
+  CachedQuery(this.letType, this.terms, this.perfectMatching)
+      : hashCode = Object.hashAll([letType, perfectMatching, ...terms]);
+  final LetType letType;
+  final List<Term> terms;
+  final bool perfectMatching;
+  @override
+  final int hashCode;
   Map<String, dynamic> toJson() => <String, dynamic>{
         'letType': letType,
         'terms': terms,
@@ -139,12 +139,6 @@ class CachedQuery {
 }
 
 class CachedResult {
-  final CachedQuery cachedQuery;
-  final double queryScore;
-  final bool queryFallenBack;
-  final List<MatchedEntry> matchedEntiries;
-  CachedResult(this.cachedQuery, this.queryScore, this.queryFallenBack,
-      this.matchedEntiries);
   CachedResult.fromJson(Map<String, dynamic> json)
       : this(
           CachedQuery.fromJson(json['cachedQuery'] as Map<String, dynamic>),
@@ -155,6 +149,12 @@ class CachedResult {
                   MatchedEntry.fromJson(e as Map<String, dynamic>))
               .toList(),
         );
+  CachedResult(this.cachedQuery, this.queryScore, this.queryFallenBack,
+      this.matchedEntiries);
+  final CachedQuery cachedQuery;
+  final double queryScore;
+  final bool queryFallenBack;
+  final List<MatchedEntry> matchedEntiries;
   Map toJson() => <String, dynamic>{
         'cachedQuery': cachedQuery,
         'queryScore': queryScore,
@@ -164,18 +164,21 @@ class CachedResult {
 }
 
 class QueryResult {
-  int serverId = 0;
-  final DateTime dateTime;
-  final int durationInMilliseconds;
-  final String inputString;
-  final Entry rawQuery;
-  final CachedResult cachedResult;
-  final String message;
-  QueryResult.fromCachedResult(this.cachedResult, DateTime start, DateTime end,
-      this.inputString, this.rawQuery,
-      [this.message = ''])
-      : dateTime = start,
-        durationInMilliseconds = end.difference(start).inMilliseconds;
+  QueryResult.fromJson(Map<String, dynamic> json)
+      : serverId = json['serverId'] as int,
+        dateTime = DateTime.parse(json['start'] as String),
+        durationInMilliseconds = json['durationInMilliseconds'] as int,
+        inputString = json['inputString'] as String,
+        rawQuery = Entry(json['rawQuery'] as String),
+        cachedResult =
+            CachedResult.fromJson(json['cachedResult'] as Map<String, dynamic>),
+        message = json['message'] as String;
+  QueryResult.fromError(this.inputString, this.message)
+      : dateTime = DateTime.now(),
+        durationInMilliseconds = 0,
+        rawQuery = Entry(''),
+        cachedResult =
+            CachedResult(CachedQuery(LetType.na, [], false), 0, false, []);
   QueryResult.fromQueryOccurrences(
     List<QueryOccurrence> queryOccurrences,
     DateTime start,
@@ -197,21 +200,18 @@ class QueryResult {
                 .map((e) => MatchedEntry(e.entry, e.score))
                 .toList()),
         message = '';
-  QueryResult.fromError(this.inputString, this.message)
-      : dateTime = DateTime.now(),
-        durationInMilliseconds = 0,
-        rawQuery = Entry(''),
-        cachedResult =
-            CachedResult(CachedQuery(LetType.na, [], false), 0, false, []);
-  QueryResult.fromJson(Map<String, dynamic> json)
-      : serverId = json['serverId'] as int,
-        dateTime = DateTime.parse(json['start'] as String),
-        durationInMilliseconds = json['durationInMilliseconds'] as int,
-        inputString = json['inputString'] as String,
-        rawQuery = Entry(json['rawQuery'] as String),
-        cachedResult =
-            CachedResult.fromJson(json['cachedResult'] as Map<String, dynamic>),
-        message = json['message'] as String;
+  QueryResult.fromCachedResult(this.cachedResult, DateTime start, DateTime end,
+      this.inputString, this.rawQuery,
+      [this.message = ''])
+      : dateTime = start,
+        durationInMilliseconds = end.difference(start).inMilliseconds;
+  int serverId = 0;
+  final DateTime dateTime;
+  final int durationInMilliseconds;
+  final String inputString;
+  final Entry rawQuery;
+  final CachedResult cachedResult;
+  final String message;
   Map toJson() => <String, dynamic>{
         'serverId': serverId,
         'start': dateTime.toUtc().toIso8601String(),
@@ -224,10 +224,10 @@ class QueryResult {
 }
 
 class ResultCache {
+  ResultCache(int size) : _queryResultCacheSize = size;
   final int _queryResultCacheSize;
   // ignore: prefer_collection_literals
   final _map = LinkedHashMap<CachedQuery, CachedResult>();
-  ResultCache(int size) : _queryResultCacheSize = size;
 
   Future<CachedResult?> get(CachedQuery query) async {
     if (_queryResultCacheSize == 0) {

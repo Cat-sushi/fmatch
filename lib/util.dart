@@ -74,8 +74,8 @@ Future<void> time(FutureOr<void> Function() func, String name) async {
 const bufferSize = 128 * 1024;
 
 class FileChankSink implements Sink<List<int>> {
-  final RandomAccessFile raFile;
   FileChankSink.fromRaFile(this.raFile);
+  final RandomAccessFile raFile;
   @override
   void add(List<int> data) {
     raFile.writeFromSync(data);

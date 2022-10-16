@@ -10,13 +10,12 @@ linter:
     - camel_case_types
     - prefer_generic_function_type_aliases
     - directives_ordering
-    # - sort_constructors_first
+    - sort_constructors_first
     - always_put_control_body_on_new_line
     - provide_deprecation_message
     - avoid_setters_without_getters
     - avoid_void_async
     - join_return_with_assignment
-    # - unnecessary_null_types
     - unnecessary_nullable_for_final_variable_declarations
     - cast_nullable_to_non_nullable
     - null_check_on_nullable_type_parameter

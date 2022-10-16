@@ -72,6 +72,7 @@ Stream<String> randomQuery(List<String> terms) async* {
 }
 
 class Dispatcher {
+  Dispatcher(this.queries);
   final StreamQueue<String> queries;
   final results = <int, QueryResult>{};
   var maxResultsLength = 0;
@@ -80,7 +81,6 @@ class Dispatcher {
   var cacheHits = 0;
   var cacheHits2 = 0;
   List<bool> cacheHits2Buffer = [];
-  Dispatcher(this.queries);
   Future<void> dispatch() async {
     var futures = List<Future>.generate(multiplicity, (i) => sendReceve());
     await Future.wait<void>(futures);

@@ -52,6 +52,7 @@ class Db {
       throw "Too small database";
     }
   }
+
   final Map<Entry, Preprocessed> _map = {};
 
   static Future<Db> fromStringStream(
@@ -111,14 +112,16 @@ class Db {
 }
 
 class IDbEntryKey implements Comparable<IDbEntryKey> {
+  IDbEntryKey(this.term, this.isLet) : hashCode = Object.hash(term, isLet);
   IDbEntryKey.fromJson(Map<String, dynamic> json)
       : this(Term(json['term'] as String, canonicalizing: true),
             json['isLet'] as bool);
-  IDbEntryKey(this.term, this.isLet) : hashCode = Object.hash(term, isLet);
+
   final Term term;
   final bool isLet;
   @override
   final int hashCode;
+
   @override
   int compareTo(IDbEntryKey other) {
     var tc = term.compareTo(other.term);
@@ -145,10 +148,10 @@ class IDbEntryKey implements Comparable<IDbEntryKey> {
 }
 
 class IDbTermOccurrence {
+  IDbTermOccurrence(this.entry, this.position);
   IDbTermOccurrence.fromJson(Map<String, dynamic> json)
       : this(Entry(json['entry'] as String, canonicalizing: true),
             json['position'] as int);
-  IDbTermOccurrence(this.entry, this.position);
   final Entry entry;
   final int position;
   Map<String, dynamic> toJson() => <String, dynamic>{
@@ -158,17 +161,18 @@ class IDbTermOccurrence {
 }
 
 class IDbEntryValue {
+  IDbEntryValue.of(this.df, IDbEntryValue o)
+      : occurrences = o.occurrences.toList(growable: false);
+  IDbEntryValue()
+      : df = 0,
+        occurrences = [];
   IDbEntryValue.fromJson(Map<String, dynamic> json)
       : df = json['df'] as int,
         occurrences = (json['occurrences'] as List<dynamic>)
             .map((dynamic e) =>
                 IDbTermOccurrence.fromJson(e as Map<String, dynamic>))
             .toList(growable: false);
-  IDbEntryValue.of(this.df, IDbEntryValue o)
-      : occurrences = o.occurrences.toList(growable: false);
-  IDbEntryValue()
-      : df = 0,
-        occurrences = [];
+
   final int df;
   final List<IDbTermOccurrence> occurrences;
   Map<String, dynamic> toJson() => <String, dynamic>{
@@ -178,6 +182,7 @@ class IDbEntryValue {
 }
 
 class IDb {
+  IDb();
   IDb.fromDb(Db db) {
     var tmpMap = <IDbEntryKey, IDbEntryValue>{};
     var dbKeys = db.keys.toList(growable: false);
@@ -214,10 +219,11 @@ class IDb {
     }
     _initLists();
   }
-  IDb();
+
   final _map = <IDbEntryKey, IDbEntryValue>{};
   late final int maxTermLength;
-  late final List<List<MapEntry<IDbEntryKey, IDbEntryValue>>> _listsByTermLength;
+  late final List<List<MapEntry<IDbEntryKey, IDbEntryValue>>>
+      _listsByTermLength;
 
   List<MapEntry<IDbEntryKey, IDbEntryValue>> listByTermLength(int length) {
     return _listsByTermLength[length - 1];
@@ -254,9 +260,10 @@ class IDb {
       }
     });
     maxTermLength = list.last.key.term.length;
-    _listsByTermLength = List<List<MapEntry<IDbEntryKey, IDbEntryValue>>>.filled(
-        maxTermLength, [],
-        growable: false);
+    _listsByTermLength =
+        List<List<MapEntry<IDbEntryKey, IDbEntryValue>>>.filled(
+            maxTermLength, [],
+            growable: false);
     var len = list.first.key.term.length;
     var start = 0;
     int end;

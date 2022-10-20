@@ -109,10 +109,14 @@ class Dispatcher {
   }
 
   Future<void> sendReceve() async {
-    while (await queries.hasNext) {
+    while (true) {
+      var queryRef = await queries.take(1);
+      if (queryRef.isEmpty) {
+        break;
+      }
+      var query = queryRef[0];
       var ix = ixS;
       ixS++;
-      var query = await queries.next;
       var client = await serverPool.next;
       var result = await client.fmatch(query);
       serverPoolController.add(client);

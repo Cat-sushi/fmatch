@@ -91,10 +91,14 @@ class Dispatcher {
 
   Future<void> sendReceve() async {
     var httpClient = HttpClient();
-    while (await queries.hasNext) {
+    while (true) {
+      var queryRef = await queries.take(1);
+      if(queryRef.isEmpty) {
+        break;
+      }
+      var query = queryRef[0];
       var ix = ixS;
       ixS++;
-      var query = await queries.next;
       var path = Uri.encodeQueryComponent(query);
       var request = await httpClient.get('localhost', 4049, '/?q=$path');
       var response = await request.close();

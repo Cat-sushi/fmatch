@@ -83,7 +83,7 @@ Future main(List<String> args) async {
     sendReceiveResponseOne();
   }
 
-  sendReceiveResponseMulti();
+  sendReceiveResponseBulk();
 
   var httpServer = await HttpServer.bind(_host, 4049);
   await for (var req in httpServer) {
@@ -121,7 +121,7 @@ Future main(List<String> args) async {
 }
 
 Future<void> sendReceiveResponseOne() async {
-  while (await commandStreamQueue.hasNext) {
+  while (true) {
     var req = await commandStreamQueue.next;
     try {
       var query = req.uri.queryParameters['q']!;
@@ -143,8 +143,8 @@ Future<void> sendReceiveResponseOne() async {
   }
 }
 
-Future<void> sendReceiveResponseMulti() async {
-  while (await batchStreamQueue.hasNext) {
+Future<void> sendReceiveResponseBulk() async {
+  while (true) {
     var req = await batchStreamQueue.next;
     try {
       var jsonString =

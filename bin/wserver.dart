@@ -32,8 +32,8 @@ var maxBatchQueueLength = serverCount * 2;
 final serverPoolController = StreamController<Client>();
 final serverPool = StreamQueue(serverPoolController.stream);
 
-final matcher = FMatcher();
-late final SendPort cacheServer;
+late FMatcher matcher;
+late SendPort cacheServer;
 
 Future main(List<String> args) async {
   var argParser = ArgParser()
@@ -48,7 +48,63 @@ Future main(List<String> args) async {
     exit(0);
   }
 
+  await readSettingsAndConfigs(options);
+
+  await startServers();
+
+  for (var i = 0; i < serverCount; i++) {
+    sendReceiveResponseOne();
+  }
+
+  sendReceiveResponseBulk();
+
+  var httpServer = await HttpServer.bind(_host, 4049);
+  await for (var req in httpServer) {
+    var contentType = req.headers.contentType;
+    var response = req.response;
+
+    if (req.method == 'GET' && req.uri.path == '/') {
+      if (commandQueueLength >= maxCommandQueueLength) {
+        response
+          ..statusCode = HttpStatus.serviceUnavailable
+          ..write('Server busiy');
+        await response.close();
+        continue;
+      }
+      commandQueueLength++;
+      commandStreamController.add(req);
+    } else if (req.method == 'POST' &&
+        contentType?.mimeType == 'application/json') {
+      if (batchQueueLength >= maxBatchQueueLength) {
+        response
+          ..statusCode = HttpStatus.serviceUnavailable
+          ..write('Batch server busiy');
+        await response.close();
+        continue;
+      }
+      batchQueueLength++;
+      batchStreamController.add(req);
+    } else if (req.method == 'GET' && req.uri.path == '/restart') {
+      await stopServers();
+      await readSettingsAndConfigs(options);
+      await startServers();
+      response
+        ..statusCode = HttpStatus.ok
+        ..write('Server restarted. ${DateTime.now()}');
+      await response.close();
+    } else {
+      response
+        ..statusCode = HttpStatus.methodNotAllowed
+        ..write('Unsupported request: ${req.method} ${req.uri.path}.');
+      await response.close();
+    }
+  }
+}
+
+Future<void> readSettingsAndConfigs(ArgResults options) async {
   print('Start Server');
+
+  matcher = FMatcher();
 
   await time(() => matcher.readSettings(null), 'Settings.read');
 
@@ -70,7 +126,9 @@ Future main(List<String> args) async {
   await time(() => matcher.preper.readConfigs(), 'Configs.read');
   await time(() => matcher.buildDb(), 'buildDb');
   print('Min Score: ${matcher.minScore}');
+}
 
+Future<void> startServers() async {
   cacheServer = await CacheServer.spawn(matcher.queryResultCacheSize);
 
   for (var id = 0; id < serverCount; id++) {
@@ -78,46 +136,15 @@ Future main(List<String> args) async {
     await c.spawnServer(matcher, cacheServer);
     serverPoolController.add(c);
   }
+}
 
-  for (var i = 0; i < serverCount; i++) {
-    sendReceiveResponseOne();
+Future<void> stopServers() async {
+  for (var id = 0; id < serverCount; id++) {
+    var c = await serverPool.next;
+    c.closeServer();
   }
 
-  sendReceiveResponseBulk();
-
-  var httpServer = await HttpServer.bind(_host, 4049);
-  await for (var req in httpServer) {
-    var contentType = req.headers.contentType;
-    var response = req.response;
-
-    if (req.method == 'GET') {
-      if (commandQueueLength >= maxCommandQueueLength) {
-        response
-          ..statusCode = HttpStatus.serviceUnavailable
-          ..write('Server busiy');
-        await response.close();
-        continue;
-      }
-      commandQueueLength++;
-      commandStreamController.add(req);
-    } else if (req.method == 'POST' &&
-        contentType?.mimeType == 'application/json') {
-      if (batchQueueLength >= maxBatchQueueLength) {
-        response
-          ..statusCode = HttpStatus.serviceUnavailable
-          ..write('Batch server busiy');
-        await response.close();
-        continue;
-      }
-      batchQueueLength++;
-      batchStreamController.add(req);
-    } else {
-      response
-        ..statusCode = HttpStatus.methodNotAllowed
-        ..write('Unsupported request: ${req.method}.');
-      await response.close();
-    }
-  }
+  cacheServer.send(null);
 }
 
 Future<void> sendReceiveResponseOne() async {
@@ -131,10 +158,12 @@ Future<void> sendReceiveResponseOne() async {
       var responseContent = josonEncoderWithIdent.convert(result);
       req.response
         ..statusCode = HttpStatus.ok
+        ..headers.contentType = ContentType('application', 'json', charset: 'utf-8')
         ..write(responseContent);
     } catch (e) {
       req.response
         ..statusCode = HttpStatus.internalServerError
+        ..headers.contentType = ContentType('application', 'json', charset: 'utf-8')
         ..write('Internal Server Error: $e.');
     } finally {
       await req.response.close();
@@ -156,6 +185,7 @@ Future<void> sendReceiveResponseBulk() async {
       print(s);
       req.response
         ..statusCode = HttpStatus.internalServerError
+        ..headers.contentType = ContentType('application', 'json', charset: 'utf-8')
         ..write('Internal Server Error: $e.');
       req.response.close();
     } finally {
@@ -175,6 +205,7 @@ class Dispatcher {
   var first = true;
 
   Future<void> dispatch() async {
+    response.headers.contentType = ContentType('application', 'json', charset: 'utf-8');
     response.write('[');
     var futures = <Future>[];
     for (var i = 0; i < serverCount; i++) {
@@ -214,7 +245,7 @@ class Dispatcher {
       } else {
         response.write(',');
       }
-      response.write(jsonEncode(result));
+      response.write(josonEncoderWithIdent.convert(result));
       results.remove(ixO);
     }
   }

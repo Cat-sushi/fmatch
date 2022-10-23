@@ -144,7 +144,7 @@ Future<void> stopServers() async {
     c.closeServer();
   }
 
-  cacheServer.send(null);
+  CacheServer.close(cacheServer);
 }
 
 Future<void> sendReceiveResponseOne() async {

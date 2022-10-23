@@ -168,7 +168,7 @@ Future<void> main() async {
       expect(
           cntxt.hasIllegalCharacter( 
               'abcアdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'),
-          true);
+          false);
     });
     test('char44', () {
       expect(

@@ -61,13 +61,12 @@ Future<void> wbatch(String queryPath) async {
   lastLap = startTime;
   currentLap = lastLap;
   var httpClient = HttpClient();
-  var jsonEnc = JsonUtf8Encoder();
 
   while (await queries.hasNext) {
-    var bulk = jsonEnc.convert(await queries.take(bulkSize));
+    var bulk = jsonEncode(await queries.take(bulkSize));
     var request = await httpClient.post('localhost', 4049, '');
-    request.headers.contentType = ContentType('application', 'json');
-    request.add(bulk);
+    request.headers.contentType = ContentType('application', 'json', charset: 'utf-8');
+    request.write(bulk);
     var response = await request.close();
     var jsonString = await response.transform(utf8.decoder).join();
     var jsons = (jsonDecode(jsonString) as List);

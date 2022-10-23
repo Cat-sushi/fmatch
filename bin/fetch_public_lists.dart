@@ -79,27 +79,24 @@ Future<void> fetchConsolidated() async {
   } finally {
     client.close();
   }
-
-  final jsonString = File(consolidatedJson).readAsStringSync();
-  final jsonObject = jsonDecode(jsonString) as Map<String, dynamic>;
-  final jsonEncoderIndent = JsonUtf8Encoder('  ');
-  final jsonStringIndent = jsonEncoderIndent.convert(jsonObject);
-  final outSink = File(consolidatedJsonIndent).openWrite();
-  outSink.add(jsonStringIndent);
-  await outSink.close();
 }
 
 Future<void> extConsolidated() async {
-  final jsonString = File(consolidatedJsonIndent).readAsStringSync();
+  final jsonString = File(consolidatedJson).readAsStringSync();
   final jsonObject = jsonDecode(jsonString) as Map<String, dynamic>;
+  final jsonEncoderIndent = JsonEncoder.withIndent('  ');
+  final jsonStringIndent = jsonEncoderIndent.convert(jsonObject);
+  final outSinkIndent = File(consolidatedJsonIndent).openWrite();
+  outSinkIndent.write(jsonStringIndent);
+  await outSinkIndent.close();
   final results = jsonObject['results'] as List<dynamic>;
-  final outSink = File(consolidatedList).openWrite()..add(utf8Bom);
+  final outSinkCsv = File(consolidatedList).openWrite()..add(utf8Bom);
   for (var r in results) {
     var result = r as Map<String, dynamic>;
     var name = result['name'] as String;
     name = name.replaceAll(rNewLine, ' ');
-    outSink.write(quoteCsvCell(name));
-    outSink.write('\r\n');
+    outSinkCsv.write(quoteCsvCell(name));
+    outSinkCsv.write('\r\n');
     var altNames = result['alt_names'] as List<dynamic>?;
     if (altNames == null) {
       continue;
@@ -117,12 +114,12 @@ Future<void> extConsolidated() async {
         if (a == '') {
           continue;
         }
-        outSink.write(quoteCsvCell(a));
-        outSink.write('\r\n');
+        outSinkCsv.write(quoteCsvCell(a));
+        outSinkCsv.write('\r\n');
       }
     }
   }
-  await outSink.close();
+  await outSinkCsv.close();
 }
 
 Future<void> fetchFul() async {
@@ -163,6 +160,9 @@ Future<void> fetchFul() async {
   } finally {
     client.close();
   }
+}
+
+Future<void> extFul() async {
   Process.runSync('libreoffice', [
     '--headless',
     '--convert-to',
@@ -171,9 +171,6 @@ Future<void> fetchFul() async {
     '--outdir',
     pls
   ]);
-}
-
-Future<void> extFul() async {
   final fl = File(fulList).openWrite()..add(utf8Bom);
   await for (var l in readCsvLines(fulCsv).skip(1)) {
     var n = l[2]!;

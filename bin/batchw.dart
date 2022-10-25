@@ -31,13 +31,14 @@ void main(List<String> args) async {
     print(argParser.usage);
     exit(0);
   }
-  print('Start Web Batch');
+  print('Start Web Batch: ${DateTime.now()}');
   if (options['multiplicity'] != null) {
     multiplicity =
         max(int.tryParse(options['multiplicity'] as String) ?? multiplicity, 1);
   }
   var queryPath = options['input'] as String? ?? 'batch/queries.csv';
   await time(() => wbatch(queryPath), 'wbatch');
+  print('End Web Batch: ${DateTime.now()}');
 }
 
 Future<void> wbatch(String queryPath) async {

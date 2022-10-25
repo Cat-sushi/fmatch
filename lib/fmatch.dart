@@ -130,7 +130,8 @@ class FMatcher with Settings, Tools {
       }, 'IDb.read');
       await time(() => db = Db.fromIDb(idb), 'Db.fromIDb');
       if (!File(Pathes.db).existsSync()) {
-        await time(() => db.write(Pathes.db), 'Db.write'); // for debug reproduction
+        await time(
+            () => db.write(Pathes.db), 'Db.write'); // for debug reproduction
       }
     }
   }

@@ -34,7 +34,7 @@ Future<void> main() async {
     await initMatcher();
     await doBatch();
     expect(results, equals(queries));
-  },timeout: Timeout(Duration(minutes: 1)));
+  },timeout: Timeout(Duration(minutes: 5)));
 }
 
 Future<void> initMatcher() async {

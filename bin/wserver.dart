@@ -16,7 +16,9 @@ import 'package:fmatch/fmclasses.dart';
 import 'package:fmatch/server.dart';
 import 'package:fmatch/util.dart';
 
-String _host = InternetAddress.loopbackIPv4.host;
+final _host = InternetAddress.loopbackIPv4.host;
+const _port = 4049;
+
 int serverCount = Platform.numberOfProcessors;
 final commandStreamController = StreamController<HttpRequest>();
 final commandStreamQueue = StreamQueue(commandStreamController.stream);
@@ -37,7 +39,7 @@ late SendPort cacheServer;
 
 Future main(List<String> args) async {
   var argParser = ArgParser()
-    ..addFlag('help', abbr: 'h', negatable: false, help: 'print tis help')
+    ..addFlag('help', abbr: 'h', negatable: false, help: 'print this help')
     ..addOption('server', abbr: 's', valueHelp: 'number of servers')
     ..addOption('queue', abbr: 'q', valueHelp: 'length of command queue')
     ..addOption('cache', abbr: 'c', valueHelp: 'size of result cache');
@@ -49,7 +51,6 @@ Future main(List<String> args) async {
   }
 
   await readSettingsAndConfigs(options);
-
   await startServers();
 
   for (var i = 0; i < serverCount; i++) {
@@ -58,7 +59,7 @@ Future main(List<String> args) async {
 
   sendReceiveResponseBulk();
 
-  var httpServer = await HttpServer.bind(_host, 4049);
+  var httpServer = await HttpServer.bind(_host, _port);
   await for (var req in httpServer) {
     var contentType = req.headers.contentType;
     var response = req.response;
@@ -102,7 +103,7 @@ Future main(List<String> args) async {
 }
 
 Future<void> readSettingsAndConfigs(ArgResults options) async {
-  print('Start Server');
+  print('Starting Servers: ${DateTime.now()}');
 
   matcher = FMatcher();
 
@@ -136,6 +137,8 @@ Future<void> startServers() async {
     await c.spawnServer(matcher, cacheServer);
     serverPoolController.add(c);
   }
+
+  print('Servers started: ${DateTime.now()}');
 }
 
 Future<void> stopServers() async {

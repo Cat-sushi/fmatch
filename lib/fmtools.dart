@@ -238,30 +238,27 @@ mixin Tools on Settings {
 
   void caliculateQueryTermWeight(Query query) {
     var total = 0.0;
-    var max = 0.0;
+    var maxts = 0.0;
     var ambg = 1.0;
+    QueryTerm? let;
+    if (query.letType == LetType.postfix) {
+      let = query.terms.last;
+    } else if (query.letType == LetType.prefix) {
+      let = query.terms.first;
+    }
     for (var qt in query.terms) {
-      qt.weight = absoluteTermImportance(qt.df);
+      qt.weight = absoluteTermImportance(qt.df) / tidfz; // term importance, yet
+      ambg *= (1.0 - qt.weight * 1.0);
       total += qt.weight;
-      if (query.letType == LetType.postfix && qt != query.terms.last ||
-          query.letType == LetType.prefix && qt != query.terms.first) {
-        max = qt.weight > max ? qt.weight : max;
+      if (qt != let) {
+        maxts = max(maxts, qt.weight);
       }
-      var ti = absoluteTermImportance(qt.df.toDouble()) / tidfz;
-      var tsc = ti * 1.0;
-      ambg *= (1.0 - tsc);
     }
     query.queryScore = 1.0 - ambg;
-    if (query.letType != LetType.na && query.terms.length >= 2) {
-      QueryTerm qt;
-      if (query.letType == LetType.postfix) {
-        qt = query.terms.last;
-      } else {
-        qt = query.terms.first;
-      }
-      total -= qt.weight;
-      qt.weight *= max / tidfz;
-      total += qt.weight;
+    if (let != null) {
+      total -= let.weight;
+      let.weight *= maxts;
+      total += let.weight;
     }
     if (total == 0.0) {
       for (var qt in query.terms) {
@@ -270,7 +267,7 @@ mixin Tools on Settings {
       return;
     }
     for (var qt in query.terms) {
-      qt.weight /= total;
+      qt.weight /= total; // normalize as weight
     }
   }
 
@@ -445,7 +442,7 @@ mixin Tools on Settings {
       if (e.position == -1) {
         continue;
       }
-      var ti = absoluteTermImportance(query.terms[qti].df.toDouble()) / tidfz;
+      var ti = absoluteTermImportance(query.terms[qti].df) / tidfz;
       var tsc = ti * e.termSimilarity;
       ambg *= (1.0 - tsc);
     }

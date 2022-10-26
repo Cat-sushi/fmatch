@@ -41,7 +41,7 @@ class FMatcher with Settings, Tools {
         CachedQuery.fromPreprocessed(preprocessed, perfectMatching);
     if (!perfectMatching && whiteQueries.contains(cachedQuery)) {
       return QueryResult.fromCachedResult(
-        CachedResult(cachedQuery, 0, false, []),
+        CachedResult(cachedQuery, 0.0, false, []),
         start,
         DateTime.now(),
         inputString,

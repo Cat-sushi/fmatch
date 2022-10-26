@@ -50,8 +50,10 @@ Future main(List<String> args) async {
     exit(0);
   }
 
+  print('Starting servers: ${DateTime.now()}');
   await readSettingsAndConfigs(options);
   await startServers();
+  print('Servers started: ${DateTime.now()}');
 
   for (var i = 0; i < serverCount; i++) {
     sendReceiveResponseOne();
@@ -86,9 +88,12 @@ Future main(List<String> args) async {
       batchQueueLength++;
       batchStreamController.add(req);
     } else if (req.method == 'GET' && req.uri.path == '/restart') {
+      print('Stopping servers: ${DateTime.now()}');
       await stopServers();
+      print('Starting servers: ${DateTime.now()}');
       await readSettingsAndConfigs(options);
       await startServers();
+      print('Servers started: ${DateTime.now()}');
       response
         ..statusCode = HttpStatus.ok
         ..write('Server restarted. ${DateTime.now()}');
@@ -103,8 +108,6 @@ Future main(List<String> args) async {
 }
 
 Future<void> readSettingsAndConfigs(ArgResults options) async {
-  print('Starting Servers: ${DateTime.now()}');
-
   matcher = FMatcher();
 
   await time(() => matcher.readSettings(null), 'Settings.read');
@@ -137,8 +140,6 @@ Future<void> startServers() async {
     await c.spawnServer(matcher, cacheServer);
     serverPoolController.add(c);
   }
-
-  print('Servers started: ${DateTime.now()}');
 }
 
 Future<void> stopServers() async {
@@ -161,12 +162,14 @@ Future<void> sendReceiveResponseOne() async {
       var responseContent = josonEncoderWithIdent.convert(result);
       req.response
         ..statusCode = HttpStatus.ok
-        ..headers.contentType = ContentType('application', 'json', charset: 'utf-8')
+        ..headers.contentType =
+            ContentType('application', 'json', charset: 'utf-8')
         ..write(responseContent);
     } catch (e) {
       req.response
         ..statusCode = HttpStatus.internalServerError
-        ..headers.contentType = ContentType('application', 'json', charset: 'utf-8')
+        ..headers.contentType =
+            ContentType('application', 'json', charset: 'utf-8')
         ..write('Internal Server Error: $e.');
     } finally {
       await req.response.close();
@@ -188,7 +191,8 @@ Future<void> sendReceiveResponseBulk() async {
       print(s);
       req.response
         ..statusCode = HttpStatus.internalServerError
-        ..headers.contentType = ContentType('application', 'json', charset: 'utf-8')
+        ..headers.contentType =
+            ContentType('application', 'json', charset: 'utf-8')
         ..write('Internal Server Error: $e.');
       req.response.close();
     } finally {
@@ -208,7 +212,8 @@ class Dispatcher {
   var first = true;
 
   Future<void> dispatch() async {
-    response.headers.contentType = ContentType('application', 'json', charset: 'utf-8');
+    response.headers.contentType =
+        ContentType('application', 'json', charset: 'utf-8');
     response.write('[');
     var futures = <Future>[];
     for (var i = 0; i < serverCount; i++) {

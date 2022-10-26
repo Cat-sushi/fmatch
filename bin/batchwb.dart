@@ -35,14 +35,14 @@ void main(List<String> args) async {
     exit(0);
   }
 
-  print('Start Web Bulk Batch');
-
   if (options['bulk'] != null) {
     bulkSize = max(int.tryParse(options['bulk'] as String) ?? bulkSize, 1);
   }
   var queryPath = options['input'] as String? ?? 'batch/queries.csv';
 
+  print('Starting web bulk batch: ${DateTime.now()}');
   await time(() => wbatch(queryPath), 'wbatch');
+  print('Web bulk batch endded: ${DateTime.now()}');
 }
 
 Future<void> wbatch(String queryPath) async {

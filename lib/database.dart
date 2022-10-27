@@ -9,6 +9,8 @@ import 'preprocess.dart';
 import 'util.dart';
 
 class Db {
+  final Map<Entry, Preprocessed> _map = {};
+
   Db();
   Db.fromIDb(IDb idb) {
     var entryTermTable = <Entry, Map<int, Term>>{};
@@ -52,8 +54,6 @@ class Db {
       throw "Too small database";
     }
   }
-
-  final Map<Entry, Preprocessed> _map = {};
 
   static Future<Db> fromStringStream(
       Preprocessor preper, Stream<String> entries) async {
@@ -112,15 +112,15 @@ class Db {
 }
 
 class IDbEntryKey implements Comparable<IDbEntryKey> {
-  IDbEntryKey(this.term, this.isLet) : hashCode = Object.hash(term, isLet);
-  IDbEntryKey.fromJson(Map<String, dynamic> json)
-      : this(Term(json['term'] as String, canonicalizing: true),
-            json['isLet'] as bool);
-
   final Term term;
   final bool isLet;
   @override
   final int hashCode;
+
+  IDbEntryKey(this.term, this.isLet) : hashCode = Object.hash(term, isLet);
+  IDbEntryKey.fromJson(Map<String, dynamic> json)
+      : this(Term(json['term'] as String, canonicalizing: true),
+            json['isLet'] as bool);
 
   @override
   int compareTo(IDbEntryKey other) {
@@ -148,12 +148,13 @@ class IDbEntryKey implements Comparable<IDbEntryKey> {
 }
 
 class IDbTermOccurrence {
+  final Entry entry;
+  final int position;
+
   IDbTermOccurrence(this.entry, this.position);
   IDbTermOccurrence.fromJson(Map<String, dynamic> json)
       : this(Entry(json['entry'] as String, canonicalizing: true),
             json['position'] as int);
-  final Entry entry;
-  final int position;
   Map<String, dynamic> toJson() => <String, dynamic>{
         'entry': entry,
         'position': position,
@@ -161,11 +162,14 @@ class IDbTermOccurrence {
 }
 
 class IDbEntryValue {
-  IDbEntryValue.of(this.df, IDbEntryValue o)
-      : occurrences = o.occurrences.toList(growable: false);
+  final int df;
+  final List<IDbTermOccurrence> occurrences;
+
   IDbEntryValue()
       : df = 0,
         occurrences = [];
+  IDbEntryValue.of(this.df, IDbEntryValue o)
+      : occurrences = o.occurrences.toList(growable: false);
   IDbEntryValue.fromJson(Map<String, dynamic> json)
       : df = json['df'] as int,
         occurrences = (json['occurrences'] as List<dynamic>)
@@ -173,8 +177,6 @@ class IDbEntryValue {
                 IDbTermOccurrence.fromJson(e as Map<String, dynamic>))
             .toList(growable: false);
 
-  final int df;
-  final List<IDbTermOccurrence> occurrences;
   Map<String, dynamic> toJson() => <String, dynamic>{
         'df': df,
         'occurrences': occurrences,
@@ -182,6 +184,11 @@ class IDbEntryValue {
 }
 
 class IDb {
+  final _map = <IDbEntryKey, IDbEntryValue>{};
+  late final int maxTermLength;
+  late final List<List<MapEntry<IDbEntryKey, IDbEntryValue>>>
+      _listsByTermLength;
+
   IDb();
   IDb.fromDb(Db db) {
     var tmpMap = <IDbEntryKey, IDbEntryValue>{};
@@ -219,11 +226,6 @@ class IDb {
     }
     _initLists();
   }
-
-  final _map = <IDbEntryKey, IDbEntryValue>{};
-  late final int maxTermLength;
-  late final List<List<MapEntry<IDbEntryKey, IDbEntryValue>>>
-      _listsByTermLength;
 
   List<MapEntry<IDbEntryKey, IDbEntryValue>> listByTermLength(int length) {
     return _listsByTermLength[length - 1];

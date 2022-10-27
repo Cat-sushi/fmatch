@@ -9,10 +9,11 @@ import 'fmatch.dart';
 import 'fmclasses.dart';
 
 class Client {
-  Client(this.serverId);
   final int serverId;
   late final StreamIterator<dynamic> _cri;
   late final SendPort _csp;
+
+  Client(this.serverId);
 
   Future<void> spawnServer(FMatcher matcher, SendPort cacheServer) async {
     var crp = ReceivePort();
@@ -85,16 +86,16 @@ class CacheServer {
 }
 
 class CacheClient implements ResultCache {
+  final SendPort _cssp;
+  final StreamIterator _ccri;
+  final SendPort _ccsp;
+
+  CacheClient._(this._cssp, this._ccri, this._ccsp);
   factory CacheClient(SendPort ccsp) {
     var ccrp = ReceivePort();
     var ccri = StreamIterator<dynamic>(ccrp);
     return CacheClient._(ccrp.sendPort, ccri, ccsp);
   }
-
-  CacheClient._(this._cssp, this._ccri, this._ccsp);
-  final SendPort _cssp;
-  final StreamIterator _ccri;
-  final SendPort _ccsp;
 
   @override
   Future<CachedResult?> get(CachedQuery query) async {

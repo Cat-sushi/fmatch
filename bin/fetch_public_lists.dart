@@ -11,6 +11,7 @@ import 'package:html/parser.dart';
 
 final pls = 'database';
 
+// https://www.trade.gov/consolidated-screening-list JSON
 final consolidatedUri = Uri(
     scheme: 'https',
     host: 'data.trade.gov',

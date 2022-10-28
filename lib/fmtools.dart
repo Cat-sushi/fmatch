@@ -170,24 +170,20 @@ mixin Tools on Settings {
       var queryTermsOccurrences = e.value;
       var etmcs = entryTermsQueryTermMatchCount(e.key, queryTermsMatchMap);
       var combi = 1.0;
+      QueryTerms:
       for (var qti = 0; qti < qtc; qti++) {
         var queryTermOccurrences = queryTermsOccurrences[qti];
         if (queryTermOccurrences.isEmpty) {
           continue;
         }
-        var cnt = false;
         for (var i = 0; i < queryTermOccurrences.length; i++) {
           var qto = queryTermOccurrences[i];
           if (qto.partial) {
             continue;
           }
           if (etmcs[qto.position] == 1) {
-            cnt = true;
-            break;
+            continue QueryTerms;
           }
-        }
-        if (cnt) {
-          continue;
         }
         combi *= (queryTermOccurrences.length + 1);
       }
@@ -238,7 +234,7 @@ mixin Tools on Settings {
 
   void caliculateQueryTermWeight(Query query) {
     var total = 0.0;
-    var maxts = 0.0;
+    var maxti = 0.0;
     var ambg = 1.0;
     QueryTerm? let;
     if (query.letType == LetType.postfix) {
@@ -251,13 +247,13 @@ mixin Tools on Settings {
       ambg *= (1.0 - qt.weight * 1.0);
       total += qt.weight;
       if (qt != let) {
-        maxts = max(maxts, qt.weight);
+        maxti = max(maxti, qt.weight);
       }
     }
     query.queryScore = 1.0 - ambg;
     if (let != null) {
       total -= let.weight;
-      let.weight *= maxts;
+      let.weight *= maxti;
       total += let.weight;
     }
     if (total == 0.0) {

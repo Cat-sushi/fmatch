@@ -182,6 +182,7 @@ mixin Tools on Settings {
             continue;
           }
           if (etmcs[qto.position] == 1) {
+            combi *= queryTermOccurrences.length;
             continue QueryTerms;
           }
         }

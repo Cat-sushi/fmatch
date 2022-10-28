@@ -13,8 +13,8 @@
 <*CLOSED_JSC*>,CLOSED JOINT(-| )STOCK COMPANY
 <*JVC*>,JOINT VENTURE COMPANY
 <*SA_DE_CV*>,SA.? DE CV.?,S A DE C V,S\.A\.? DE C\.V\.?,S\. A\.? DE C\. V\.?,,"	S.A. de C.V."
-<*CO_LTD*>,"CO(\.?,? |\.|,)LTD\.?","COMPANY(,? |,)LIMITED","COMPANY(,? |,)LTD\.?",,"		Co., Ltd."
-<*PVT_LTD*>,"PVT(\.?,? |\.|,)LTD\.?","PRIVATE(,? |,)LIMITED",,"		Pvt., Ltd."
+<*CO_LTD*>,"CO(\.,? ?|, ?| )LTD\.?","COMPANY(, ?| )LIMITED","COMPANY(, ?| )LTD\.?",,"		Co., Ltd."
+<*PVT_LTD*>,"PVT(\.,? ?|, ?| )LTD\.?","PRIVATE(, ?| )LIMITED",,"	Pvt., Ltd."
 <*CORP*>,CORP\.?,CORPORATION,,"										Corp."
 <*PJSC*>,PJSC\.?,P J S C,P\.J\.S\.C\.?,P\. J\. S\. C\.?,,"			PJSC"
 <*OJSC*>,OJSC\.?,O J S C,O\.J\.S\.C\.?,O\. J\. S\. C\.?,,"			OJSC"

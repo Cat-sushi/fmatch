@@ -333,21 +333,20 @@ mixin Tools on Settings {
       }
       return retCandidate;
     }
+    QueryTermOccurrence:
     for (var i = 0; i < queryTermsOccurrences[qti].length; i++) {
       var qto = queryTermsOccurrences[qti][i];
-      var collision = false;
       for (var qtj = 0; qtj < qti; qtj++) {
-        if (workQueryTermsInQueryOccurrence[qtj].position != qto.position) {
-          continue;
-        }
         if (qto.partial && workQueryTermsInQueryOccurrence[qtj].partial) {
           continue;
         }
-        collision = true;
-        break;
-      }
-      if (collision) {
-        continue;
+        if (workQueryTermsInQueryOccurrence[qtj].position == qto.position) {
+          continue QueryTermOccurrence; // collision
+        }
+        if (workQueryTermsInQueryOccurrence[qtj].position > qto.position &&
+            query.terms[qti].term == query.terms[qtj].term) {
+          continue QueryTermOccurrence;
+        }
       }
       workQueryTermsInQueryOccurrence[qti]
         ..position = qto.position

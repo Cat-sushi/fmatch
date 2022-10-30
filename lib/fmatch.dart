@@ -14,7 +14,8 @@ import 'util.dart';
 class FMatcher with Settings, Tools {
   static final _perfMatchQuery = RegExp(r'^"(.+)"$');
 
-  Future<QueryResult> fmatch(String inputString) async {
+  Future<QueryResult> fmatch(String inputString,
+      [bool activateCache = true]) async {
     var start = DateTime.now();
 
     if (preper.hasIllegalCharacter(inputString)) {
@@ -50,16 +51,18 @@ class FMatcher with Settings, Tools {
       );
     }
 
-    var cachedResult = await resultCache.get(cachedQuery);
-    if (cachedResult != null) {
-      return QueryResult.fromCachedResult(
-        cachedResult,
-        start,
-        DateTime.now(),
-        inputString,
-        rawQuery,
-        'Cached result',
-      );
+    if (activateCache) {
+      var cachedResult = await resultCache.get(cachedQuery);
+      if (cachedResult != null) {
+        return QueryResult.fromCachedResult(
+          cachedResult,
+          start,
+          DateTime.now(),
+          inputString,
+          rawQuery,
+          'Cached result',
+        );
+      }
     }
 
     var query = Query.fromPreprocessed(preprocessed, perfectMatching);

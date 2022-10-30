@@ -24,8 +24,8 @@ class Client {
     _csp = _cri.current as SendPort;
   }
 
-  Future<QueryResult> fmatch(String query) async {
-    _csp.send(query);
+  Future<QueryResult> fmatch(String query, [bool activateCache = true]) async {
+    _csp.send(<dynamic>[query, activateCache]);
     await _cri.moveNext();
     return (_cri.current as QueryResult)..serverId = serverId;
   }
@@ -41,11 +41,13 @@ class Client {
     matcher.resultCache = CacheClient(ccsp); // overwriting local cache
     final srp = ReceivePort();
     ssp.send(srp.sendPort);
-    await for (dynamic query in srp) {
-      if (query == null) {
+    await for (dynamic args in srp) {
+      if (args == null) {
         break;
       }
-      var result = await matcher.fmatch(query as String);
+      var query = (args as List<dynamic>)[0] as String;
+      var activateCache = args[1] as bool;
+      var result = await matcher.fmatch(query, activateCache);
       ssp.send(result);
     }
   }
@@ -58,7 +60,7 @@ class CacheServer {
     return await crp.first as SendPort;
   }
 
-  static void close(SendPort ccsp){
+  static void close(SendPort ccsp) {
     ccsp.send(null);
   }
 

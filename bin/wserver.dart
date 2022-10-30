@@ -155,9 +155,11 @@ Future<void> sendReceiveResponseOne() async {
   while (true) {
     var req = await commandStreamQueue.next;
     try {
+      var cache = req.uri.queryParameters['c'];
+      var activateCache = cache == null || cache == '1';
       var query = req.uri.queryParameters['q']!;
       var client = await serverPool.next;
-      var result = await client.fmatch(query);
+      var result = await client.fmatch(query, activateCache);
       serverPoolController.add(client);
       var responseContent = josonEncoderWithIdent.convert(result);
       req.response

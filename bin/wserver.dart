@@ -184,11 +184,13 @@ Future<void> sendReceiveResponseBulk() async {
   while (true) {
     var req = await batchStreamQueue.next;
     try {
+      var cache = req.uri.queryParameters['c'];
+      var activateCache = cache == null || cache == '1';
       var jsonString =
           await req.cast<List<int>>().transform(utf8.decoder).join();
       var queryList = (jsonDecode(jsonString) as List<dynamic>).cast<String>();
       var queries = StreamQueue<String>(Stream.fromIterable(queryList));
-      await Dispatcher(queries, req.response).dispatch();
+      await Dispatcher(queries, req.response, activateCache).dispatch();
     } catch (e, s) {
       print(s);
       req.response
@@ -204,9 +206,10 @@ Future<void> sendReceiveResponseBulk() async {
 }
 
 class Dispatcher {
-  Dispatcher(this.queries, this.response);
+  Dispatcher(this.queries, this.response, this.activateCache);
   final StreamQueue<String> queries;
   final HttpResponse response;
+  final bool activateCache;
   final results = <int, QueryResult>{};
   var maxResultsLength = 0;
   var ixS = 0;
@@ -236,7 +239,7 @@ class Dispatcher {
       var ix = ixS;
       ixS++;
       var client = await serverPool.next;
-      var result = await client.fmatch(query);
+      var result = await client.fmatch(query, activateCache);
       serverPoolController.add(client);
       results[ix] = result;
       maxResultsLength = max(results.length, maxResultsLength);

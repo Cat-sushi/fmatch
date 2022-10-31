@@ -35,7 +35,7 @@ mixin Settings {
   int fallbackMaxQueryTerms = 6;
   int fallbackMaxQueryTermMobility = 6;
   double queryMatchingTermOrderCoefficent = 0.5;
-  int queryResultCacheSize = 10000;
+  int queryResultCacheSize = 100000;
 
   Future<void> readSettings(String? path) async {
     path ??= Pathes.setting;

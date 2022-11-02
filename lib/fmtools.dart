@@ -345,7 +345,7 @@ mixin Tools on Settings {
         }
         if (workQueryTermsInQueryOccurrence[qtj].position > qto.position &&
             query.terms[qti].term == query.terms[qtj].term) {
-          continue QueryTermOccurrence;
+          continue QueryTermOccurrence; // same terms in reverse order
         }
       }
       workQueryTermsInQueryOccurrence[qti]

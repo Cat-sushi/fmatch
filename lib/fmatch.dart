@@ -80,12 +80,12 @@ class FMatcher with Settings, Tools {
 
     caliculateQueryTermWeight(query);
 
-    var result = queryMatch(query, queryTermsMatchMap, maxMissedTC);
+    var queryOccurrences = queryMatch(query, queryTermsMatchMap, maxMissedTC);
 
-    result.sort();
+    queryOccurrences.sort();
 
     var ret = QueryResult.fromQueryOccurrences(
-      result,
+      queryOccurrences,
       start,
       DateTime.now(),
       inputString,

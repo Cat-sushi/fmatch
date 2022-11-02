@@ -93,7 +93,11 @@ class FMatcher with Settings, Tools {
       query,
       queryFallenBack,
     );
-    resultCache.put(cachedQuery, ret.cachedResult);
+
+    if (activateCache) {
+      resultCache.put(cachedQuery, ret.cachedResult);
+    }
+
     return ret;
   }
 

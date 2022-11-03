@@ -42,7 +42,7 @@ void main(List<String> args) async {
 
   print('Starting web bulk batch: ${DateTime.now()}');
   await time(() => wbatch(queryPath), 'wbatch');
-  print('Web bulk batch endded: ${DateTime.now()}');
+  print('Web bulk batch endded: $lc\t${DateTime.now()}');
 }
 
 Future<void> wbatch(String queryPath) async {

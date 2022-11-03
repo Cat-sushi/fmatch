@@ -11,9 +11,9 @@ import 'fmtools.dart';
 import 'preprocess.dart';
 import 'util.dart';
 
-class FMatcher with Settings, Tools {
-  static final _perfMatchQuery = RegExp(r'^"(.+)"$');
+final _perfMatchQuery = RegExp(r'^"(.+)"$');
 
+class FMatcher with Settings, Tools {
   Future<QueryResult> fmatch(String inputString,
       [bool activateCache = true]) async {
     var start = DateTime.now();

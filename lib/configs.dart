@@ -180,7 +180,7 @@ mixin Configs {
           continue;
         }
         if (r == p) {
-          print('warning: useless conversion: $r $p');
+          print('warning: useless conversion: $r <= $p');
           continue;
         }
         characterRreplacements[p] = replacement;

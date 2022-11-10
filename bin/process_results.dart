@@ -22,14 +22,7 @@ Future<void> main(List<String> args) async {
     fc.write(sb);
     sb.clear();
     if (l[7] != '') {
-      sb.write('${quoteCsvCell(l[6]!)},${quoteCsvCell(l[7]!)},${l[8]!}');
-      l
-          .sublist(9)
-          .map((e) => ',${quoteCsvCell(e!)}')
-          .forEach((e) => sb.write(e));
-      sb.write('\r\n');
-      fc2.write(sb);
-      sb.clear();
+      fc2.write('${quoteCsvCell(l[6]!)},${quoteCsvCell(l[7]!)}\r\n');
     }
     var ix = int.parse(l[2]!);
     if (ix == lastIx) {

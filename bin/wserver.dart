@@ -87,6 +87,25 @@ Future main(List<String> args) async {
       }
       batchQueueLength++;
       batchStreamController.add(req);
+    } else if (req.method == 'GET' && req.uri.path == '/normalize') {
+      try {
+        var query = req.uri.queryParameters['q']!;
+        var result = matcher.preper.normalizeAndCapitalize(query);
+        var responseContent = josonEncoderWithIdent.convert(result);
+        req.response
+          ..statusCode = HttpStatus.ok
+          ..headers.contentType =
+              ContentType('application', 'json', charset: 'utf-8')
+          ..write(responseContent);
+      } catch (e) {
+        req.response
+          ..statusCode = HttpStatus.internalServerError
+          ..headers.contentType =
+              ContentType('application', 'json', charset: 'utf-8')
+          ..write('Internal Server Error: $e.');
+      } finally {
+        await req.response.close();
+      }
     } else if (req.method == 'GET' && req.uri.path == '/restart') {
       print('Stopping servers: ${DateTime.now()}');
       await stopServers();

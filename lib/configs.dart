@@ -176,15 +176,22 @@ mixin Configs {
         }
         var r = characterRreplacements[p];
         if (r != null && r != replacement) {
-          print('error: conflicted replacements $r $replacement $p');
+          print('error: conflicted replacements: $r $replacement <= $p');
           continue;
         }
         if (r == p) {
-          print('warning: useless conversion $r $p');
+          print('warning: useless conversion: $r $p');
           continue;
         }
         characterRreplacements[p] = replacement;
       }
+    }
+    for (var k in characterRreplacements.values) {
+      var v = characterRreplacements[k];
+      if (v == null) {
+        continue;
+      }
+      print('error: transitive conversion $v <= $k');
     }
   }
 

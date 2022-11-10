@@ -10,10 +10,13 @@ This is just a text matching engine, but a screening engine against denial lists
 You might have to join other propertins of denial lists for practical applications.
 
 - Fuzzy term matching and fuzzy query matching
-- Respect term importance of IDF
-- Support Latin characters, Chinse characters, Katakana characters, and others
-- Canonicalize traditioanal and simplified Chinese characters, and others
-- Support solo query and parallized bulk queries
+- Respects term importance of IDF
+- Supports the white queries
+- Supports the results cache
+- Supports Latin characters, Chinse characters, Katakana characters, and others
+- Canonicalizes expression variants of legal entity types
+- Canonicalizes traditioanal and simplified Chinese characters, and others
+- Supports solo query and parallized bulk queries
 
 ## Usage
 

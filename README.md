@@ -4,12 +4,12 @@
 
 Fuzzy text matching engine for entity or person screening against denial lists such as BIS Entity List.
 
-## Features
-
-This is just a text matching engine, not a screening engine against denial lists.
+Actutually this is just a text matching engine, not a screening engine against denial lists.
 You might have to join other propertins of denial lists for practical applications.
 
-- Fuzzy term matching with Levenstein distance and fuzzy query matching
+## Features
+
+- Fuzzy term matching with Levenshtein distance and fuzzy query matching
 - Provide perfect matching mode to deactivate fuzzy matching
 - Respects term importance of IDF
 - Canonicalizes expression variants of legal entity types such as **Limited** and **Ltd.**
@@ -197,7 +197,7 @@ queries_results.csv
 http :4049/restart
 ```
 
-This make the server reload the database, reread configurations and settings, and purge the result chache.
+This makes the server reload the database, reread configurations and settings, and purge the result chache.
 
 ### Normalize text as a join key with other properties of the denial lists
 

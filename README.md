@@ -115,7 +115,7 @@ $ http -b --unsorted ':4049?q="abc"'
 }
 ```
 
-### Send queries and receive results
+### Post queries in JSON and receive results
 
 ```text
 $ http -b --unsorted :4049 'Content-type:application/json; charset=utf-8' '[]=abc' '[]="def"'

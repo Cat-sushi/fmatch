@@ -19,10 +19,10 @@ This makes matchings insensitive to character simplification.
 - Canonicalaization of spelling variants of legal entity types such as "Limitd" and "Ltd."<br>
 This makes matchings insensitive to spelling variants of legal entity types.
 - White queries for avoiding screening your company itself and consequent false positives
-- Results cache for performance
+- Results cache for time performance
 - Solo query accepted by the web server for interactive UIs
 - Bulk queries accepted and processed parallel by the web server for batch applicaions
-- Text normalizing API for outer larger systems
+- Text normalizing API for outer larger systems joining results with other properties of the denial lists
 - A sample batch application
 
 ## Usage

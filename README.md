@@ -16,8 +16,9 @@ You might have to join other propertins of denial lists for practical applicatio
 - Canonicalizes traditioanal and simplified Chinese characters, and others
 - Canonicalizes expression variants of legal entity types such as *Limited* and *Ltd.*
 - Results cache for performance
-- White queries to avoid screening your company itself and consequence false positive
+- White queries to avoid screening your company itself and consequent false positive
 - The local web server accepts solo query and parallized bulk queries
+- Text normalizing API for outer larger systems
 - A sample batch application
 
 ## Usage
@@ -202,14 +203,14 @@ http :4049/restart
 
 This makes the server reload the database, reread the configurations and the settings, and purge the result chache.
 
-### Get normalized text as a join key with other properties of the denial lists
+### Get normalized text as a key of join with other properties of the denial lists
 
 ```text
 $ http -b ':4049/normalize?q=abc'
 "ABC"
 ```
 
-This is useful for prepareing outer larger systems.
+This is useful for prepareing outer larger systems which join with other properties of the denial lists.
 
 ## License
 

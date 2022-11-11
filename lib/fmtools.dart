@@ -45,7 +45,10 @@ mixin Tools on Settings {
       query.letType == LetType.postfix && qti == query.terms.length - 1 ||
       query.letType == LetType.prefix && qti == 0;
 
-  int maxMissedTermCount(int qtc) {
+  int maxMissedTermCount(int qtc, bool perfectMatching) {
+    if(perfectMatching) {
+      return 0;
+    }
     var minMatchedTC = (qtc.toDouble() * queryMatchingMinTermRatio).ceil();
     minMatchedTC = max<int>(minMatchedTC, queryMatchingMinTerms);
     minMatchedTC = min<int>(minMatchedTC, qtc);

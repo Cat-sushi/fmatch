@@ -81,13 +81,14 @@ class FMatcher with Settings, Tools {
     var queryTermsMatchMap = queryTermsMatch(query);
 
     var maxMissedTC =
-        query.perfectMatching ? 0 : maxMissedTermCount(query.terms.length);
+        maxMissedTermCount(query.terms.length, query.perfectMatching);
     bool queryFallenBack = false;
     if (estimateCombination(query, queryTermsMatchMap, maxMissedTC) >
         fallbackThresholdCombinations) {
       queryFallenBack = true;
       reduceQueryTerms(query, queryTermsMatchMap);
-      maxMissedTC = maxMissedTermCount(query.terms.length);
+      maxMissedTC =
+          maxMissedTermCount(query.terms.length, query.perfectMatching);
     }
 
     caliculateQueryTermWeight(query);

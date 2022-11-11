@@ -6,13 +6,13 @@ Fuzzy text matching engine for entity screening or person screening against deni
 
 Actutually, this is just a text matching engine, but not a screening engine against denial lists.
 You might have to join results with other propertins of denial lists for practical applications.
-This can be used as a subsystem with local web API or dart API.
+This is intended to be used as a subsystem with local web API or dart API.
 
 ## Features
 
 - Fuzzy term matching using Levenshtein distance and fuzzy query matching
 - Respects term importance of IDF in fuzzy matching mode
-- Perfect matching mode deactivating fuzzy matching to mitigate false positive
+- Perfect matching mode deactivating fuzzy matching to mitigate false positive in some cases
 - Accepts Latin characters, Chinese characters, Katakana characters, and others
 - Canonicalizes traditioanal and simplified Chinese characters, and others
 - Canonicalizes expression variants of legal entity types such as *Limited* and *Ltd.*

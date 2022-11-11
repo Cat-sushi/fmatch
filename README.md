@@ -5,12 +5,12 @@
 Fuzzy text matching engine for entity or person screening against denial lists such as BIS Entity List.
 
 Actutually, this is just a text matching engine, but not a screening engine against denial lists.
-You might have to join other propertins of denial lists for practical applications.
+You might have to join with other propertins of denial lists for practical applications.
 
 ## Features
 
 - Fuzzy term matching using Levenshtein distance and fuzzy query matching
-- Perfect matching mode deactivating fuzzy matching to mitigating false positive
+- Perfect matching mode deactivating fuzzy matching to mitigate false positive
 - Respects term importance of IDF
 - Accepts Latin characters, Chinese characters, Katakana characters, and others
 - Canonicalizes traditioanal and simplified Chinese characters, and others

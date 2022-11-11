@@ -4,20 +4,21 @@
 
 Fuzzy text matching engine for entity or person screening against denial lists such as BIS Entity List.
 
-Actutually this is just a text matching engine, not a screening engine against denial lists.
+Actutually, this is just a text matching engine, but not a screening engine against denial lists.
 You might have to join other propertins of denial lists for practical applications.
 
 ## Features
 
-- Fuzzy term matching with Levenshtein distance and fuzzy query matching
-- Provide perfect matching mode to deactivate fuzzy matching
+- Fuzzy term matching using Levenshtein distance and fuzzy query matching
+- Perfect matching mode to deactivate fuzzy matching which mitigating false positive
 - Respects term importance of IDF
-- Canonicalizes expression variants of legal entity types such as **Limited** and **Ltd.**
-- Accepts Latin characters, Chinse characters, Katakana characters, and others
+- Accepts Latin characters, Chinese characters, Katakana characters, and others
 - Canonicalizes traditioanal and simplified Chinese characters, and others
+- Canonicalizes expression variants of legal entity types such as **Limited** and **Ltd.**
+- Results cache for performance
+- White queries to avoid screening your company itself and consequence false positive
 - The local web server accepts solo query and parallized bulk queries
-- Provide the results cache for performance
-- Provide the white queries to avoid screening your company itself
+- A sample batch application
 
 ## Usage
 
@@ -29,7 +30,7 @@ dart bin/fetch_public_lists.dart
 
 This fetches lists from [US Consolidated Screening List](https://www.trade.gov/consolidated-screening-list "Consolidated Screening List") and [Japanese METI Foreign Users List](https://www.meti.go.jp/policy/anpo/law05.html#user-list "安全保障貿易管理**Export Control*関係法令：申請、相談に関する通達").
 
-### Compile the web server
+### Compile the local web server
 
 ```text
 dart compile exe -v bin/wserver.dart -o bin/wserver
@@ -37,13 +38,13 @@ dart compile exe -v bin/wserver.dart -o bin/wserver
 
 **Note**: The JIT mode doesn't work for some reasons.
 
-### Start the web server
+### Start the local web server
 
 ```text
 bin/wserver
 ```
 
-### Send a query and receive a result
+### Send a query and receive the result
 
 ```text
 $ http -b --unsorted ':4049?q=abc'
@@ -115,7 +116,7 @@ $ http -b --unsorted ':4049?q="abc"'
 }
 ```
 
-### Post queries in JSON and receive results
+### Post queries in JSON and receive the results
 
 ```text
 $ http -b --unsorted :4049 'Content-type:application/json; charset=utf-8' '[]=abc' '[]="def"'
@@ -181,12 +182,14 @@ $ http -b --unsorted :4049 'Content-type:application/json; charset=utf-8' '[]=ab
 ]
 ```
 
-### Run batch queries
+### Run the sample batch
 
 ```text
-$ dart bin/batchwb.dart -i queries.csv
+$ ls batch
+queries.csv
+$ dart bin/batchwb.dart -i batch/queries.csv
  ...
-$ ls
+$ ls batch
 queries.csv
 queries_results.csv
 ```
@@ -197,9 +200,9 @@ queries_results.csv
 http :4049/restart
 ```
 
-This makes the server reload the database, reread configurations and settings, and purge the result chache.
+This makes the server reload the database, reread the configurations and the settings, and purge the result chache.
 
-### Normalize text as a join key with other properties of the denial lists
+### Get normalized text as a join key with other properties of the denial lists
 
 ```text
 $ http -b ':4049/normalize?q=abc'

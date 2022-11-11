@@ -12,13 +12,13 @@ This is intended to be used as a subsystem with local web API or dart API.
 
 - Fuzzy term matching using Levenshtein distance and fuzzy query matching
 - Respects term importance of IDF in fuzzy matching mode
-- Perfect matching mode deactivating fuzzy matching to mitigate false positive in some cases
+- Perfect matching mode deactivating fuzzy matching to reduce false positives in some cases
 - Accepts Latin characters, Chinese characters, Katakana characters, and others
 - Canonicalizes traditioanal and simplified Chinese characters, and others
-- Canonicalizes expression variants of legal entity types such as *Limited* and *Ltd.*
+- Canonicalizes speling variants of legal entity types such as *Limited* and *Ltd.*
+- White queries to avoid screening your company itself and consequent false positives
 - Results cache for performance
-- White queries to avoid screening your company itself and consequent false positive
-- The local web server accepts solo query and parallized bulk queries
+- The local web server accepts solo query and bulk queries processed parallel
 - Text normalizing API for outer larger systems
 - A sample batch application
 
@@ -214,6 +214,8 @@ $ http -b ':4049/normalize?q=abc'
 ```
 
 This is useful for prepareing outer larger systems which join results with other properties of the denial lists.
+
+For your information, results from this subsystem are normalized.
 
 ## License
 

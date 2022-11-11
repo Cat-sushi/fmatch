@@ -4,9 +4,9 @@
 
 Fuzzy text matching engine for entity screening or person screening against denial lists such as BIS Entity List.
 
-Actutually, this is just a text matching engine, but not a screening engine against denial lists.
+Actutually, this is just a text matching engine, but not a screening system against denial lists.
 You might have to join results with other propertins of denial lists for practical applications.
-This is intended to be used as a subsystem with local web API or dart API.
+This is intended to be a subsystem with local web API or dart API.
 
 ## Features
 
@@ -30,7 +30,7 @@ This is intended to be used as a subsystem with local web API or dart API.
 dart bin/fetch_public_lists.dart 
 ```
 
-This fetches lists from [US Governments Consolidated Screening List](https://www.trade.gov/consolidated-screening-list "Consolidated Screening List") and [Japanese METI Foreign Users List](https://www.meti.go.jp/policy/anpo/law05.html#user-list "安全保障貿易管理**Export Control*関係法令：申請、相談に関する通達").
+This fetches lists from [US Government's Consolidated Screening List](https://www.trade.gov/consolidated-screening-list "Consolidated Screening List") and [Japanese METI Foreign Users List](https://www.meti.go.jp/policy/anpo/law05.html#user-list "安全保障貿易管理**Export Control*関係法令：申請、相談に関する通達").
 
 ### Compile the local web server
 
@@ -205,6 +205,7 @@ http :4049/restart
 ```
 
 This makes the server reload the database, reread the configurations and the settings, and purge the result chache.
+This is useful when the denial lists are updated or the configurations/ settings are modified.
 
 ### Get normalized text as a key of join with other properties of the denial lists
 
@@ -215,7 +216,7 @@ $ http -b ':4049/normalize?q=abc'
 
 This is useful for prepareing outer larger systems which join results with other properties of the denial lists.
 
-For your information, results from this subsystem are normalized.
+Note that results from this subsystem are normalized in the same way.
 
 ## License
 

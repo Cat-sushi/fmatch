@@ -22,7 +22,7 @@ You might have to join other propertins of denial lists for practical applicatio
 
 ## Usage
 
-### Fetch the public denial lists
+### Fetch the public denial lists (optional)
 
 ```text
 dart bin/fetch_public_lists.dart 
@@ -36,7 +36,7 @@ This fetches lists from [US Consolidated Screening List](https://www.trade.gov/c
 dart compile exe -v bin/wserver.dart -o bin/wserver
 ```
 
-**Note**: The JIT mode doesn't work for some reasons.
+**Note**: The JIT mode doesn't work for some reasons. See dart-lang/sdk#50082
 
 ### Start the local web server
 

@@ -11,14 +11,14 @@ This is intended to be a subsystem with local web API or dart API.
 ## Features
 
 - Fuzzy term matching using Levenshtein distance and fuzzy query matching
-- Respects term importance of IDF in fuzzy matching mode
+- Respects term importance of IDF duaring fuzzy query matching
 - Perfect matching mode deactivating fuzzy matching to reduce false positives in some cases
 - Accepts Latin characters, Chinese characters, Katakana characters, and others
-- Canonicalizes traditioanal and simplified Chinese characters, and others
-- Canonicalizes speling variants of legal entity types such as *Limited* and *Ltd.*
-- White queries to avoid screening your company itself and consequent false positives
+- Canonicalizes traditioanal and simplified Chinese characters, and others. This makes matchings simplification insensitive.
+- Canonicalizes speling variants of legal entity types such as *Ltd.* and *Limited*. This makes matchings variants insensitive.
+- White queries for avoiding screening your company itself and consequent false positives
 - Results cache for performance
-- The local web server accepts solo query and bulk queries processed parallel
+- The local web server accepts solo query for interactive UIs and bulk queries processed parallel for batch applicaions
 - Text normalizing API for outer larger systems
 - A sample batch application
 

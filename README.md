@@ -5,7 +5,7 @@
 Fuzzy text matching engine for entity or person screening against denial lists such as BIS Entity List.
 
 Actutually, this is just a text matching engine, but not a screening engine against denial lists.
-You might have to join with other propertins of denial lists for practical applications.
+You might have to join results with other propertins of denial lists for practical applications.
 This can be used as a subsystem with local web API or as a dart API.
 
 ## Features
@@ -30,7 +30,7 @@ This can be used as a subsystem with local web API or as a dart API.
 dart bin/fetch_public_lists.dart 
 ```
 
-This fetches lists from [US Consolidated Screening List](https://www.trade.gov/consolidated-screening-list "Consolidated Screening List") and [Japanese METI Foreign Users List](https://www.meti.go.jp/policy/anpo/law05.html#user-list "安全保障貿易管理**Export Control*関係法令：申請、相談に関する通達").
+This fetches lists from [US Governments Consolidated Screening List](https://www.trade.gov/consolidated-screening-list "Consolidated Screening List") and [Japanese METI Foreign Users List](https://www.meti.go.jp/policy/anpo/law05.html#user-list "安全保障貿易管理**Export Control*関係法令：申請、相談に関する通達").
 
 ### Compile the local web server
 
@@ -85,9 +85,11 @@ $ http -b --unsorted ':4049?q=abc'
 }
 ```
 
-Do not forget to percent encode the query.
+Do not forget to percent-encode the query.
 
 ### Perfect matching
+
+Enclose the whole query with double quates.
 
 ```text
 $ http -b --unsorted ':4049?q="abc"'
@@ -211,7 +213,7 @@ $ http -b ':4049/normalize?q=abc'
 "ABC"
 ```
 
-This is useful for prepareing outer larger systems which join with other properties of the denial lists.
+This is useful for prepareing outer larger systems which join results with other properties of the denial lists.
 
 ## License
 

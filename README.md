@@ -5,7 +5,7 @@
 Fuzzy text matching engine for entity screening or person screening against denial lists such as BIS Entity List.
 
 Actutually, this is just a text matching engine, but not a screening system against denial lists.
-You might have to join results with other propertins of denial lists for practical applications.
+You might have to join results with denial lists for practical applications.
 This is intended to be a subsystem with local web API or dart API.
 
 ## Features
@@ -22,7 +22,7 @@ This makes matchings insensitive to spelling variants of legal entity types.
 - Results cache for time performance
 - Solo query accepted by the web server for interactive UIs
 - Bulk queries accepted and processed parallel by the web server for batch applicaions
-- Text normalizing API for outer larger systems joining results with other properties of the denial lists
+- Text normalizing API for outer larger systems joining results with the denial lists
 - A sample batch application
 
 ## Usage
@@ -210,14 +210,14 @@ http :4049/restart
 This makes the server reload the database, reread the configurations and the settings, and purge the result chache.
 This is useful when the denial lists are updated or the configurations/ settings are modified.
 
-### Get normalized text as a key of join with other properties of the denial lists
+### Get normalized text as a key of join with the denial lists
 
 ```text
 $ http -b ':4049/normalize?q=abc'
 "ABC"
 ```
 
-This is useful for prepareing outer larger systems which join results with other properties of the denial lists.
+This is useful for prepareing outer larger systems which join results with  the denial lists.
 
 Note that results from this subsystem are normalized in the same way.
 

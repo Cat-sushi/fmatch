@@ -12,7 +12,7 @@ This is intended to be a subsystem with local web API or dart API.
 
 - Fuzzy term matching using Levenshtein distance
 - Fuzzy query matching respecting term similarity, term order, and term importance of IDF
-- Perfect matching mode deactivating fuzzy matchings to reduce false positives in some cases
+- Perfect matching mode deactivating fuzzy matchings for reducing false positives in some cases
 - Accepting Latin characters, Chinese characters, Katakana characters, and others
 - Canonicalaization of traditioanal and simplified Chinese characters, and others<br>
 This makes matchings insensitive to character simplification.

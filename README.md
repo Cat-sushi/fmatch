@@ -10,11 +10,11 @@ You might have to join other propertins of denial lists for practical applicatio
 ## Features
 
 - Fuzzy term matching using Levenshtein distance and fuzzy query matching
-- Perfect matching mode to deactivate fuzzy matching which mitigating false positive
+- Perfect matching mode deactivating fuzzy matching to mitigating false positive
 - Respects term importance of IDF
 - Accepts Latin characters, Chinese characters, Katakana characters, and others
 - Canonicalizes traditioanal and simplified Chinese characters, and others
-- Canonicalizes expression variants of legal entity types such as **Limited** and **Ltd.**
+- Canonicalizes expression variants of legal entity types such as *Limited* and *Ltd.*
 - Results cache for performance
 - White queries to avoid screening your company itself and consequence false positive
 - The local web server accepts solo query and parallized bulk queries
@@ -36,7 +36,7 @@ This fetches lists from [US Consolidated Screening List](https://www.trade.gov/c
 dart compile exe -v bin/wserver.dart -o bin/wserver
 ```
 
-**Note**: The JIT mode doesn't work for some reasons. See dart-lang/sdk#50082
+**Note**: The JIT mode doesn't work for some reasons. See dart-lang/sdk#50082.
 
 ### Start the local web server
 
@@ -208,6 +208,8 @@ This makes the server reload the database, reread the configurations and the set
 $ http -b ':4049/normalize?q=abc'
 "ABC"
 ```
+
+This is useful for prepareing outer larger systems.
 
 ## License
 

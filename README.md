@@ -2,11 +2,11 @@
 
 ## Description
 
-Fuzzy text matching engine for entity or person screening against denial lists such as BIS Entity List.
+Fuzzy text matching engine for entity screening or person screening against denial lists such as BIS Entity List.
 
 Actutually, this is just a text matching engine, but not a screening engine against denial lists.
 You might have to join results with other propertins of denial lists for practical applications.
-This can be used as a subsystem with local web API or as a dart API.
+This can be used as a subsystem with local web API or dart API.
 
 ## Features
 

@@ -2,42 +2,45 @@
 
 ## Description
 
-Fuzzy text matcher for entity or persn screening against denial lists such as BIS Entity List.
+Fuzzy text matching engine for entity or person screening against denial lists such as BIS Entity List.
 
 ## Features
 
-This is just a text matching engine, but a screening engine against denial lists.
+This is just a text matching engine, not a screening engine against denial lists.
 You might have to join other propertins of denial lists for practical applications.
 
-- Fuzzy term matching and fuzzy query matching
+- Fuzzy term matching with Levenstein distance and fuzzy query matching
+- Provide perfect matching mode to deactivate fuzzy matching
 - Respects term importance of IDF
-- Supports the white queries
-- Supports the results cache
-- Supports Latin characters, Chinse characters, Katakana characters, and others
-- Canonicalizes expression variants of legal entity types
+- Canonicalizes expression variants of legal entity types such as **Limited** and **Ltd.**
+- Accepts Latin characters, Chinse characters, Katakana characters, and others
 - Canonicalizes traditioanal and simplified Chinese characters, and others
-- Supports solo query and parallized bulk queries
+- The local web server accepts solo query and parallized bulk queries
+- Provide the results cache for performance
+- Provide the white queries to avoid screening your company itself
 
 ## Usage
 
 ### Fetch the public denial lists
 
 ```text
-$ dart bin/fetch_public_lists.dart 
+dart bin/fetch_public_lists.dart 
 ```
+
+This fetches lists from [US Consolidated Screening List](https://www.trade.gov/consolidated-screening-list "Consolidated Screening List") and [Japanese METI Foreign Users List](https://www.meti.go.jp/policy/anpo/law05.html#user-list "安全保障貿易管理**Export Control*関係法令：申請、相談に関する通達").
 
 ### Compile the web server
 
 ```text
-$ dart compile exe -v bin/wserver.dart -o bin/wserver
+dart compile exe -v bin/wserver.dart -o bin/wserver
 ```
 
-**Note**: JIT mode doesn't work for some reasons.
+**Note**: The JIT mode doesn't work for some reasons.
 
 ### Start the web server
 
 ```text
-$ bin/wserver
+bin/wserver
 ```
 
 ### Send a query and receive a result
@@ -79,15 +82,48 @@ $ http -b --unsorted ':4049?q=abc'
 }
 ```
 
+Do not forget to percent encode the query.
+
+### Perfect matching
+
+```text
+$ http -b --unsorted ':4049?q="abc"'
+{
+    "serverId": 1,
+    "start": "2022-11-11T00:39:16.506794Z",
+    "durationInMilliseconds": 2,
+    "inputString": "\"abc\"",
+    "rawQuery": "ABC",
+    "cachedResult": {
+        "cachedQuery": {
+            "letType": "na",
+            "terms": [
+                "ABC"
+            ],
+            "perfectMatching": true
+        },
+        "queryScore": 1.0,
+        "queryFallenBack": false,
+        "matchedEntiries": [
+            {
+                "entry": "ABC LLC",
+                "score": 1.0
+            }
+        ]
+    },
+    "message": "Cached result"
+}
+```
+
 ### Send queries and receive results
 
 ```text
-$ http -b --unsorted :4049 'Content-type:application/json; charset=utf-8' '[]=abc' '[]=def'
+$ http -b --unsorted :4049 'Content-type:application/json; charset=utf-8' '[]=abc' '[]="def"'
 [
     {
-        "serverId": 1,
-        "start": "2022-11-10T12:32:38.220773Z",
-        "durationInMilliseconds": 0,
+        "serverId": 2,
+        "start": "2022-11-11T00:40:34.971122Z",
+        "durationInMilliseconds": 2,
         "inputString": "abc",
         "rawQuery": "ABC",
         "cachedResult": {
@@ -118,10 +154,10 @@ $ http -b --unsorted :4049 'Content-type:application/json; charset=utf-8' '[]=ab
         "message": "Cached result"
     },
     {
-        "serverId": 2,
-        "start": "2022-11-10T12:32:38.220757Z",
-        "durationInMilliseconds": 0,
-        "inputString": "def",
+        "serverId": 0,
+        "start": "2022-11-11T00:40:34.970496Z",
+        "durationInMilliseconds": 2,
+        "inputString": "\"def\"",
         "rawQuery": "DEF",
         "cachedResult": {
             "cachedQuery": {
@@ -129,40 +165,30 @@ $ http -b --unsorted :4049 'Content-type:application/json; charset=utf-8' '[]=ab
                 "terms": [
                     "DEF"
                 ],
-                "perfectMatching": false
+                "perfectMatching": true
             },
-            "queryScore": 0.7244013612530856,
+            "queryScore": 1.0,
             "queryFallenBack": false,
             "matchedEntiries": [
                 {
                     "entry": "SAZEMANE SANAYE DEF",
-                    "score": 0.7244013612530856
-                },
-                {
-                    "entry": "VEZARATE DEFA",
-                    "score": 0.5433010209398142
-                },
-                {
-                    "entry": "DEIF, MUHAMMED",
-                    "score": 0.5433010209398142
-                },
-                {
-                    "entry": "SASEMAN SANAJE DEFA",
-                    "score": 0.5433010209398142
-                },
-                {
-                    "entry": "SAZEMANE SANAYE DEFA",
-                    "score": 0.5433010209398142
-                },
-                {
-                    "entry": "VEZARAT-E DEFA VA POSHTYBANI-E NIRU-HAYE MOSALLAH",
-                    "score": 0.5433010209398142
+                    "score": 1.0
                 }
             ]
         },
-        "message": "Cached result"
+        "message": ""
     }
 ]
+```
+
+### Run batch queries
+
+```text
+$ dart bin/batchwb.dart -i queries.csv
+ ...
+$ ls
+queries.csv
+queries_results.csv
 ```
 
 ### Reflesh the server
@@ -171,7 +197,9 @@ $ http -b --unsorted :4049 'Content-type:application/json; charset=utf-8' '[]=ab
 http :4049/restart
 ```
 
-### Normalize text for join key with other properties of denial lists
+This make the server reload the database, reread configurations and settings, and purge the result chache.
+
+### Normalize text as a join key with other properties of the denial lists
 
 ```text
 $ http -b ':4049/normalize?q=abc'
@@ -182,4 +210,4 @@ $ http -b ':4049/normalize?q=abc'
 
 Published under AGPL-3.0 or later. See the LICENSE file.
 
-If you want another license, contact me.
+If you need another different license, contact me.

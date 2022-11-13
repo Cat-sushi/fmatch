@@ -49,7 +49,7 @@ mixin Settings {
   double queryMatchingTermOrderCoefficent = 0.5;
   int queryResultCacheSize = 100000;
 
-  Future<void> readSettings(String? path) async {
+  Future<void> readSettings([String? path]) async {
     path ??= Pathes.setting;
     await for (var l in readCsvLines(path)) {
       if (l.length < 2 || l[0] == null || l[1] == null) {

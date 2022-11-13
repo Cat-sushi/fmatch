@@ -17,7 +17,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:fmatch/util.dart';
+import 'package:fmatch/src/util.dart';
 import 'package:html/parser.dart';
 
 final pls = 'config';

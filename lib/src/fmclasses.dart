@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+library _fmclasses;
+
 import 'dart:collection';
 
 import 'preprocess.dart';
@@ -88,6 +90,7 @@ class QueryOccurrence implements Comparable<QueryOccurrence> {
   }
 }
 
+/// Type of part of QueryResult
 class MatchedEntry {
   final Entry entry;
   final double score;
@@ -101,6 +104,7 @@ class MatchedEntry {
       };
 }
 
+/// Type of part of QueryResult
 class CachedQuery {
   final LetType letType;
   final List<Term> terms;
@@ -150,6 +154,7 @@ class CachedQuery {
   }
 }
 
+/// Type of part of QueryResult
 class CachedResult {
   final CachedQuery cachedQuery;
   final double queryScore;
@@ -175,6 +180,7 @@ class CachedResult {
       };
 }
 
+/// Type of result from fmatch
 class QueryResult {
   int serverId = 0;
   final DateTime dateTime;
@@ -209,7 +215,7 @@ class QueryResult {
       [this.message = ''])
       : dateTime = start,
         durationInMilliseconds = end.difference(start).inMilliseconds;
-  QueryResult.fromError(this.inputString, this.message)
+  QueryResult.fromMessage(this.inputString, this.message)
       : dateTime = DateTime.now(),
         durationInMilliseconds = 0,
         rawQuery = Entry(''),

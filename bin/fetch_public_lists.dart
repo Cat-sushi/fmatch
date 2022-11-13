@@ -17,8 +17,8 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:fmatch/fmatch.dart';
-import 'package:fmatch/util.dart';
+import 'package:fmatch/src/fmatch_impl.dart';
+import 'package:fmatch/src/util.dart';
 import 'package:html/parser.dart';
 
 final pls = 'database';
@@ -74,7 +74,7 @@ Future<void> main(List<String> args) async {
   await catFilesWithUtf8Bom([consolidatedList, fulList], concatList);
 
   print("Building db and idb.");
-  final matcher = FMatcher();
+  final matcher = FMatcherImpl();
   await matcher.preper.readConfigs();
   await matcher.buildDb();
 }

@@ -20,9 +20,9 @@ import 'dart:math';
 
 import 'package:args/args.dart';
 import 'package:async/async.dart';
-import 'package:fmatch/bparts.dart';
 import 'package:fmatch/fmatch.dart';
-import 'package:fmatch/util.dart';
+import 'package:fmatch/src/bparts.dart';
+import 'package:fmatch/src/util.dart';
 
 late IOSink resultSink;
 late IOSink logSink;
@@ -68,9 +68,7 @@ Future<void> wbatch(String queryPath) async {
   lastLap = startTime;
   currentLap = lastLap;
   var matcher = FMatcher();
-  await matcher.readSettings(null);
-  await matcher.preper.readConfigs();
-  await matcher.buildDb();
+  await matcher.init();
   await Dispatcher(queries).dispatch();
 }
 

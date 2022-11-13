@@ -4,13 +4,13 @@
 
 import 'dart:convert';
 
-import 'package:fmatch/database.dart';
-import 'package:fmatch/fmatch.dart';
-import 'package:fmatch/fmclasses.dart';
+import 'package:fmatch/src/database.dart';
+import 'package:fmatch/src/fmatch_impl.dart';
+import 'package:fmatch/src/fmclasses.dart';
 import 'package:test/test.dart';
 
 Future<void> main() async {
-  var matcher = FMatcher();
+  var matcher = FMatcherImpl();
   await matcher.readSettings(null);
   await matcher.preper.readConfigs();
   var list = [

@@ -24,9 +24,6 @@ import 'package:args/args.dart';
 import 'package:async/async.dart';
 
 import 'package:fmatch/fmatch.dart';
-import 'package:fmatch/fmclasses.dart';
-import 'package:fmatch/server.dart';
-import 'package:fmatch/util.dart';
 
 final _host = InternetAddress.loopbackIPv4.host;
 const _port = 4049;
@@ -43,10 +40,8 @@ final batchStreamQueue = StreamQueue(batchStreamController.stream);
 var batchQueueLength = 0;
 var maxBatchQueueLength = serverCount * 2;
 
-final serverPoolController = StreamController<Client>();
-final serverPool = StreamQueue(serverPoolController.stream);
-
 late FMatcher matcher;
+late FMatcherP matcherp;
 late SendPort cacheServer;
 
 Future main(List<String> args) async {
@@ -64,7 +59,7 @@ Future main(List<String> args) async {
 
   print('Starting servers: ${DateTime.now()}');
   await readSettingsAndConfigs(options);
-  await startServers();
+  await matcherp.startServers();
   print('Servers started: ${DateTime.now()}');
 
   for (var i = 0; i < serverCount; i++) {
@@ -102,7 +97,7 @@ Future main(List<String> args) async {
     } else if (req.method == 'GET' && req.uri.path == '/normalize') {
       try {
         var query = req.uri.queryParameters['q']!;
-        var result = matcher.preper.normalizeAndCapitalize(query);
+        var result = normalize(query);
         var responseContent = josonEncoderWithIdent.convert(result);
         req.response
           ..statusCode = HttpStatus.ok
@@ -120,10 +115,10 @@ Future main(List<String> args) async {
       }
     } else if (req.method == 'GET' && req.uri.path == '/restart') {
       print('Stopping servers: ${DateTime.now()}');
-      await stopServers();
+      await matcherp.stopServers();
       print('Starting servers: ${DateTime.now()}');
       await readSettingsAndConfigs(options);
-      await startServers();
+      await matcherp.startServers();
       print('Servers started: ${DateTime.now()}');
       response
         ..statusCode = HttpStatus.ok
@@ -140,8 +135,7 @@ Future main(List<String> args) async {
 
 Future<void> readSettingsAndConfigs(ArgResults options) async {
   matcher = FMatcher();
-
-  await time(() => matcher.readSettings(null), 'Settings.read');
+  await matcher.init();
 
   if (options['cache'] != null) {
     matcher.queryResultCacheSize = int.tryParse(options['cache'] as String) ??
@@ -158,28 +152,7 @@ Future<void> readSettingsAndConfigs(ArgResults options) async {
     maxBatchQueueLength = maxCommandQueueLength;
   }
 
-  await time(() => matcher.preper.readConfigs(), 'Configs.read');
-  await time(() => matcher.buildDb(), 'buildDb');
-  print('Min Score: ${matcher.minScore}');
-}
-
-Future<void> startServers() async {
-  cacheServer = await CacheServer.spawn(matcher.queryResultCacheSize);
-
-  for (var id = 0; id < serverCount; id++) {
-    var c = Client(id);
-    await c.spawnServer(matcher, cacheServer);
-    serverPoolController.add(c);
-  }
-}
-
-Future<void> stopServers() async {
-  for (var id = 0; id < serverCount; id++) {
-    var c = await serverPool.next;
-    c.closeServer();
-  }
-
-  CacheServer.close(cacheServer);
+  matcherp = FMatcherP.fromFMatcher(matcher, serverCount);
 }
 
 Future<void> sendReceiveResponseOne() async {
@@ -189,9 +162,7 @@ Future<void> sendReceiveResponseOne() async {
       var cache = req.uri.queryParameters['c'];
       var activateCache = cache == null || cache == '1';
       var query = req.uri.queryParameters['q']!;
-      var client = await serverPool.next;
-      var result = await client.fmatch(query, activateCache);
-      serverPoolController.add(client);
+      var result = await matcherp.fmatch(query, activateCache);
       var responseContent = josonEncoderWithIdent.convert(result);
       req.response
         ..statusCode = HttpStatus.ok
@@ -219,78 +190,23 @@ Future<void> sendReceiveResponseBulk() async {
       var activateCache = cache == null || cache == '1';
       var jsonString =
           await req.cast<List<int>>().transform(utf8.decoder).join();
-      var queryList = (jsonDecode(jsonString) as List<dynamic>).cast<String>();
-      var queries = StreamQueue<String>(Stream.fromIterable(queryList));
-      await Dispatcher(queries, req.response, activateCache).dispatch();
+      var queries = (jsonDecode(jsonString) as List<dynamic>).cast<String>();
+      var result = await matcherp.fmatchb(queries, activateCache);
+      req.response
+        ..headers.contentType =
+            ContentType('application', 'json', charset: 'utf-8')
+        ..write(json.encode(result))
+        ..close();
     } catch (e, s) {
-      print(s);
       req.response
         ..statusCode = HttpStatus.internalServerError
         ..headers.contentType =
             ContentType('application', 'json', charset: 'utf-8')
         ..write('Internal Server Error: $e.');
+      print(s);
       req.response.close();
     } finally {
       batchQueueLength--;
-    }
-  }
-}
-
-class Dispatcher {
-  Dispatcher(this.queries, this.response, this.activateCache);
-  final StreamQueue<String> queries;
-  final HttpResponse response;
-  final bool activateCache;
-  final results = <int, QueryResult>{};
-  var maxResultsLength = 0;
-  var ixS = 0;
-  var ixO = 0;
-  var first = true;
-
-  Future<void> dispatch() async {
-    response.headers.contentType =
-        ContentType('application', 'json', charset: 'utf-8');
-    response.write('[');
-    var futures = <Future>[];
-    for (var i = 0; i < serverCount; i++) {
-      futures.add(sendReceve());
-    }
-    await Future.wait<void>(futures);
-    response.write(']');
-    await response.close();
-  }
-
-  Future<void> sendReceve() async {
-    while (true) {
-      var queryRef = await queries.take(1);
-      if (queryRef.isEmpty) {
-        break;
-      }
-      var query = queryRef[0];
-      var ix = ixS;
-      ixS++;
-      var client = await serverPool.next;
-      var result = await client.fmatch(query, activateCache);
-      serverPoolController.add(client);
-      results[ix] = result;
-      maxResultsLength = max(results.length, maxResultsLength);
-      printResultsInOrder();
-    }
-  }
-
-  void printResultsInOrder() {
-    for (; ixO < ixS; ixO++) {
-      var result = results[ixO];
-      if (result == null) {
-        return;
-      }
-      if (first) {
-        first = false;
-      } else {
-        response.write(',');
-      }
-      response.write(josonEncoderWithIdent.convert(result));
-      results.remove(ixO);
     }
   }
 }

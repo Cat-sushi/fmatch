@@ -20,10 +20,10 @@ import 'dart:math';
 
 import 'package:args/args.dart';
 import 'package:async/async.dart';
-import 'package:fmatch/bparts.dart';
-import 'package:fmatch/fmatch.dart';
-import 'package:fmatch/fmclasses.dart';
-import 'package:fmatch/util.dart';
+import 'package:fmatch/src/bparts.dart';
+import 'package:fmatch/src/fmatch_impl.dart';
+import 'package:fmatch/src/fmclasses.dart';
+import 'package:fmatch/src/util.dart';
 
 late IOSink resultSink;
 late IOSink logSink;
@@ -60,7 +60,7 @@ Future<void> wbatch([String path = 'batch']) async {
   startTime = DateTime.now();
   lastLap = startTime;
   currentLap = lastLap;
-  var matcher = FMatcher();
+  var matcher = FMatcherImpl();
   await matcher.readSettings(null);
   await matcher.preper.readConfigs();
   await matcher.buildDb();

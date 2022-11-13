@@ -18,9 +18,10 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 
-import 'package:fmatch/bparts.dart';
 import 'package:fmatch/fmatch.dart';
-import 'package:fmatch/util.dart';
+
+import 'package:fmatch/src/bparts.dart';
+import 'package:fmatch/src/util.dart';
 
 Future<void> main(List<String> args) async {
   var argParser = ArgParser()
@@ -36,14 +37,12 @@ Future<void> main(List<String> args) async {
   }
   print('Start Batch');
   var matcher = FMatcher();
-  await time(() => matcher.readSettings(null), 'settings.read');
+  await time(() => matcher.init(), 'matcher.init');
   if (options['cache'] != null) {
     matcher.queryResultCacheSize = int.tryParse(options['cache']! as String) ??
         matcher.queryResultCacheSize;
   }
   var queryPath = options['input'] as String? ?? 'batch/queries.csv';
-  await time(() => matcher.preper.readConfigs(), 'Configs.read');
-  await time(() => matcher.buildDb(), 'buildDb');
   await time(() => batch(matcher, queryPath), 'batch');
 }
 

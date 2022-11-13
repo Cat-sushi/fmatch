@@ -17,7 +17,8 @@
 import 'dart:async';
 import 'dart:isolate';
 
-import 'fmatch.dart';
+import 'package:fmatch/src/fmatch_impl.dart';
+
 import 'fmclasses.dart';
 
 class Client {
@@ -27,7 +28,7 @@ class Client {
 
   Client(this.serverId);
 
-  Future<void> spawnServer(FMatcher matcher, SendPort cacheServer) async {
+  Future<void> spawnServer(FMatcherImpl matcher, SendPort cacheServer) async {
     var crp = ReceivePort();
     _cri = StreamIterator<dynamic>(crp);
     await Isolate.spawn<List<dynamic>>(
@@ -48,7 +49,7 @@ class Client {
 
   static Future<void> serverMain(List<dynamic> message) async {
     var ssp = message[0] as SendPort;
-    var matcher = message[1] as FMatcher;
+    var matcher = message[1] as FMatcherImpl;
     var ccsp = message[2] as SendPort;
     matcher.resultCache = CacheClient(ccsp); // overwriting local cache
     final srp = ReceivePort();

@@ -2,9 +2,9 @@
 // All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:fmatch/configs.dart';
-import 'package:fmatch/fmatch.dart';
-import 'package:fmatch/fmclasses.dart';
+import 'package:fmatch/src/configs.dart';
+import 'package:fmatch/src/fmatch_impl.dart';
+import 'package:fmatch/src/fmclasses.dart';
 import 'package:test/test.dart';
 
 Future<void> main() async {
@@ -12,7 +12,7 @@ Future<void> main() async {
   Pathes.db = 'test/env1/db.csv';
   Pathes.idb = 'test/env1/idb.json';
 
-  var matcher = FMatcher();
+  var matcher = FMatcherImpl();
   await matcher.readSettings(null);
   await matcher.preper.readConfigs();
   await matcher.buildDb();

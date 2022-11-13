@@ -2,10 +2,11 @@
 // All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:fmatch/configs.dart';
 import 'package:fmatch/fmatch.dart';
-import 'package:fmatch/server.dart';
-import 'package:fmatch/util.dart';
+import 'package:fmatch/src/configs.dart';
+import 'package:fmatch/src/fmatch_impl.dart';
+import 'package:fmatch/src/server.dart';
+import 'package:fmatch/src/util.dart';
 import 'package:test/test.dart';
 
 import '../bin/batchp.dart';
@@ -17,20 +18,13 @@ Future<void> main() async {
   Pathes.idb = '$env/idb.json';
   var queriesPath = '$env/queries.csv';
 
-  var matcher = FMatcher();
-  await matcher.readSettings(null);
-  await matcher.preper.readConfigs();
-  await matcher.buildDb();
+  var matcher = FMatcherImpl();
+  matcher.init();
+  var matcherp = FMatcherP.fromFMatcher(matcher);
 
   cacheServer = await CacheServer.spawn(matcher.queryResultCacheSize);
 
-  for (var id = 0; id < serverCount; id++) {
-    var c = Client(id);
-    await c.spawnServer(matcher, cacheServer);
-    serverPoolController.add(c);
-  }
-
-  await pbatch(matcher, queriesPath);
+  await pbatch(matcherp, queriesPath);
 
   var queries = <String>[];
   await for (var l in readCsvLines( Pathes.list)) {

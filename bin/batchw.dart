@@ -20,10 +20,10 @@ import 'dart:math';
 
 import 'package:args/args.dart';
 import 'package:async/async.dart';
-import 'package:fmatch/bparts.dart';
+import 'package:fmatch/src/bparts.dart';
 
-import 'package:fmatch/fmclasses.dart';
-import 'package:fmatch/util.dart';
+import 'package:fmatch/src/fmclasses.dart';
+import 'package:fmatch/src/util.dart';
 
 late IOSink resultSink;
 late IOSink logSink;

@@ -4,14 +4,14 @@
 
 import 'dart:io';
 
-import 'package:fmatch/configs.dart';
-import 'package:fmatch/fmatch.dart';
-import 'package:fmatch/util.dart';
+import 'package:fmatch/src/configs.dart';
+import 'package:fmatch/src/fmatch_impl.dart';
+import 'package:fmatch/src/util.dart';
 import 'package:test/test.dart';
 
 import '../bin/batch.dart';
 
-late FMatcher matcher;
+late FMatcherImpl matcher;
 late List<String> queries;
 late List<String> results;
 var env = 'test/env0';
@@ -38,7 +38,7 @@ Future<void> main() async {
 }
 
 Future<void> initMatcher() async {
-  matcher = FMatcher();
+  matcher = FMatcherImpl();
   await matcher.readSettings(null);
   await matcher.preper.readConfigs();
   await matcher.buildDb();

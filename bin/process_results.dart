@@ -15,7 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import 'dart:io';
-import 'package:fmatch/util.dart';
+import 'package:fmatch/src/util.dart';
 
 Future<void> main(List<String> args) async {
   var queryPath = args[0];

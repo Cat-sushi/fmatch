@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import 'package:fmatch/util.dart';
+import 'package:fmatch/src/util.dart';
 
 Future<void> main(List<String> args) async {
   var inFiles = List<String>.of(args);

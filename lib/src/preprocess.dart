@@ -21,6 +21,7 @@ import 'package:unorm_dart/unorm_dart.dart' as unorm;
 import 'configs.dart';
 import 'util.dart';
 
+/// Type of legal entity type
 enum LetType {
   na,
   postfix,
@@ -30,6 +31,7 @@ enum LetType {
   String toJson() => name;
 }
 
+/// Type of term in database entry or query
 class Term implements Comparable<Term> {
   static final _canonicalized = <String, Term>{};
   final String string; // redundant for performance optimization
@@ -61,6 +63,7 @@ class Term implements Comparable<Term> {
   operator ==(Object other) => string == (other as Term).string;
 }
 
+/// Type of entry of the database created from the denial lists
 class Entry implements Comparable<Entry> {
   static final _canonicalized = <String, Entry>{};
   final String string;
@@ -103,6 +106,18 @@ class LetReplaced {
   LetReplaced(this.replaced, this.letType);
 }
 
+final _htSpaces = regExp(r'^\s+|\s+$');
+final _mSpaces = regExp(r'\s+');
+
+/// Normalilze Unicode, trim white spaces, and capitalize the input.
+String normalize(String checked) {
+  var uNormalized = unorm.nfkd(checked);
+  var uwNormalized = uNormalized.replaceAll(_htSpaces, '');
+  var normalized = uwNormalized.replaceAll(_mSpaces, ' ');
+  var capitalized = normalized.toUpperCase();
+  return capitalized;
+}
+
 class Preprocessor with Configs {
   bool hasIllegalCharacter(String name) {
     if (name == '') {
@@ -115,15 +130,8 @@ class Preprocessor with Configs {
     return m.end != name.length;
   }
 
-  static final _htSpaces = regExp(r'^\s+|\s+$');
-  static final _mSpaces = regExp(r'\s+');
-
   Entry normalizeAndCapitalize(String checked, {bool canonicalizing = false}) {
-    var uNormalized = unorm.nfkd(checked);
-    var uwNormalized = uNormalized.replaceAll(_htSpaces, '');
-    var normalized = uwNormalized.replaceAll(_mSpaces, ' ');
-    var capitalized = normalized.toUpperCase();
-    return Entry(capitalized, canonicalizing: canonicalizing);
+    return Entry(normalize(checked), canonicalizing: canonicalizing);
   }
 
   Preprocessed preprocess(Entry capitalized, {bool canonicalizing = false}) {

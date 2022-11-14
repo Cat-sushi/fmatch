@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import 'dart:async';
+import 'dart:io';
 import 'dart:isolate';
 import 'dart:math';
 
@@ -26,20 +27,22 @@ import 'server.dart';
 
 class FMatcherPImpl implements FMatcherP {
   final FMatcher matcher;
+  final int _serverCount;
   final int serverCount;
   late final SendPort cacheServer;
   late final StreamController<Client> serverPoolController;
   late final StreamQueue<Client> serverPool;
 
-  FMatcherPImpl.fromFMatcher(this.matcher, [this.serverCount = 1]);
-
+  FMatcherPImpl.fromFMatcher(this.matcher, [this.serverCount = 0]) :
+    _serverCount = serverCount > 0 ? serverCount : Platform.numberOfProcessors;
+  
   @override
   Future<void> startServers() async {
     serverPoolController = StreamController<Client>();
     serverPool = StreamQueue(serverPoolController.stream);
     cacheServer = await CacheServer.spawn(matcher.queryResultCacheSize);
 
-    for (var id = 0; id < serverCount; id++) {
+    for (var id = 0; id < _serverCount; id++) {
       var c = Client(id);
       await c.spawnServer(matcher as FMatcherImpl, cacheServer);
       serverPoolController.add(c);
@@ -48,7 +51,7 @@ class FMatcherPImpl implements FMatcherP {
 
   @override
   Future<void> stopServers() async {
-    for (var id = 0; id < serverCount; id++) {
+    for (var id = 0; id < _serverCount; id++) {
       var c = await serverPool.next;
       c.closeServer();
     }
@@ -67,7 +70,7 @@ class FMatcherPImpl implements FMatcherP {
   Future<List<QueryResult>> fmatchb(List<String> queries,
       [bool activateCache = true]) async {
     var result = await Dispatcher(queries, serverPoolController, serverPool,
-            serverCount, activateCache)
+            _serverCount, activateCache)
         .dispatch();
     return result;
   }

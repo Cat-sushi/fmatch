@@ -119,11 +119,11 @@ class FMatcherImpl with Settings, Tools implements FMatcher {
   Future<void> init() async {
     await readSettings();
     await preper.readConfigs();
+    initWhiteQueries();
     await buildDb();
   }
 
   Future<void> buildDb() async {
-    initWhiteQueries();
     var idbFile = File(Pathes.idb);
     var idbFileExists = idbFile.existsSync();
     late DateTime idbTimestamp;

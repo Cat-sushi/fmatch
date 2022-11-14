@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import 'dart:math';
-
 import 'util.dart';
 
 class Pathes {
@@ -42,8 +40,7 @@ mixin Settings {
   double queryMatchingTypicalProperNounDf = 10.0;
   double queryMatchingMinTermOrderSimilarity = 0.4444;
   double scoreIdfMagnifier = 2.0;
-  late double fallbackThresholdCombinations =
-      pow(fallbackMaxQueryTermMobility + 1, fallbackMaxQueryTerms).toDouble();
+  late double fallbackThresholdCombinations = 117649;
   int fallbackMaxQueryTerms = 6;
   int fallbackMaxQueryTermMobility = 6;
   double queryMatchingTermOrderCoefficent = 0.5;

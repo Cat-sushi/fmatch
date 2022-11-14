@@ -40,7 +40,8 @@ class Query {
         queryScore = 0;
 }
 
-typedef QueryTermsOccurrencesInEntryMap = Map<Entry, List<List<QueryTermOccurrence>>>;
+typedef QueryTermsOccurrencesInEntryMap
+    = Map<Entry, List<List<QueryTermOccurrence>>>;
 
 class QueryTermOccurrence {
   final int position;
@@ -90,9 +91,14 @@ class QueryOccurrence implements Comparable<QueryOccurrence> {
   }
 }
 
-/// Type of part of QueryResult
+/// A part of QueryResult.
 class MatchedEntry {
   final Entry entry;
+
+  /// Matching score.
+  /// 
+  /// The relative `score` with `CachedResult.queryScore` becomes 1.0
+  /// when the query matches perfectly with the entry.
   final double score;
   MatchedEntry(this.entry, this.score);
   MatchedEntry.fromJson(Map<String, dynamic> json)
@@ -104,7 +110,7 @@ class MatchedEntry {
       };
 }
 
-/// Type of part of QueryResult
+/// A part of QueryResult.
 class CachedQuery {
   final LetType letType;
   final List<Term> terms;
@@ -154,10 +160,15 @@ class CachedQuery {
   }
 }
 
-/// Type of part of QueryResult
+/// A part of QueryResult.
 class CachedResult {
   final CachedQuery cachedQuery;
+
+  /// Discernment of the query.
   final double queryScore;
+
+  /// In very rare cases, query terms are reduced for a performance reason
+  /// and `queryFallenBack` turns `true`
   final bool queryFallenBack;
   final List<MatchedEntry> matchedEntiries;
   CachedResult(this.cachedQuery, this.queryScore, this.queryFallenBack,
@@ -180,14 +191,18 @@ class CachedResult {
       };
 }
 
-/// Type of result from fmatch
+/// Result from matchers.
 class QueryResult {
   int serverId = 0;
   final DateTime dateTime;
   final int durationInMilliseconds;
   final String inputString;
+
+  /// The normalized query.
   final Entry rawQuery;
   final CachedResult cachedResult;
+
+  /// A message from the matcher.
   final String message;
   QueryResult.fromQueryOccurrences(
     List<QueryOccurrence> queryOccurrences,

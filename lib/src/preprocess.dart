@@ -21,7 +21,7 @@ import 'package:unorm_dart/unorm_dart.dart' as unorm;
 import 'configs.dart';
 import 'util.dart';
 
-/// Type of legal entity type
+/// Type of legal entity type.
 enum LetType {
   na,
   postfix,
@@ -31,7 +31,7 @@ enum LetType {
   String toJson() => name;
 }
 
-/// Type of term in database entry or query
+/// Term in database entry.
 class Term implements Comparable<Term> {
   static final _canonicalized = <String, Term>{};
   final String string; // redundant for performance optimization
@@ -63,7 +63,7 @@ class Term implements Comparable<Term> {
   operator ==(Object other) => string == (other as Term).string;
 }
 
-/// Type of entry of the database created from the denial lists
+/// Normalized entry of the database created from the denial lists.
 class Entry implements Comparable<Entry> {
   static final _canonicalized = <String, Entry>{};
   final String string;
@@ -110,6 +110,10 @@ final _htSpaces = regExp(r'^\s+|\s+$');
 final _mSpaces = regExp(r'\s+');
 
 /// Normalilze Unicode, trim white spaces, and capitalize the input.
+/// 
+/// This is useful for prepareing outer larger systems which join results with the denial lists.
+/// 
+/// Note that results from this subsystem are normalized in the same way.
 String normalize(String checked) {
   var uNormalized = unorm.nfkd(checked);
   var uwNormalized = uNormalized.replaceAll(_htSpaces, '');

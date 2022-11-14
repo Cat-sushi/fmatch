@@ -10,21 +10,21 @@ This is intended to be a subsystem with local web API or dart API.
 
 ## Features
 
-- Fuzzy term matching using Levenshtein distance
-- Divided query terms matching with single list term
-- Fuzzy query matching respecting term similarity, term order, and term importance of IDF
-- Perfect matching mode deactivating fuzzy matchings for reducing false positives in some cases
-- Accepting Latin characters, Chinese characters, Katakana characters, and others
-- Canonicalaization of traditioanal and simplified Chinese characters, and others<br>
+- Fuzzy term matching using Levenshtein distance.
+- Divided query terms matching with single list term.
+- Fuzzy query matching respecting term similarity, term order, and term importance of IDF.
+- Perfect matching mode deactivating fuzzy matchings for reducing false positives in some cases.
+- Accepting Latin characters, Chinese characters, Katakana characters, and others.
+- Canonicalaization of traditioanal and simplified Chinese characters, and others.<br>
 This makes matching insensitive to character simplification.
-- Canonicalaization of spelling variants of legal entity types such as "Limitd" and "Ltd."<br>
+- Canonicalaization of spelling variants of legal entity types such as "Limitd" and "Ltd.".<br>
 This makes matching insensitive to spelling variants of legal entity types.
-- White queries for avoiding screening your company itself and consequent false positives
-- Results cache for time performance
-- Solo query accepted by the web server for interactive UIs
-- Bulk queries accepted and processed parallel by the web server for batch applicaions
-- Text normalizing API for outer larger systems joining results with the denial lists
-- And others
+- White queries for avoiding screening your company itself and consequent false positives.
+- Results cache for time performance.
+- Solo query accepted by the web server for interactive UIs.
+- Bulk queries accepted and processed parallel by the web server for batch applicaions.
+- Text normalizing API for outer larger systems joining results with the denial lists.
+- And others.
 
 ## Usage
 

@@ -84,7 +84,7 @@ abstract class FMatcherP {
     return FMatcherPImpl.fromFMatcher(fmatcher, serverCount);
   }
 
-  /// This invokes the internal servers.
+  /// This spawns the internal serve idsolatess.
   Future<void> startServers();
 
   /// This stops the internal servers.
@@ -103,14 +103,16 @@ abstract class FMatcherP {
   ///
   /// This can work parallel, in contrast with `FMatcher.fmatch()`.
   ///
-  /// When the whole query is enclosed with double quates, it perfect match with DB entries.
+  /// When the whole query is enclosed with double quates,
+  /// it perfect match with DB entries.
   Future<QueryResult> fmatch(String query, [bool activateCache = true]);
 
   /// The text matching method.
   ///
   /// This receive multiple queries and process them parallel.
   ///
-  /// When any whole query are enclosed with double quates, they perfect match with DB entries.
+  /// When every whole query is enclosed with double quates,
+  /// it perfect match with DB entries.
   Future<List<QueryResult>> fmatchb(List<String> queries,
       [bool activateCache = true]);
 }

@@ -57,7 +57,6 @@ Future main(List<String> args) async {
     exit(0);
   }
 
-  print('Starting servers: ${DateTime.now()}');
   await readSettingsAndConfigs(options);
   await matcherp.startServers();
   print('Servers started: ${DateTime.now()}');
@@ -114,9 +113,8 @@ Future main(List<String> args) async {
         await req.response.close();
       }
     } else if (req.method == 'GET' && req.uri.path == '/restart') {
-      print('Stopping servers: ${DateTime.now()}');
       await matcherp.stopServers();
-      print('Starting servers: ${DateTime.now()}');
+      print('Servers stopped: ${DateTime.now()}');
       await readSettingsAndConfigs(options);
       await matcherp.startServers();
       print('Servers started: ${DateTime.now()}');

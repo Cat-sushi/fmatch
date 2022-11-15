@@ -53,7 +53,7 @@ abstract class FMatcher {
 
   /// Initialize the matcher.
   ///
-  /// Read settings and configs, read the denial lists to the DB.
+  /// Reads settings and configs, loads the denial lists to the DB.
   /// 
   /// Call this before calling [fmatch()].
   Future<void> init();
@@ -62,7 +62,8 @@ abstract class FMatcher {
   ///
   /// Regardless of the return type, this works synchronously.
   ///
-  /// When the whole query is enclosed with double quates, it perfect match with DB entries.
+  /// When the whole query is enclosed with double quates,
+  /// it perfect matches with DB entries.
   Future<QueryResult> fmatch(String query, [bool activateCache = true]);
 }
 
@@ -104,7 +105,7 @@ abstract class FMatcherP {
   /// This can work parallel, in contrast with `FMatcher.fmatch()`.
   ///
   /// When the whole query is enclosed with double quates,
-  /// it perfect match with DB entries.
+  /// it perfect matches with DB entries.
   Future<QueryResult> fmatch(String query, [bool activateCache = true]);
 
   /// The text matching method.
@@ -112,7 +113,7 @@ abstract class FMatcherP {
   /// This receive multiple queries and process them parallel.
   ///
   /// When every whole query is enclosed with double quates,
-  /// it perfect match with DB entries.
+  /// it perfect matches with DB entries.
   Future<List<QueryResult>> fmatchb(List<String> queries,
       [bool activateCache = true]);
 }

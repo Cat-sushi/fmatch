@@ -199,7 +199,7 @@ class QueryResult {
   final String inputString;
 
   /// The normalized query.
-  final Entry rawQuery;
+  final String rawQuery;
   final CachedResult cachedResult;
 
   /// A message from the matcher.
@@ -233,7 +233,7 @@ class QueryResult {
   QueryResult.fromMessage(this.inputString, this.message)
       : dateTime = DateTime.now(),
         durationInMilliseconds = 0,
-        rawQuery = Entry(''),
+        rawQuery = '',
         cachedResult =
             CachedResult(CachedQuery(LetType.na, [], false), 0, false, []);
   QueryResult.fromJson(Map<String, dynamic> json)
@@ -241,7 +241,7 @@ class QueryResult {
         dateTime = DateTime.parse(json['start'] as String),
         durationInMilliseconds = json['durationInMilliseconds'] as int,
         inputString = json['inputString'] as String,
-        rawQuery = Entry(json['rawQuery'] as String),
+        rawQuery = json['rawQuery'] as String,
         cachedResult =
             CachedResult.fromJson(json['cachedResult'] as Map<String, dynamic>),
         message = json['message'] as String;

@@ -59,7 +59,7 @@ String formatOutput(int ix, QueryResult result) {
       csvLine.write(result.cachedResult.matchedEntiries.length);
     }
     csvLine.write(r',');
-    csvLine.write(quoteCsvCell(result.rawQuery.string));
+    csvLine.write(quoteCsvCell(result.rawQuery));
     csvLine.write(r',');
     csvLine.write(quoteCsvCell(e.entry.string));
     csvLine.write(r',');

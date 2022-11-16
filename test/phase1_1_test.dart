@@ -215,10 +215,10 @@ Future<void> main() async {
 
   group('Preprocess1', () {
     test('prep1-1', () {
-      expect(cntxt.normalizeAndCapitalize('abcdef').string, 'ABCDEF');
+      expect(normalize('abcdef'), 'ABCDEF');
     });
     test('prep1-2', () {
-      expect(cntxt.normalizeAndCapitalize('  abc  def  ').string, 'ABC DEF');
+      expect(normalize('  abc  def  '), 'ABC DEF');
     });
   });
 
@@ -248,119 +248,119 @@ Future<void> main() async {
 
   group('preprocess2', () {
     test('prep2-1', () {
-      expect(cntxt.preprocess(cntxt.normalizeAndCapitalize(r'abc def012 34.5ghi jkl6.7.8mno')).terms.map((e) => e.string).toList(),
+      expect(cntxt.preprocess(normalize(r'abc def012 34.5ghi jkl6.7.8mno')).terms.map((e) => e.string).toList(),
       ['ABC', 'DEF012', '34.5GHI', 'JKL6.7.8MNO']);
     });
     test('prep2-2', () { // 定義変更が必要 → 修正済み
-      expect(cntxt.preprocess(cntxt.normalizeAndCapitalize(r'abc def Caféghi caféjkl hoßgeÞhoÆgeØho hoægeøhoþhoŒgeœ')).terms.map((e) => e.string).toList(),
+      expect(cntxt.preprocess(normalize(r'abc def Caféghi caféjkl hoßgeÞhoÆgeØho hoægeøhoþhoŒgeœ')).terms.map((e) => e.string).toList(),
       ['ABC','DEF','CAFEGHI','CAFEJKL','HOSSGEYHOAEGEOHO','HOAEGEOHOYHOOEGEOE']);
     });
     test('prep2-3', () { // ????
-      expect(cntxt.preprocess(cntxt.normalizeAndCapitalize('abc def-ghi jkl\'mn&qrs/tuv - a & b / c \' d -e &f /g \'h i- j& k/ l\' n')).terms.map((e) => e.string).toList(),
+      expect(cntxt.preprocess(normalize('abc def-ghi jkl\'mn&qrs/tuv - a & b / c \' d -e &f /g \'h i- j& k/ l\' n')).terms.map((e) => e.string).toList(),
       ['ABC','DEF-GHI','JKL\'MN', 'AND', 'QRS', 'TUV','A','AND','B','C','D','E','AND','F','G','H', '1','J','AND','K','L','N']);
     });
     test('prep2-4', () {
-      expect(cntxt.preprocess(cntxt.normalizeAndCapitalize('abc. def.ghi .klm hoge-hage.')).terms.map((e) => e.string).toList(),
+      expect(cntxt.preprocess(normalize('abc. def.ghi .klm hoge-hage.')).terms.map((e) => e.string).toList(),
       ['ABC.', 'DEF.GHI', 'KLM', 'HOGE-HAGE']);
     });
     test('prep2-5', () {
-      expect(cntxt.preprocess(cntxt.normalizeAndCapitalize('ABC <*DEF_GHI*> <*IJK*> LM@NO PQR@ @STU@ <*_VW> <*XY_ Z*>')).terms.map((e) => e.string).toList(),
+      expect(cntxt.preprocess(normalize('ABC <*DEF_GHI*> <*IJK*> LM@NO PQR@ @STU@ <*_VW> <*XY_ Z*>')).terms.map((e) => e.string).toList(),
       ['ABC','*','DEF','GHI','*','*','IJK','*','LM','AT','NO.','PQR','AT','AT','STU','AT','*','VW','*','XY','Z','*']);
     });
     test('prep2-6', () { // ????
-      expect(cntxt.preprocess(cntxt.normalizeAndCapitalize('abc%def(ghi(jkl)mno[pqr#stu')).terms.map((e) => e.string).toList(),
+      expect(cntxt.preprocess(normalize('abc%def(ghi(jkl)mno[pqr#stu')).terms.map((e) => e.string).toList(),
       ['ABC','%','DEF','GHI','JKL','MNO','PQR','NO.','STU']);
     });
     test('prep2-7', () {
-      expect(cntxt.preprocess(cntxt.normalizeAndCapitalize('ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏ')).terms.map((e) => e.string).toList(),
+      expect(cntxt.preprocess(normalize('ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏ')).terms.map((e) => e.string).toList(),
       ['AAAAAAAECEEEEIIII']);
     });
     test('prep2-8', () { // 定義変更が必要 → 修正済み
-      expect(cntxt.preprocess(cntxt.normalizeAndCapitalize('ÐÑÒÓÔÕÖ ØÙÚÛÜÝÞß')).terms.map((e) => e.string).toList(),
+      expect(cntxt.preprocess(normalize('ÐÑÒÓÔÕÖ ØÙÚÛÜÝÞß')).terms.map((e) => e.string).toList(),
       ['DNOOOOO','OUUUUYYSS']);
     });
     test('prep2-9', () {
-      expect(cntxt.preprocess(cntxt.normalizeAndCapitalize('àáâãäåæçèéêëìíîï')).terms.map((e) => e.string).toList(),
+      expect(cntxt.preprocess(normalize('àáâãäåæçèéêëìíîï')).terms.map((e) => e.string).toList(),
       ['AAAAAAAECEEEEIIII']);
     });
     test('prep2-10', () {
-      expect(cntxt.preprocess(cntxt.normalizeAndCapitalize('ÀÁÂÄÅ')).terms.map((e) => e.string).toList(),
+      expect(cntxt.preprocess(normalize('ÀÁÂÄÅ')).terms.map((e) => e.string).toList(),
       ['AAAAA']);
     });
     test('prep2-11', () {
-      expect(cntxt.preprocess(cntxt.normalizeAndCapitalize('ÈÉÊË')).terms.map((e) => e.string).toList(),
+      expect(cntxt.preprocess(normalize('ÈÉÊË')).terms.map((e) => e.string).toList(),
       ['EEEE']);
     });
     test('prep2-12', () {
-      expect(cntxt.preprocess(cntxt.normalizeAndCapitalize('ABC ̀ ́ ̂ ̃ ̄ ̅ ̆ ̇ ̈ ̉ ̊ ̋ ̌ ̍ ̎ ̏ABC')).terms.map((e) => e.string).toList(),
+      expect(cntxt.preprocess(normalize('ABC ̀ ́ ̂ ̃ ̄ ̅ ̆ ̇ ̈ ̉ ̊ ̋ ̌ ̍ ̎ ̏ABC')).terms.map((e) => e.string).toList(),
       ['ABC','ABC']);
     });
     test('prep2-13', () {
-      expect(cntxt.preprocess(cntxt.normalizeAndCapitalize('A B C A.B.C A.B.C. A. B. C A. B. C A. B. C(A. B. C)A. B. C.(A.B.C.ABC A B C ABC A.B.C.(A. B. C. A.B.C.')).terms.map((e) => e.string).toList(),
+      expect(cntxt.preprocess(normalize('A B C A.B.C A.B.C. A. B. C A. B. C A. B. C(A. B. C)A. B. C.(A.B.C.ABC A B C ABC A.B.C.(A. B. C. A.B.C.')).terms.map((e) => e.string).toList(),
       ['ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC']);
     });
     test('prep2-14', () {
-      expect(cntxt.preprocess(cntxt.normalizeAndCapitalize('A B C ABC A.B.C A.B.C. A. B. C A. B. C A. B. C(A. B. C)A. B. C.(A.B.C.ABC A B C ABC A.B.C.(A. B. C. A.B.C. A.B.C. A B C')).terms.map((e) => e.string).toList(),
+      expect(cntxt.preprocess(normalize('A B C ABC A.B.C A.B.C. A. B. C A. B. C A. B. C(A. B. C)A. B. C.(A.B.C.ABC A B C ABC A.B.C.(A. B. C. A.B.C. A.B.C. A B C')).terms.map((e) => e.string).toList(),
       ['ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC']);
     });
     test('prep2-15', () {
-      expect(cntxt.preprocess(cntxt.normalizeAndCapitalize('A.B.C. A B C A.B.C A.B.C. A. B. C A. B. C A. B. C(A. B. C)A. B. C.(A.B.C.ABC A B C ABC A.B.C.(A. B. C. A.B.C. A.B.C.')).terms.map((e) => e.string).toList(),
+      expect(cntxt.preprocess(normalize('A.B.C. A B C A.B.C A.B.C. A. B. C A. B. C A. B. C(A. B. C)A. B. C.(A.B.C.ABC A B C ABC A.B.C.(A. B. C. A.B.C. A.B.C.')).terms.map((e) => e.string).toList(),
       ['ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC']);
     });
     test('prep2-16', () {
-      expect(cntxt.preprocess(cntxt.normalizeAndCapitalize('A.B.C A B C A.B.C A.B.C. A. B. C A. B. C A. B. C(A. B. C)A. B. C.(A.B.C.ABC A B C ABC A.B.C.(A. B. C. A.B.C. A.B.C')).terms.map((e) => e.string).toList(),
+      expect(cntxt.preprocess(normalize('A.B.C A B C A.B.C A.B.C. A. B. C A. B. C A. B. C(A. B. C)A. B. C.(A.B.C.ABC A B C ABC A.B.C.(A. B. C. A.B.C. A.B.C')).terms.map((e) => e.string).toList(),
       ['ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC']);
     });
     test('prep2-17', () {
-      expect(cntxt.preprocess(cntxt.normalizeAndCapitalize('A. B. C. .A B C A.B.C A.B.C. A. B. C A. B. C A. B. C(A. B. C)A. B. C.(A.B.C.ABC A B C ABC A.B.C.(A. B. C. A.B.C. A. B. C.')).terms.map((e) => e.string).toList(),
+      expect(cntxt.preprocess(normalize('A. B. C. .A B C A.B.C A.B.C. A. B. C A. B. C A. B. C(A. B. C)A. B. C.(A.B.C.ABC A B C ABC A.B.C.(A. B. C. A.B.C. A. B. C.')).terms.map((e) => e.string).toList(),
       ['ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC']);
     });
     test('prep2-18', () {
-      expect(cntxt.preprocess(cntxt.normalizeAndCapitalize('A. B. C A B C A.B.C A.B.C. A. B. C A. B. C A. B. C(A. B. C)A. B. C.(A.B.C.ABC A B C ABC A.B.C.(A. B. C. A.B.C. A. B. C')).terms.map((e) => e.string).toList(),
+      expect(cntxt.preprocess(normalize('A. B. C A B C A.B.C A.B.C. A. B. C A. B. C A. B. C(A. B. C)A. B. C.(A.B.C.ABC A B C ABC A.B.C.(A. B. C. A.B.C. A. B. C')).terms.map((e) => e.string).toList(),
       ['ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC','ABC']);
     });
     test('prep2-19', () {
-      expect(cntxt.preprocess(cntxt.normalizeAndCapitalize('A. ABC. )ABC. ABC.( ABC.ABC.ABC.)ABC. ABC. .ABC .ABC.')).terms.map((e) => e.string).toList(),
+      expect(cntxt.preprocess(normalize('A. ABC. )ABC. ABC.( ABC.ABC.ABC.)ABC. ABC. .ABC .ABC.')).terms.map((e) => e.string).toList(),
       ['A.', 'ABC.', 'ABC.', 'ABC.', 'ABC.ABC.ABC', 'ABC.', 'ABC.', 'ABC', 'ABC']);
     });
     test('prep2-20', () {
-      expect(cntxt.preprocess(cntxt.normalizeAndCapitalize(r"ABC A&BC A-BC A/BC A+BC A'BC")).terms.map((e) => e.string).toList(),
+      expect(cntxt.preprocess(normalize(r"ABC A&BC A-BC A/BC A+BC A'BC")).terms.map((e) => e.string).toList(),
       ['ABC','A', 'AND', 'BC','A-BC','A', 'BC','A', '+', 'BC',"A'BC"]);
     });
     test('prep2-21', () {
-      expect(cntxt.preprocess(cntxt.normalizeAndCapitalize(r"ABC A&BC&DE A-BC/DE A/BC+DE A+BC'DE A'BC&DE")).terms.map((e) => e.string).toList(),
+      expect(cntxt.preprocess(normalize(r"ABC A&BC&DE A-BC/DE A/BC+DE A+BC'DE A'BC&DE")).terms.map((e) => e.string).toList(),
       ['ABC','A', 'AND', 'BC', 'AND', 'DE','A-BC', 'DE','A', 'BC', '+', 'DE','A', '+', "BC'DE","A'BC", 'AND', 'DE']);
     });
     test('prep2-22', () {
-      expect(cntxt.preprocess(cntxt.normalizeAndCapitalize(r"'ABC' &ABC& -ABC ABC/ +A+BC+ ABC'")).terms.map((e) => e.string).toList(),
+      expect(cntxt.preprocess(normalize(r"'ABC' &ABC& -ABC ABC/ +A+BC+ ABC'")).terms.map((e) => e.string).toList(),
       [r'ABC','AND',r'ABC', 'AND',r'ABC',r'ABC','+',r'A', '+', 'BC', '+',r'ABC',]);
     });
     test('prep2-23', () {
-      expect(cntxt.preprocess(cntxt.normalizeAndCapitalize('123/456 123.456/123 123/456.123 123.456.789 123.456.789.')).terms.map((e) => e.string).toList(),
+      expect(cntxt.preprocess(normalize('123/456 123.456/123 123/456.123 123.456.789 123.456.789.')).terms.map((e) => e.string).toList(),
       ['123/456', '123.456','123', '123/456', '123', '123.456.789', '123.456.789']);
     });
     test('prep2-24', () {
-      expect(cntxt.preprocess(cntxt.normalizeAndCapitalize("<ABC>(ABC) 'ABC <ABC> <ABC,ABC> 'ABC A'BC ABC' ABC' <ABC><ABC>")).terms.map((e) => e.string).toList(),
+      expect(cntxt.preprocess(normalize("<ABC>(ABC) 'ABC <ABC> <ABC,ABC> 'ABC A'BC ABC' ABC' <ABC><ABC>")).terms.map((e) => e.string).toList(),
       ['ABC','ABC','ABC','ABC','ABC','ABC','ABC',"A'BC",'ABC','ABC','ABC','ABC']);
     });
     test('prep2-25', () {
-      expect(cntxt.preprocess(cntxt.normalizeAndCapitalize("<ABC>ABC 'ABC <ABC> <ABC,ABC> 'ABC A'BC ABC' ABC' ABC<ABC>")).terms.map((e) => e.string).toList(),
+      expect(cntxt.preprocess(normalize("<ABC>ABC 'ABC <ABC> <ABC,ABC> 'ABC A'BC ABC' ABC' ABC<ABC>")).terms.map((e) => e.string).toList(),
       ['ABC','ABC','ABC','ABC','ABC','ABC','ABC',"A'BC",'ABC','ABC','ABC','ABC']);
     });
     test('prep2-26', () {
-      expect(cntxt.preprocess(cntxt.normalizeAndCapitalize(r"ABC !A&BC# $A-BC% &A/BC* +A+BC? @A'BC^ &A&BC!A&BC#A+BC?A'BC@ABC^ABC")).terms.map((e) => e.string).toList(),
+      expect(cntxt.preprocess(normalize(r"ABC !A&BC# $A-BC% &A/BC* +A+BC? @A'BC^ &A&BC!A&BC#A+BC?A'BC@ABC^ABC")).terms.map((e) => e.string).toList(),
       ['ABC','!','A','AND','BC','NO.',r'$','A-BC','%','AND','A','BC','*','+','A','+','BC','?','AT',"A'BC",'^','AND','A','AND','BC','!','A', 'AND', 'BC','NO.','A', '+', 'BC','?',"A'BC",'AT','ABC','^','ABC']);
     });
     test('prep2-27', () {
-      expect(cntxt.preprocess(cntxt.normalizeAndCapitalize(r"SA'B, ILYAS")).terms.map((e) => e.string).toList(),
+      expect(cntxt.preprocess(normalize(r"SA'B, ILYAS")).terms.map((e) => e.string).toList(),
       ['SA','B', 'ILYAS']);
     });
     test('prep2-28', () {
-      expect(cntxt.preprocess(cntxt.normalizeAndCapitalize(r'a b c d e f g h i j.k.l.m.n.o.p.q.r s. t. u. v. w. x. y. z. a a b c d e f g h i.j.k.l.m.n.o.p. q. r. s. t. u. v. w. x.')).terms.map((e) => e.string).toList(),
+      expect(cntxt.preprocess(normalize(r'a b c d e f g h i j.k.l.m.n.o.p.q.r s. t. u. v. w. x. y. z. a a b c d e f g h i.j.k.l.m.n.o.p. q. r. s. t. u. v. w. x.')).terms.map((e) => e.string).toList(),
       ['ABCDEFGH I','JKLMNOPQ.R', 'STUVWXYZ. A', 'ABCDEFGH', 'IJKLMNOP', 'QRSTUVWX']);
     });
     test('prep2-29', () {
-      expect(cntxt.preprocess(cntxt.normalizeAndCapitalize(r'N C&C CO., LTD.')).terms.map((e) => e.string).toList(),
+      expect(cntxt.preprocess(normalize(r'N C&C CO., LTD.')).terms.map((e) => e.string).toList(),
       ['N','C', 'AND', 'C', 'CO_LTD']);
     });
   });

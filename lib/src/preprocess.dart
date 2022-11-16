@@ -138,8 +138,8 @@ class Preprocessor with Configs {
     return Entry(normalize(checked), canonicalizing: canonicalizing);
   }
 
-  Preprocessed preprocess(Entry capitalized, {bool canonicalizing = false}) {
-    var characterReplaced = replaceCharacters(capitalized.string);
+  Preprocessed preprocess(String capitalized, {bool canonicalizing = false}) {
+    var characterReplaced = replaceCharacters(capitalized);
     var stringReplaced = replaceStrings(characterReplaced);
     var letReplaced = replaceLegalEntityTypes(stringReplaced);
     var wordized = wordize(letReplaced);

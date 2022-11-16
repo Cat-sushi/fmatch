@@ -51,6 +51,8 @@ abstract class FMatcher {
   double queryMatchingTermOrderCoefficent = 0.5;
   int queryResultCacheSize = 100000;
 
+  int databaseVersion = 0;
+
   /// Initialize the matcher.
   ///
   /// Reads settings and configs, loads the denial lists to the DB.

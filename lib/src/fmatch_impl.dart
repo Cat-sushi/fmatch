@@ -27,6 +27,9 @@ final _perfMatchQuery = RegExp(r'^"(.+)"$');
 
 class FMatcherImpl with Settings, Tools implements FMatcher {
   @override
+  int databaseVersion = 0;
+
+  @override
   Future<QueryResult> fmatch(String inputString,
       [bool activateCache = true]) async {
     var start = DateTime.now();
@@ -36,13 +39,13 @@ class FMatcherImpl with Settings, Tools implements FMatcher {
           inputString, 'Illegal characters in query: "$inputString"');
     }
 
-    var rawQuery = preper.normalizeAndCapitalize(inputString);
+    var rawQuery = normalize(inputString);
 
     bool perfectMatching = false;
-    var perfMatchQueryMatcher = _perfMatchQuery.firstMatch(rawQuery.string);
+    var perfMatchQueryMatcher = _perfMatchQuery.firstMatch(rawQuery);
     if (perfMatchQueryMatcher != null) {
       perfectMatching = true;
-      rawQuery = Entry(perfMatchQueryMatcher[1]!.trim());
+      rawQuery = perfMatchQueryMatcher[1]!.trim();
     }
 
     var preprocessed = preper.preprocess(rawQuery);
@@ -130,6 +133,7 @@ class FMatcherImpl with Settings, Tools implements FMatcher {
     if (idbFileExists) {
       idbTimestamp = File(Pathes.idb).lastModifiedSync();
     }
+    databaseVersion = idbTimestamp.millisecondsSinceEpoch;
     if (!idbFileExists ||
         File(Pathes.list).lastModifiedSync().isAfter(idbTimestamp) ||
         File(Pathes.legalCaharacters)
@@ -170,7 +174,7 @@ class FMatcherImpl with Settings, Tools implements FMatcher {
         print('Illegal characters in white query: $inputString');
         continue;
       }
-      var rawQuery = preper.normalizeAndCapitalize(inputString);
+      var rawQuery = normalize(inputString);
       var preprocessed = preper.preprocess(rawQuery, canonicalizing: true);
       if (preprocessed.terms.isEmpty) {
         print('No valid terms in white query: $inputString');

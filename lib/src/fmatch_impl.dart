@@ -133,7 +133,6 @@ class FMatcherImpl with Settings, Tools implements FMatcher {
     if (idbFileExists) {
       idbTimestamp = File(Pathes.idb).lastModifiedSync();
     }
-    databaseVersion = idbTimestamp.millisecondsSinceEpoch;
     if (!idbFileExists ||
         File(Pathes.list).lastModifiedSync().isAfter(idbTimestamp) ||
         File(Pathes.legalCaharacters)
@@ -166,6 +165,8 @@ class FMatcherImpl with Settings, Tools implements FMatcher {
             () => db.write(Pathes.db), 'Db.write'); // for debug reproduction
       }
     }
+    idbTimestamp = File(Pathes.idb).lastModifiedSync();
+    databaseVersion = idbTimestamp.millisecondsSinceEpoch;
   }
 
   void initWhiteQueries() {

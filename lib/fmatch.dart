@@ -56,7 +56,7 @@ abstract class FMatcher {
   /// Initialize the matcher.
   ///
   /// Reads settings and configs, loads the denial lists to the DB.
-  /// 
+  ///
   /// Call this before calling [fmatch()].
   Future<void> init();
 

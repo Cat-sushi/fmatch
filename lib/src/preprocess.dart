@@ -32,6 +32,9 @@ enum LetType {
 }
 
 /// Term in database entry.
+/// 
+/// This is a entry of the text mathching database.
+/// It does't mean a item of denial lists such as legal entity/ natural person.
 class Term implements Comparable<Term> {
   static final _canonicalized = <String, Term>{};
   final String string; // redundant for performance optimization

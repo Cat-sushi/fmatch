@@ -43,6 +43,7 @@ var maxBatchQueueLength = serverCount * 2;
 late FMatcher matcher;
 late FMatcherP matcherp;
 late SendPort cacheServer;
+final mutex = Mutex();
 
 Future main(List<String> args) async {
   var argParser = ArgParser()
@@ -62,10 +63,10 @@ Future main(List<String> args) async {
   print('Servers started: ${DateTime.now()}');
 
   for (var i = 0; i < serverCount; i++) {
-    sendReceiveResponseOne();
+    unawaited(sendReceiveResponseOne());
   }
 
-  sendReceiveResponseBulk();
+  unawaited(sendReceiveResponseBulk());
 
   var httpServer = await HttpServer.bind(_host, _port);
   await for (var req in httpServer) {
@@ -113,10 +114,12 @@ Future main(List<String> args) async {
         await req.response.close();
       }
     } else if (req.method == 'GET' && req.uri.path == '/restart') {
+      await mutex.get();
       await matcherp.stopServers();
       print('Servers stopped: ${DateTime.now()}');
       await readSettingsAndConfigs(options);
       await matcherp.startServers();
+      mutex.free();
       print('Servers started: ${DateTime.now()}');
       response
         ..statusCode = HttpStatus.ok
@@ -189,12 +192,14 @@ Future<void> sendReceiveResponseBulk() async {
       var jsonString =
           await req.cast<List<int>>().transform(utf8.decoder).join();
       var queries = (jsonDecode(jsonString) as List<dynamic>).cast<String>();
+      await mutex.get();
       var result = await matcherp.fmatchb(queries, activateCache);
+      mutex.free();
       req.response
         ..headers.contentType =
             ContentType('application', 'json', charset: 'utf-8')
-        ..write(json.encode(result))
-        ..close();
+        ..write(json.encode(result));
+      await req.response.close();
     } catch (e, s) {
       req.response
         ..statusCode = HttpStatus.internalServerError
@@ -202,7 +207,7 @@ Future<void> sendReceiveResponseBulk() async {
             ContentType('application', 'json', charset: 'utf-8')
         ..write('Internal Server Error: $e.');
       print(s);
-      req.response.close();
+      await req.response.close();
     } finally {
       batchQueueLength--;
     }

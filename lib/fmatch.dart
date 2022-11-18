@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import 'dart:async';
+
 import 'package:fmatch/src/fmatcchp_impl.dart';
 
 import 'src/fmatch_impl.dart';
@@ -23,6 +25,47 @@ export 'src/fmclasses.dart'
     show QueryResult, CachedQuery, CachedResult, MatchedEntry;
 export 'src/preprocess.dart' show Term, Entry, LetType;
 export 'src/preprocess.dart' show normalize;
+
+/// Mutex for server restart.
+///
+/// This is useful if fmatchb() is called asynchronously.
+///
+/// Usage
+/// ```dart
+/// late FMatcher fmatcher;
+/// late FMatcherp fmatcherp;
+/// final mutex = Mutex();
+/// ```
+/// ```dart
+/// fmatcher = FMatcher();
+/// await fmatcher.init();
+/// fmatcherp = FMatcherP.fromFMatcher(fmatcher, 4);
+/// fmatcherp.startServers();
+/// ```
+/// ```dart
+/// await mutex.get();
+/// await fmatcherp.stopServers();
+/// fmatcher = FMatcher();
+/// await fmatcher.init();
+/// fmatcherp = FMatcherP.fromFMatcher(matcher, 4);
+/// await fmatcherp.startServers();
+/// mutex.free();
+/// ```
+/// ```dart
+/// result = fmatcherp.fmatchb('abc', 'def');
+/// ```
+class Mutex {
+  var _mutex = Completer<void>()..complete();
+
+  Future<void> get() async {
+    await Future.wait([_mutex.future]);
+    _mutex = Completer<void>();
+  }
+
+  void free() {
+    _mutex.complete();
+  }
+}
 
 /// Fuzzy text matching engine.
 ///
@@ -75,11 +118,11 @@ abstract class FMatcher {
 ///
 /// Usage
 /// ```dart
-/// matcher = FMatcher();
-/// await matcher.init();
-/// matcherp = FMatcherP.fromFMatcher(matcher, 4);
-/// await matcherp.startServers();
-/// results = matcherp.fmatchb('abc', 'def');
+/// fmatcher = FMatcher();
+/// await fmatcher.init();
+/// fmatcherp = FMatcherP.fromFMatcher(fmatcher, 4);
+/// await fmatcherp.startServers();
+/// results = fmatcherp.fmatchb('abc', 'def');
 /// ```
 abstract class FMatcherP {
   /// When [serverCount] == 0, `Platform.numberOfProcessors` will be used.
@@ -91,15 +134,6 @@ abstract class FMatcherP {
   Future<void> startServers();
 
   /// This stops the internal servers.
-  ///
-  /// Usage
-  /// ```dart
-  /// matcherp.stopServers();
-  /// matcher = FMatcher();
-  /// await matcher.init();
-  /// matcherp = FMatcherP.fromFMatcher(matcher, 4);
-  /// await matcherp.startServers();
-  /// ```
   Future<void> stopServers();
 
   /// The text matching method.

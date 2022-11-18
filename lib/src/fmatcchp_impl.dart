@@ -26,7 +26,6 @@ import 'fmatch_impl.dart';
 import 'server.dart';
 
 class FMatcherPImpl implements FMatcherP {
-  final _mutex = Mutex();
   final FMatcher matcher;
   final int _serverCount;
   final int serverCount;
@@ -53,7 +52,6 @@ class FMatcherPImpl implements FMatcherP {
 
   @override
   Future<void> stopServers() async {
-    await _mutex.get();
     for (var id = 0; id < _serverCount; id++) {
       var c = await serverPool.next;
       c.closeServer();

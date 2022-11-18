@@ -19,10 +19,9 @@ Future<void> main() async {
   var queriesPath = '$env/queries.csv';
 
   var matcher = FMatcherImpl();
-  matcher.init();
+  await matcher.init();
   var matcherp = FMatcherP.fromFMatcher(matcher);
-
-  cacheServer = await CacheServer.spawn(matcher.queryResultCacheSize);
+  await matcherp.startServers();
 
   await pbatch(matcherp, queriesPath);
 

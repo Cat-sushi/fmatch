@@ -75,5 +75,5 @@ Future<void> extCsv() async {
     }
     file.write('$buf\r\n');
   }
-  file.close();
+  await file.close();
 }

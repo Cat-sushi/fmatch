@@ -21,6 +21,8 @@ linter:
     - null_check_on_nullable_type_parameter
     - tighten_type_of_initializing_formals
     - unnecessary_null_checks
+    - unawaited_futures
+
 
 analyzer:
   strong-mode:

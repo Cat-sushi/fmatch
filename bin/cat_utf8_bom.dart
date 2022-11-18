@@ -19,5 +19,5 @@ import 'package:fmatch/src/util.dart';
 Future<void> main(List<String> args) async {
   var inFiles = List<String>.of(args);
   var outFile = inFiles.removeLast();
-  catFilesWithUtf8Bom(inFiles, outFile);
+  await catFilesWithUtf8Bom(inFiles, outFile);
 }

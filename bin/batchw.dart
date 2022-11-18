@@ -107,7 +107,7 @@ class Dispatcher {
     httpClient.close();
   }
 
-  Future<void> outputResultsInOrder() async {
+  void outputResultsInOrder() {
     for (; ixO < ixS; ixO++) {
       var result = results[ixO];
       if (result == null) {

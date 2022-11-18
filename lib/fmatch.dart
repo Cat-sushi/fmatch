@@ -57,13 +57,9 @@ export 'src/preprocess.dart' show normalize;
 class Mutex {
   var _mutex = Completer<void>()..complete();
 
-  Future<void> get() async {
+  Future<Completer<void>> get() async {
     await Future.wait([_mutex.future]);
-    _mutex = Completer<void>();
-  }
-
-  void free() {
-    _mutex.complete();
+    return _mutex = Completer<void>();
   }
 }
 

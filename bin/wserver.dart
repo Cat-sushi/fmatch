@@ -114,12 +114,12 @@ Future main(List<String> args) async {
         await req.response.close();
       }
     } else if (req.method == 'GET' && req.uri.path == '/restart') {
-      await mutex.get();
+      var completer = await mutex.get();
       await matcherp.stopServers();
       print('Servers stopped: ${DateTime.now()}');
       await readSettingsAndConfigs(options);
       await matcherp.startServers();
-      mutex.free();
+      completer.complete();
       print('Servers started: ${DateTime.now()}');
       response
         ..statusCode = HttpStatus.ok
@@ -192,9 +192,9 @@ Future<void> sendReceiveResponseBulk() async {
       var jsonString =
           await req.cast<List<int>>().transform(utf8.decoder).join();
       var queries = (jsonDecode(jsonString) as List<dynamic>).cast<String>();
-      await mutex.get();
+      var completer = await mutex.get();
       var result = await matcherp.fmatchb(queries, activateCache);
-      mutex.free();
+      completer.complete();
       req.response
         ..headers.contentType =
             ContentType('application', 'json', charset: 'utf-8')

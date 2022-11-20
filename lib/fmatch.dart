@@ -60,7 +60,6 @@ class Mutex {
   var _excluded = Completer<void>()..complete();
   var _shared = Completer<void>()..complete();
   int _sharedCount = 0;
-  Mutex();
 
   Future<void> lock() async {
     while (!_excluded.isCompleted) {

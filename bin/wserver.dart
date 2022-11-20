@@ -42,7 +42,6 @@ var maxBatchQueueLength = serverCount * 2;
 
 late FMatcher matcher;
 late FMatcherP matcherp;
-late SendPort cacheServer;
 final mutex = Mutex();
 
 Future main(List<String> args) async {

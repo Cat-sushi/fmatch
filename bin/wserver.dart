@@ -114,12 +114,12 @@ Future main(List<String> args) async {
         await req.response.close();
       }
     } else if (req.method == 'GET' && req.uri.path == '/restart') {
-      var completer = await mutex.get();
+      await mutex.lock();
       await matcherp.stopServers();
       print('Servers stopped: ${DateTime.now()}');
       await readSettingsAndConfigs(options);
       await matcherp.startServers();
-      completer.complete();
+      mutex.unlock();
       print('Servers started: ${DateTime.now()}');
       response
         ..statusCode = HttpStatus.ok
@@ -163,7 +163,9 @@ Future<void> sendReceiveResponseOne() async {
       var cache = req.uri.queryParameters['c'];
       var activateCache = cache == null || cache == '1';
       var query = req.uri.queryParameters['q']!;
+      await mutex.lockShared();
       var result = await matcherp.fmatch(query, activateCache);
+      mutex.unlockShared();
       var responseContent = josonEncoderWithIdent.convert(result);
       req.response
         ..statusCode = HttpStatus.ok
@@ -192,9 +194,9 @@ Future<void> sendReceiveResponseBulk() async {
       var jsonString =
           await req.cast<List<int>>().transform(utf8.decoder).join();
       var queries = (jsonDecode(jsonString) as List<dynamic>).cast<String>();
-      var completer = await mutex.get();
+      await mutex.lockShared();
       var result = await matcherp.fmatchb(queries, activateCache);
-      completer.complete();
+      mutex.unlockShared();
       req.response
         ..headers.contentType =
             ContentType('application', 'json', charset: 'utf-8')

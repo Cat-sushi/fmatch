@@ -28,7 +28,7 @@ export 'src/preprocess.dart' show normalize;
 
 /// Mutex for server restart.
 ///
-/// This is useful if fmatchb() is called asynchronously.
+/// This is useful if fmatch()/ fmatchb() is called asynchronously.
 ///
 /// Usage
 /// ```dart
@@ -43,23 +43,54 @@ export 'src/preprocess.dart' show normalize;
 /// fmatcherp.startServers();
 /// ```
 /// ```dart
-/// await mutex.get();
+/// await mutex.lock();
 /// await fmatcherp.stopServers();
 /// fmatcher = FMatcher();
 /// await fmatcher.init();
 /// fmatcherp = FMatcherP.fromFMatcher(matcher, 4);
 /// await fmatcherp.startServers();
-/// mutex.free();
+/// mutex.unlock();
 /// ```
 /// ```dart
+/// await mutex.lockShared();
 /// result = fmatcherp.fmatchb('abc', 'def');
+/// mutex.unlockShared();
 /// ```
 class Mutex {
-  var _mutex = Completer<void>()..complete();
+  var _excluded = Completer<void>()..complete();
+  var _shared = Completer<void>()..complete();
+  int _sharedCount = 0;
+  Mutex();
 
-  Future<Completer<void>> get() async {
-    await Future.wait([_mutex.future]);
-    return _mutex = Completer<void>();
+  Future<void> lock() async {
+    while (!_excluded.isCompleted) {
+      await Future.wait([_excluded.future]);
+    }
+    _excluded = Completer<void>();
+    while (!_shared.isCompleted) {
+      await Future.wait([_shared.future]);
+    }
+  }
+
+  void unlock() {
+    _excluded.complete();
+  }
+
+  Future<void> lockShared() async {
+    while (!_excluded.isCompleted) {
+      await Future.wait([_excluded.future]);
+    }
+    if (_sharedCount == 0) {
+      _shared = Completer<void>();
+    }
+    _sharedCount++;
+  }
+
+  void unlockShared() {
+    _sharedCount--;
+    if (_sharedCount == 0) {
+      _shared.complete();
+    }
   }
 }
 

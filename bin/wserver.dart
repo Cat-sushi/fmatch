@@ -23,6 +23,7 @@ import 'package:args/args.dart';
 import 'package:async/async.dart';
 
 import 'package:fmatch/fmatch.dart';
+import 'package:simple_mutex/simple_mutex.dart';
 
 final _host = InternetAddress.loopbackIPv4.host;
 const _port = 4049;

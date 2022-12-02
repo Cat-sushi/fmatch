@@ -105,7 +105,7 @@ class Dispatcher {
     var httpClient = HttpClient();
     while (true) {
       var queryRef = await queries.take(1);
-      if(queryRef.isEmpty) {
+      if (queryRef.isEmpty) {
         break;
       }
       var query = queryRef[0];

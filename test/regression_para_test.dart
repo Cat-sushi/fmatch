@@ -25,11 +25,11 @@ Future<void> main() async {
   await pbatch(matcherp, queriesPath);
 
   var queries = <String>[];
-  await for (var l in readCsvLines( Pathes.list)) {
+  await for (var l in readCsvLines(Pathes.list)) {
     if (l.isEmpty || l[0] == null) {
       continue;
     }
-    if(matcher.preper.hasIllegalCharacter(l[0]!)){
+    if (matcher.preper.hasIllegalCharacter(l[0]!)) {
       continue;
     }
     queries.add(matcher.preper.normalizeAndCapitalize(l[0]!).string);
@@ -40,7 +40,7 @@ Future<void> main() async {
     if (l.length < 7) {
       continue;
     }
-    if(l[5] == l[6]){
+    if (l[5] == l[6]) {
       results.add(l[5]!);
     }
   }

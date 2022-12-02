@@ -16,29 +16,44 @@ Future<void> main() async {
     r'OSAMA BIN LADEN-ORGANISATION',
     r"ANSAR AL-SHARI'A IN TUNISIA (AAS-T)",
   ];
-  var rawEntries = list.map((e) => matcher.preper.normalizeAndCapitalize(e).string).toList();
+  var rawEntries =
+      list.map((e) => matcher.preper.normalizeAndCapitalize(e).string).toList();
   rawEntries.forEach(print);
-  var preprocessed = list.map((e) => matcher.preper.normalizeAndCapitalize(e).string).toList();
-  matcher.db = await Db.fromStringStream(matcher.preper, Stream.fromIterable(rawEntries));
+  var preprocessed =
+      list.map((e) => matcher.preper.normalizeAndCapitalize(e).string).toList();
+  matcher.db = await Db.fromStringStream(
+      matcher.preper, Stream.fromIterable(rawEntries));
   matcher.idb = IDb.fromDb(matcher.db);
 
   test('Li, Li', () async {
     var q = r'Li, Li';
-    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.entry.string).toList();
+    var results = (await matcher.fmatch(q))
+        .cachedResult
+        .matchedEntiries
+        .map((e) => e.entry.string)
+        .toList();
     expect(results, <String>[
       preprocessed[0],
     ]);
   });
   test('OSAMA BIN LADIN', () async {
     var q = r'ASAMA BIN LADEN NETWORK';
-    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.entry.string).toList();
+    var results = (await matcher.fmatch(q))
+        .cachedResult
+        .matchedEntiries
+        .map((e) => e.entry.string)
+        .toList();
     expect(results, <String>[
       preprocessed[2],
     ]);
   });
   test("ANSAR AL-SHARI'A (AAS)", () async {
     var q = r"ANSAR AL-SHARI'A (AAS)";
-    var results = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.entry.string).toList();
+    var results = (await matcher.fmatch(q))
+        .cachedResult
+        .matchedEntiries
+        .map((e) => e.entry.string)
+        .toList();
     expect(results, <String>[
       preprocessed[3],
     ]);

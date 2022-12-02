@@ -12,13 +12,15 @@ Future<void> main() async {
   await matcher.preper.readConfigs();
   var list = [
     'aaa bbb ccc ddd eee fff ggg hhh iii jjj '
-    'kkk lll mmm nnn ooo ppp qqq rrr sss ttt '
-    'uuu vvv www xxx',
+        'kkk lll mmm nnn ooo ppp qqq rrr sss ttt '
+        'uuu vvv www xxx',
     'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
   ];
-  var rawEntries = list.map((e) => matcher.preper.normalizeAndCapitalize(e).string).toList();
+  var rawEntries =
+      list.map((e) => matcher.preper.normalizeAndCapitalize(e).string).toList();
   rawEntries.forEach(print);
-  matcher.db = await Db.fromStringStream(matcher.preper, Stream.fromIterable(rawEntries));
+  matcher.db = await Db.fromStringStream(
+      matcher.preper, Stream.fromIterable(rawEntries));
   matcher.idb = IDb.fromDb(matcher.db);
 
   test(r'aaa ... iii', () async {
@@ -62,27 +64,32 @@ Future<void> main() async {
     expect(r.cachedResult.cachedQuery.terms.length, 16);
   });
   test(r'aaa ... qqq', () async {
-    var q = r'aaa bbb ccc ddd eee fff ggg hhh iii jjj kkk lll mmm nnn ooo ppp qqq';
+    var q =
+        r'aaa bbb ccc ddd eee fff ggg hhh iii jjj kkk lll mmm nnn ooo ppp qqq';
     var r = await matcher.fmatch(q);
     expect(r.cachedResult.cachedQuery.terms.length, 17);
   });
   test(r'aaa ... rrr', () async {
-    var q = r'aaa bbb ccc ddd eee fff ggg hhh iii jjj kkk lll mmm nnn ooo ppp qqq rrr';
+    var q =
+        r'aaa bbb ccc ddd eee fff ggg hhh iii jjj kkk lll mmm nnn ooo ppp qqq rrr';
     var r = await matcher.fmatch(q);
     expect(r.cachedResult.cachedQuery.terms.length, 18);
   });
   test(r'aaa ... sss', () async {
-    var q = r'aaa bbb ccc ddd eee fff ggg hhh iii jjj kkk lll mmm nnn ooo ppp qqq rrr sss';
+    var q =
+        r'aaa bbb ccc ddd eee fff ggg hhh iii jjj kkk lll mmm nnn ooo ppp qqq rrr sss';
     var r = await matcher.fmatch(q);
     expect(r.cachedResult.cachedQuery.terms.length, 19);
   });
   test(r'aaa ... ttt', () async {
-    var q = r'aaa bbb ccc ddd eee fff ggg hhh iii jjj kkk lll mmm nnn ooo ppp qqq rrr sss ttt';
+    var q =
+        r'aaa bbb ccc ddd eee fff ggg hhh iii jjj kkk lll mmm nnn ooo ppp qqq rrr sss ttt';
     var r = await matcher.fmatch(q);
     expect(r.cachedResult.cachedQuery.terms.length, 20);
   });
   test(r'aaa ... uuu', () async {
-    var q = r'aaa bbb ccc ddd eee fff ggg hhh iii jjj kkk lll mmm nnn ooo ppp qqq rrr sss ttt uuu';
+    var q =
+        r'aaa bbb ccc ddd eee fff ggg hhh iii jjj kkk lll mmm nnn ooo ppp qqq rrr sss ttt uuu';
     var r = await matcher.fmatch(q);
     expect(r.cachedResult.cachedQuery.terms.length, 21);
   });

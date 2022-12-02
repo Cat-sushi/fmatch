@@ -102,7 +102,8 @@ Future<void> main() async {
   test('SURA', () async {
     var q = r'SURA';
     var r = await matcher.fmatch(q);
-    expect(r.cachedResult.matchedEntiries.length, lessThan(55)); // 1語のノイズはやむを得ない
+    expect(
+        r.cachedResult.matchedEntiries.length, lessThan(55)); // 1語のノイズはやむを得ない
   });
   test('S T MEDIC SA DE CV', () async {
     var q = r'S T MEDIC SA DE CV';
@@ -210,7 +211,8 @@ Future<void> main() async {
   test('Abdul Qadir', () async {
     var q = r'Abdul Qadir';
     var r = await matcher.fmatch(q);
-    expect(r.cachedResult.matchedEntiries.length, lessThan(20)); // マッチするのが妥当な名前ばかり
+    expect(
+        r.cachedResult.matchedEntiries.length, lessThan(20)); // マッチするのが妥当な名前ばかり
   });
   test('PCI', () async {
     var q = r'PCI';
@@ -252,77 +254,95 @@ Future<void> main() async {
   test('CO-Sol Canada Inc.', () async {
     var q = r'CO-Sol Canada Inc.';
     var r = await matcher.fmatch(q);
-    expect(r.cachedResult.cachedQuery.terms.map((e)=>e.string), ['CO-SOL','CANADA','INC']);
+    expect(r.cachedResult.cachedQuery.terms.map((e) => e.string),
+        ['CO-SOL', 'CANADA', 'INC']);
   });
   test('Re-Teck Co., Ltd.', () async {
     var q = r'Re-Teck Co., Ltd.';
     var r = await matcher.fmatch(q);
-    expect(r.cachedResult.cachedQuery.terms.map((e)=>e.string), ['RE-TECK','CO_LTD']);
+    expect(r.cachedResult.cachedQuery.terms.map((e) => e.string),
+        ['RE-TECK', 'CO_LTD']);
   });
   test('A&D Company, Limited', () async {
     var q = r'A&D Company, Limited';
     var r = await matcher.fmatch(q);
-    expect(r.cachedResult.cachedQuery.terms.map((e)=>e.string), ['A', 'AND', 'D', 'CO_LTD']);
+    expect(r.cachedResult.cachedQuery.terms.map((e) => e.string),
+        ['A', 'AND', 'D', 'CO_LTD']);
   });
   test('HONG CO TECHNOLOGY COMPANY LIMITED', () async {
     var q = r'HONG CO TECHNOLOGY COMPANY LIMITED';
     var r = await matcher.fmatch(q);
-    expect(r.cachedResult.cachedQuery.terms.map((e)=>e.string), ['HONG','CO','TECHNOLOGY','CO_LTD']);
+    expect(r.cachedResult.cachedQuery.terms.map((e) => e.string),
+        ['HONG', 'CO', 'TECHNOLOGY', 'CO_LTD']);
   });
   test('MUJI U.S.A. Limited', () async {
     var q = r'MUJI U.S.A. Limited';
     var r = await matcher.fmatch(q);
-    expect(r.cachedResult.cachedQuery.terms.map((e)=>e.string), ['MUJI','USA','LTD']);
+    expect(r.cachedResult.cachedQuery.terms.map((e) => e.string),
+        ['MUJI', 'USA', 'LTD']);
   });
   test('Terna S.p.A', () async {
     var q = r'Terna S.p.A';
     var r = await matcher.fmatch(q);
-    expect(r.cachedResult.cachedQuery.terms.map((e)=>e.string), ['TERNA','SPA']);
+    expect(r.cachedResult.cachedQuery.terms.map((e) => e.string),
+        ['TERNA', 'SPA']);
   });
   test('BANK OF KESHAVARZI', () async {
     var q = r'BANK OF KESHAVARZI';
-    var r = (await matcher.fmatch(q)).cachedResult.matchedEntiries.map((e) => e.entry.string).toList();
+    var r = (await matcher.fmatch(q))
+        .cachedResult
+        .matchedEntiries
+        .map((e) => e.entry.string)
+        .toList();
     expect(r, ['BANK KESHAVARZI', 'BANK KESHAVARZI IRAN']);
   });
   test('HARBIN INSTITUTE OF TECHNOLOGY', () async {
     var q = r'HARPIN INSTITUTE OF TECHNOLOGY';
     var r = await matcher.fmatch(q);
-    expect(r.cachedResult.matchedEntiries[0].entry.string, 'HARBIN INSTITUTE OF TECHNOLOGY');
+    expect(r.cachedResult.matchedEntiries[0].entry.string,
+        'HARBIN INSTITUTE OF TECHNOLOGY');
   });
   test('NOVOKUIBYSHEVSK REFYNERY', () async {
     var q = r'NOVOKUIBYSHEVSK REFYNERY';
     var r = await matcher.fmatch(q);
-    expect(r.cachedResult.matchedEntiries[0].entry.string, 'NOVOKUIBYSHEVSK REFINERY');
+    expect(r.cachedResult.matchedEntiries[0].entry.string,
+        'NOVOKUIBYSHEVSK REFINERY');
   });
   test('NOVOKUYBYSHEVSK REFINERY', () async {
     var q = r'NOVOKUYBYSHEVSK REFINERY';
     var r = await matcher.fmatch(q);
-    expect(r.cachedResult.matchedEntiries[0].entry.string, 'NOVOKUIBYSHEVSK REFINERY');
+    expect(r.cachedResult.matchedEntiries[0].entry.string,
+        'NOVOKUIBYSHEVSK REFINERY');
   });
   test('NOVOKUIBYSHEVSK REFINEYR', () async {
     var q = r'NOVOKUIBYSHEVSK REFINEYR';
     var r = await matcher.fmatch(q);
-    expect(r.cachedResult.matchedEntiries[0].entry.string, 'NOVOKUIBYSHEVSK REFINERY');
+    expect(r.cachedResult.matchedEntiries[0].entry.string,
+        'NOVOKUIBYSHEVSK REFINERY');
   });
   test('NOVOKUYBYSHEVSK REFINRY', () async {
     var q = r'NOVOKUYBYSHEVSK REFINRY';
     var r = await matcher.fmatch(q);
-    expect(r.cachedResult.matchedEntiries[0].entry.string, 'NOVOKUIBYSHEVSK REFINERY');
+    expect(r.cachedResult.matchedEntiries[0].entry.string,
+        'NOVOKUIBYSHEVSK REFINERY');
   });
   test('CJS NOVOKUIBYSHEVSK REFINERY', () async {
     var q = r'CJS NOVOKUIBYSHEVSK REFINERY';
     var r = await matcher.fmatch(q);
-    expect(r.cachedResult.matchedEntiries[0].entry.string,'NOVOKUIBYSHEVSK REFINERY');
+    expect(r.cachedResult.matchedEntiries[0].entry.string,
+        'NOVOKUIBYSHEVSK REFINERY');
   });
   test('ASTRONAUTICS SYSTEMS RESEARCH CENTRE', () async {
     var q = r'ASTRONAUTICS SYSTEMS RESEARCH CENTRE';
     var r = await matcher.fmatch(q);
-    expect(r.cachedResult.matchedEntiries[0].entry.string, 'ASTRONAUTICS SYSTEMS RESEARCH CENTER');
+    expect(r.cachedResult.matchedEntiries[0].entry.string,
+        'ASTRONAUTICS SYSTEMS RESEARCH CENTER');
   });
   test('BIMEH IRAN INSURANCE COMPANY(UK)LIMITED', () async {
     var q = r'BIMEH IRAN INSURANCE COMPANY(UK)LIMITED';
     var r = await matcher.fmatch(q);
-    expect(r.cachedResult.matchedEntiries[0].entry.string, 'BIMEH IRAN INSURANCE COMPANY (U.K.) LIMITED');
+    expect(r.cachedResult.matchedEntiries[0].entry.string,
+        'BIMEH IRAN INSURANCE COMPANY (U.K.) LIMITED');
   });
   test('OBRONPROM', () async {
     var q = r'OBRONPROM';
@@ -396,8 +416,11 @@ Future<void> main() async {
     var r = await matcher.fmatch(q);
     expect(r.cachedResult.matchedEntiries, <MatchedEntry>[]);
   });
-  test('13th Research Institute, 9th Academy, China Aerospace Science and Technology Corporation (CASC) (中国航天科技集団公司第九研究院第十三研究所)', () async {
-    var q = r'13th Research Institute, 9th Academy, China Aerospace Science and Technology Corporation (CASC) (中国航天科技集団公司第九研究院第十三研究所)';
+  test(
+      '13th Research Institute, 9th Academy, China Aerospace Science and Technology Corporation (CASC) (中国航天科技集団公司第九研究院第十三研究所)',
+      () async {
+    var q =
+        r'13th Research Institute, 9th Academy, China Aerospace Science and Technology Corporation (CASC) (中国航天科技集団公司第九研究院第十三研究所)';
     var r = await matcher.fmatch(q);
     expect(r.cachedResult.matchedEntiries.length, lessThan(20));
   });

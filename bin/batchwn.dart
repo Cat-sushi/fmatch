@@ -126,7 +126,7 @@ class Dispatcher {
           .write('${quoteCsvCell(result.from)},${quoteCsvCell(result.to)}\r\n');
       if (((ixO + 1) % 100) == 0) {
         currentLap = DateTime.now();
-        print('${ixO+ 1}\t${currentLap.difference(startTime).inMilliseconds}'
+        print('${ixO + 1}\t${currentLap.difference(startTime).inMilliseconds}'
             '\t${currentLap.difference(lastLap).inMilliseconds}');
         lastLap = currentLap;
       }

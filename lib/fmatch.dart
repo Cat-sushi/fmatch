@@ -85,15 +85,18 @@ abstract class FMatcher {
 /// ```
 abstract class FMatcherP {
   /// When [serverCount] == 0, `Platform.numberOfProcessors` will be used.
-  factory FMatcherP.fromFMatcher(FMatcher fmatcher, [int serverCount = 0]) {
-    return FMatcherPImpl.fromFMatcher(fmatcher, serverCount);
+  /// If you will [stopServers] asynchronously, pass [mutex] `true`.
+  factory FMatcherP.fromFMatcher(FMatcher fmatcher,
+      {int serverCount = 0, bool mutex = false}) {
+    return FMatcherPImpl.fromFMatcher(fmatcher,
+        serverCount: serverCount, mutex: mutex);
   }
 
   /// This spawns the internal serve idsolatess.
   Future<void> startServers();
 
   /// This stops the internal servers.
-  Future<void> stopServers();
+  void stopServers();
 
   /// The text matching method.
   ///

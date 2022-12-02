@@ -25,14 +25,12 @@ import 'package:fmatch/fmatch.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
 import 'package:shelf_router/shelf_router.dart';
-import 'package:simple_mutex/simple_mutex.dart';
 
 int serverCount = Platform.numberOfProcessors;
 
 late ArgResults options;
 late FMatcher matcher;
 late FMatcherP matcherp;
-final mutex = Mutex();
 
 // Configure routes.
 final _router = Router()
@@ -44,14 +42,14 @@ final _router = Router()
 Future<Response> _singleHandler(Request request) async {
   var q = request.requestedUri.queryParameters['q'];
   if (q == null) {
-    return Response.badRequest();
+    return Response.badRequest(body: 'Query is not specified');
   }
   var c = request.requestedUri.queryParameters['c'];
   var cache = true;
   if (c != null && c == '0') {
     cache = false;
   }
-  var result = await mutex.criticalShared(() => matcherp.fmatch(q, cache));
+  var result = await matcherp.fmatch(q, cache);
   var jsonObject = result.toJson();
   var jsonString = jsonEncode(jsonObject);
   return Response.ok(jsonString,
@@ -64,10 +62,19 @@ Future<Response> _multiHandler(Request request) async {
   if (c != null && c == '0') {
     cache = false;
   }
-  var queriesJsonString = await request.readAsString();
-  var queries = (jsonDecode(queriesJsonString) as List<dynamic>).cast<String>();
-  var result =
-      await mutex.criticalShared(() => matcherp.fmatchb(queries, cache));
+  String queriesJsonString;
+  try {
+    queriesJsonString = await request.readAsString();
+  } catch (e) {
+    return Response.badRequest(body: 'Posted data is not string');
+  }
+  var queries = <String>[];
+  try {
+    queries = (jsonDecode(queriesJsonString) as List<dynamic>).cast<String>();
+  } catch (e) {
+    return Response.badRequest(body: 'Invalid posted data format: $e');
+  }
+  var result = await matcherp.fmatchb(queries, cache);
   var jsonObject = result.map((e) => e.toJson()).toList();
   var jsonString = jsonEncode(jsonObject);
   return Response.ok(jsonString,
@@ -77,11 +84,9 @@ Future<Response> _multiHandler(Request request) async {
 Future<Response> _normalizeHandler(Request request) async {
   var q = request.requestedUri.queryParameters['q'];
   if (q == null) {
-    return Response.badRequest();
+    return Response.badRequest(body: 'Query is not sepecified');
   }
-  await mutex.lockShared();
   var normalizingResult = normalize(q);
-  mutex.unlockShared();
   var jsonString = jsonEncode(normalizingResult);
   return Response.ok(jsonString,
       headers: {'content-type': 'application/json; charset=utf-8'});
@@ -91,11 +96,10 @@ Future<Response> _restartHandler(Request request) async {
   var newMatcher = FMatcher();
   var newMatcherp = await readSettingsAndConfigs(newMatcher);
   await newMatcherp.startServers();
-  await mutex.critical(() async {
-    await matcherp.stopServers();
-    matcher = newMatcher;
-    matcherp = newMatcherp;
-  });
+  var oldMatcherp = matcherp;
+  matcher = newMatcher;
+  matcherp = newMatcherp;
+  oldMatcherp.stopServers();
   return Response.ok('Server restartd: ${DateTime.now()}\n');
 }
 
@@ -111,7 +115,7 @@ Future<FMatcherP> readSettingsAndConfigs(FMatcher matcher) async {
         max(int.tryParse(options['server'] as String) ?? serverCount, 1);
   }
 
-  return FMatcherP.fromFMatcher(matcher, serverCount);
+  return FMatcherP.fromFMatcher(matcher, serverCount: serverCount, mutex: true);
 }
 
 Future main(List<String> args) async {

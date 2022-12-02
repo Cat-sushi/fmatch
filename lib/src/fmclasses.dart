@@ -96,7 +96,7 @@ class MatchedEntry {
   final Entry entry;
 
   /// Matching score.
-  /// 
+  ///
   /// The relative `score` with `CachedResult.queryScore` becomes 1.0
   /// when the query matches perfectly with the entry.
   final double score;
@@ -235,7 +235,7 @@ class QueryResult {
         durationInMilliseconds = 0,
         rawQuery = '',
         cachedResult =
-            CachedResult(CachedQuery(LetType.na, [], false), 0, false, []);
+            CachedResult(CachedQuery(LetType.none, [], false), 0, false, []);
   QueryResult.fromJson(Map<String, dynamic> json)
       : serverId = json['serverId'] as int,
         dateTime = DateTime.parse(json['start'] as String),

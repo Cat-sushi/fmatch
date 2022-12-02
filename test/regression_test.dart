@@ -24,17 +24,17 @@ Future<void> main() async {
   test('Regression 1', () async {
     try {
       File(Pathes.idb).deleteSync();
-    // ignore: empty_catches
+      // ignore: empty_catches
     } catch (e) {}
     await initMatcher();
     await doBatch();
     expect(results, equals(queries));
-  },timeout: Timeout(Duration(minutes: 2)));
+  }, timeout: Timeout(Duration(minutes: 2)));
   test('Regression 2', () async {
     await initMatcher();
     await doBatch();
     expect(results, equals(queries));
-  },timeout: Timeout(Duration(minutes: 5)));
+  }, timeout: Timeout(Duration(minutes: 5)));
 }
 
 Future<void> initMatcher() async {

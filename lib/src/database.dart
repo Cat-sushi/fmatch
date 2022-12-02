@@ -52,7 +52,7 @@ class Db {
           growable: false);
       LetType letType;
       if (entryLetPosition[entry] == -1) {
-        letType = LetType.na;
+        letType = LetType.none;
       } else if (entryLetPosition[entry] == entryTermCount - 1) {
         letType = LetType.postfix;
       } else if (entryLetPosition[entry] == 0) {

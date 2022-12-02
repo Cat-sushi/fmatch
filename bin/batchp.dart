@@ -59,12 +59,12 @@ void main(List<String> args) async {
   }
   var queryPath = options['input'] as String? ?? 'batch/queries.csv';
 
-  var matcherp = FMatcherP.fromFMatcher(matcher, serverCount);
+  var matcherp = FMatcherP.fromFMatcher(matcher, serverCount: serverCount);
   await matcherp.startServers();
 
   await time(() => pbatch(matcherp, queryPath), 'pbatch');
 
-  await matcherp.stopServers();
+  matcherp.stopServers();
 }
 
 Future<void> pbatch(FMatcherP matcherp, String queryPath) async {

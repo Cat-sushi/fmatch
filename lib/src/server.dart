@@ -45,6 +45,7 @@ class Client {
 
   void closeServer() {
     _csp.send(null);
+    _cri.cancel();
   }
 
   static Future<void> serverMain(List<dynamic> message) async {

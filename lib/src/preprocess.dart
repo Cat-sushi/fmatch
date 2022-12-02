@@ -23,7 +23,7 @@ import 'util.dart';
 
 /// Type of legal entity type.
 enum LetType {
-  na,
+  none,
   postfix,
   prefix;
 
@@ -32,7 +32,7 @@ enum LetType {
 }
 
 /// Term in database entry.
-/// 
+///
 /// This is a entry of the text mathching database.
 /// It does't mean a item of denial lists such as legal entity/ natural person.
 class Term implements Comparable<Term> {
@@ -113,9 +113,9 @@ final _htSpaces = regExp(r'^\s+|\s+$');
 final _mSpaces = regExp(r'\s+');
 
 /// Normalilze Unicode, trim white spaces, and capitalize the input.
-/// 
+///
 /// This is useful for prepareing outer larger systems which join results with the denial lists.
-/// 
+///
 /// Note that results from this subsystem are normalized in the same way.
 String normalize(String checked) {
   var uNormalized = unorm.nfkd(checked);
@@ -187,7 +187,7 @@ class Preprocessor with Configs {
         return LetReplaced(letReplaced, LetType.prefix);
       }
     }
-    return LetReplaced(stringReplaced, LetType.na);
+    return LetReplaced(stringReplaced, LetType.none);
   }
 
   Preprocessed wordize(LetReplaced letReplaced) {
@@ -238,7 +238,7 @@ class Preprocessor with Configs {
         if (wordized.letType == LetType.postfix &&
                 i == wordized.terms.length - 1 ||
             wordized.letType == LetType.prefix && i == 0) {
-          letType = LetType.na;
+          letType = LetType.none;
         }
         continue;
       }

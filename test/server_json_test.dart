@@ -26,7 +26,7 @@ Future<void> main() async {
       list.map((e) => matcher.preper.normalizeAndCapitalize(e)).toList();
   rawEntries.forEach(print);
   matcher.db = await Db.fromStringStream(
-      matcher.preper, Stream.fromIterable(rawEntries.map((e)=>e.string)));
+      matcher.preper, Stream.fromIterable(rawEntries.map((e) => e.string)));
   matcher.idb = IDb.fromDb(matcher.db);
 
   test('query 1', () async {

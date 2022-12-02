@@ -20,12 +20,14 @@ import 'dart:isolate';
 import 'dart:math';
 
 import 'package:async/async.dart';
+import 'package:simple_mutex/simple_mutex.dart';
 
 import '../fmatch.dart';
 import 'fmatch_impl.dart';
 import 'server.dart';
 
 class FMatcherPImpl implements FMatcherP {
+  final Mutex? _mutex;
   final FMatcher matcher;
   final int _serverCount;
   final int serverCount;
@@ -33,9 +35,11 @@ class FMatcherPImpl implements FMatcherP {
   late final StreamController<Client> serverPoolController;
   late final StreamQueue<Client> serverPool;
 
-  FMatcherPImpl.fromFMatcher(this.matcher, [this.serverCount = 0])
+  FMatcherPImpl.fromFMatcher(this.matcher,
+      {this.serverCount = 0, bool mutex = false})
       : _serverCount =
-            serverCount > 0 ? serverCount : Platform.numberOfProcessors;
+            serverCount > 0 ? serverCount : Platform.numberOfProcessors,
+        _mutex = mutex ? Mutex() : null;
 
   @override
   Future<void> startServers() async {
@@ -51,18 +55,29 @@ class FMatcherPImpl implements FMatcherP {
   }
 
   @override
-  Future<void> stopServers() async {
-    for (var id = 0; id < _serverCount; id++) {
-      var c = await serverPool.next;
-      c.closeServer();
+  void stopServers() {
+    Future<void> stop() async {
+      for (var id = 0; id < _serverCount; id++) {
+        var c = await serverPool.next;
+        c.closeServer();
+      }
+      CacheServer.close(cacheServer);
     }
-    CacheServer.close(cacheServer);
+
+    if (_mutex != null) {
+      _mutex!.critical(stop); // unawaited
+      return;
+    }
+    stop(); // unawaited
   }
 
   @override
   Future<QueryResult> fmatch(String query, [bool activateCache = true]) async {
     var client = await serverPool.next;
-    var result = await client.fmatch(query, activateCache);
+    var result = _mutex == null
+        ? await client.fmatch(query, activateCache)
+        : await _mutex!
+            .criticalShared(() => client.fmatch(query, activateCache));
     serverPoolController.add(client);
     return result;
   }
@@ -70,9 +85,13 @@ class FMatcherPImpl implements FMatcherP {
   @override
   Future<List<QueryResult>> fmatchb(List<String> queries,
       [bool activateCache = true]) async {
-    var result = await Dispatcher(queries, serverPoolController, serverPool,
-            _serverCount, activateCache)
-        .dispatch();
+    var result = _mutex == null
+        ? await Dispatcher(queries, serverPoolController, serverPool,
+                _serverCount, activateCache)
+            .dispatch()
+        : await _mutex!.criticalShared(() => Dispatcher(queries,
+                serverPoolController, serverPool, _serverCount, activateCache)
+            .dispatch());
     return result;
   }
 }

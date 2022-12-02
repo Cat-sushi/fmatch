@@ -46,7 +46,7 @@ mixin Tools on Settings {
       query.letType == LetType.prefix && qti == 0;
 
   int maxMissedTermCount(int qtc, bool perfectMatching) {
-    if(perfectMatching) {
+    if (perfectMatching) {
       return 0;
     }
     var minMatchedTC = (qtc.toDouble() * queryMatchingMinTermRatio).ceil();
@@ -216,14 +216,14 @@ mixin Tools on Settings {
           .sort((a, b) => query.terms[a].df.compareTo(query.terms[b].df));
       queryTermIndices = queryTermIndices.sublist(0, fallbackMaxQueryTerms);
       queryTermIndices.sort();
-      var newLetType = LetType.na;
+      var newLetType = LetType.none;
       var newTerms =
           List<QueryTerm>.generate(queryTermIndices.length, (newQti) {
         var qti = queryTermIndices[newQti];
         if (query.letType == LetType.postfix && qti == query.terms.length - 1) {
-          newLetType = LetType.na;
+          newLetType = LetType.none;
         } else if (query.letType == LetType.prefix && qti == 0) {
-          newLetType = LetType.na;
+          newLetType = LetType.none;
         }
         return query.terms[queryTermIndices[newQti]];
       });

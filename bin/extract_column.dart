@@ -23,7 +23,7 @@ Future<void> main(List<String> args) async {
   var outPath = args[2];
   var outSink = File(outPath).openWrite()..add(utf8Bom);
   await for (var l in readCsvLines(inPath)) {
-  outSink.write('${quoteCsvCell(l[columnId - 1]!)}\r\n');
+    outSink.write('${quoteCsvCell(l[columnId - 1]!)}\r\n');
   }
   await outSink.close();
 }

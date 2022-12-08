@@ -28,28 +28,41 @@ import 'server.dart';
 
 class FMatcherPImpl implements FMatcherP {
   final Mutex? _mutex;
-  final FMatcher matcher;
+  @override
+  final FMatcher fmatcher;
+  final bool isInitialized;
   final int _serverCount;
   final int serverCount;
   late final SendPort cacheServer;
   late final StreamController<Client> serverPoolController;
   late final StreamQueue<Client> serverPool;
 
-  FMatcherPImpl.fromFMatcher(this.matcher,
+  FMatcherPImpl({this.serverCount = 0, bool mutex = false})
+      : fmatcher = FMatcher(),
+        isInitialized = false,
+        _serverCount =
+            serverCount > 0 ? serverCount : Platform.numberOfProcessors,
+        _mutex = mutex ? Mutex() : null;
+
+  FMatcherPImpl.fromFMatcher(this.fmatcher,
       {this.serverCount = 0, bool mutex = false})
-      : _serverCount =
+      : isInitialized = true,
+        _serverCount =
             serverCount > 0 ? serverCount : Platform.numberOfProcessors,
         _mutex = mutex ? Mutex() : null;
 
   @override
   Future<void> startServers() async {
+    if (!isInitialized) {
+      await fmatcher.init();
+    }
     serverPoolController = StreamController<Client>();
     serverPool = StreamQueue(serverPoolController.stream);
-    cacheServer = await CacheServer.spawn(matcher.queryResultCacheSize);
+    cacheServer = await CacheServer.spawn(fmatcher.queryResultCacheSize);
 
     for (var id = 0; id < _serverCount; id++) {
       var c = Client(id);
-      await c.spawnServer(matcher as FMatcherImpl, cacheServer);
+      await c.spawnServer(fmatcher as FMatcherImpl, cacheServer);
       serverPoolController.add(c);
     }
   }

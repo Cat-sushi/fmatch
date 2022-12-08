@@ -74,18 +74,39 @@ abstract class FMatcher {
 /// Parallel fuzzy text matacher.
 ///
 /// This has resident internal servers(Isolates) to process queries parallel.
-///
-/// Usage
-/// ```dart
-/// fmatcher = FMatcher();
-/// await fmatcher.init();
-/// fmatcherp = FMatcherP.fromFMatcher(fmatcher, 4);
-/// await fmatcherp.startServers();
-/// results = fmatcherp.fmatchb('abc', 'def');
-/// ```
 abstract class FMatcherP {
+  FMatcher get fmatcher;
+
+  /// A standard constructor. See usage.
+  ///
   /// When [serverCount] == 0, `Platform.numberOfProcessors` will be used.
+  ///
   /// If you will [stopServers] asynchronously, pass [mutex] `true`.
+  ///
+  /// Usage
+  /// ```dart
+  /// fmatcherp = FMatcherP();
+  /// await fmatcherp.startServers();
+  /// results = fmatcherp.fmatchb('abc', 'def');
+  /// ```
+  factory FMatcherP({int serverCount = 0, bool mutex = false}) {
+    return FMatcherPImpl(serverCount: serverCount, mutex: mutex);
+  }
+
+  /// Construt from PMatcher. See usage.
+  ///
+  /// When [serverCount] == 0, `Platform.numberOfProcessors` will be used.
+  ///
+  /// If you will [stopServers] asynchronously, pass [mutex] `true`.
+  ///
+  /// Usage
+  /// ```dart
+  /// fmatcher = FMatcher();
+  /// await fmatcher.init();
+  /// fmatcherp = FMatcherP.fromFMatcher(fmatcher, 4);
+  /// await fmatcherp.startServers();
+  /// results = fmatcherp.fmatchb('abc', 'def');
+  /// ```
   factory FMatcherP.fromFMatcher(FMatcher fmatcher,
       {int serverCount = 0, bool mutex = false}) {
     return FMatcherPImpl.fromFMatcher(fmatcher,

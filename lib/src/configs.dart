@@ -17,17 +17,17 @@
 import 'util.dart';
 
 class Pathes {
-  static var setting = 'config/settings.csv';
-  static var legalCaharacters = 'config/legal_characters.csv';
-  static var characterReplacement = 'config/character_replacement.csv';
-  static var stringReplacement = 'config/string_replacement.csv';
-  static var legalEntryType = 'config/legal_entity_types.csv';
-  static var words = 'config/words.csv';
-  static var wordReplacement = 'config/word_replacement.csv';
-  static var whiteQueries = 'config/white_queries.csv';
-  static var list = 'database/list.csv';
-  static var db = 'database/db.csv';
-  static var idb = 'database/idb.json';
+  static var setting = 'assets/config/settings.csv';
+  static var legalCaharacters = 'assets/config/legal_characters.csv';
+  static var characterReplacement = 'assets/config/character_replacement.csv';
+  static var stringReplacement = 'assets/config/string_replacement.csv';
+  static var legalEntryType = 'assets/config/legal_entity_types.csv';
+  static var words = 'assets/config/words.csv';
+  static var wordReplacement = 'assets/config/word_replacement.csv';
+  static var whiteQueries = 'assets/config/white_queries.csv';
+  static var list = 'assets/database/list.csv';
+  static var db = 'assets/database/db.csv';
+  static var idb = 'assets/database/idb.json';
 }
 
 mixin Settings {

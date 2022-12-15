@@ -1,6 +1,10 @@
 # CHANGELOG
 
-## 1.1.1
+## 1.2.0
+
+- Move `database` and `config` to `assets`
+
+## 1.1.2
 
 - Update the package simple_mutex.
 

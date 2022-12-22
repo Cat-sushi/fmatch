@@ -258,8 +258,7 @@ class QueryResult {
 
 class ResultCache {
   final int _queryResultCacheSize;
-  // ignore: prefer_collection_literals
-  final _map = LinkedHashMap<CachedQuery, CachedResult>();
+  final _map = <CachedQuery, CachedResult>{};
 
   ResultCache(int size) : _queryResultCacheSize = size;
 

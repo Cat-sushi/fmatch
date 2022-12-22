@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.2.1
+
+- Relax SDK requirement.
+
 ## 1.2.0
 
 - Move `database` and `config` to `assets`

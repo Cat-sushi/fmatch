@@ -258,7 +258,7 @@ class QueryResult {
 
 class ResultCache {
   final int _queryResultCacheSize;
-  final _map = <CachedQuery, CachedResult>{};
+  final _map = <CachedQuery, CachedResult>{}; // orderd by spec
 
   ResultCache(int size) : _queryResultCacheSize = size;
 

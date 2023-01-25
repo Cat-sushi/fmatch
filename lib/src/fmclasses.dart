@@ -16,8 +16,6 @@
 
 library _fmclasses;
 
-import 'dart:collection';
-
 import 'preprocess.dart';
 
 class QueryTerm {

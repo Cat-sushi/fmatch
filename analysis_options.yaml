@@ -24,6 +24,9 @@ linter:
     - unawaited_futures
 
 
+# analyzer:
+#   language:
+#     strict-raw-types: true
 analyzer:
   strong-mode:
     implicit-casts: false

@@ -30,7 +30,7 @@ class Pathes {
   static var idb = 'assets/database/idb.json';
 }
 
-mixin Settings {
+class Settings {
   double termMatchingMinLetterRatio = 0.6666;
   int termMatchingMinLetters = 3;
   double termPartialMatchingMinLetterRatio = 0.2;

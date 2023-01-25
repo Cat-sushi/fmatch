@@ -30,11 +30,11 @@ mixin Tools on Settings {
   late var resultCache = ResultCache(queryResultCacheSize);
   late final nd = db.length.toDouble(); // nd >= 2.0
   static const dfz = 1.0;
-  late final idfm = scoreIdfMagnifier;
+  late final double idfm = scoreIdfMagnifier;
   late final double tidfz = absoluteTermImportance(dfz);
   late final double dfx = min<double>(queryMatchingTypicalProperNounDf, nd);
   late final tix = absoluteTermImportance(dfx) / tidfz;
-  late final tsox = queryMatchingMinTermOrderSimilarity;
+  late final double tsox = queryMatchingMinTermOrderSimilarity;
   late final minScore = (1.0 - (1.0 - tix)) * tsox;
 
   double absoluteTermImportance(double df) =>

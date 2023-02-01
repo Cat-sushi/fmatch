@@ -26,8 +26,4 @@ linter:
 
 # analyzer:
 #   language:
-#     strict-raw-types: true
-analyzer:
-  strong-mode:
-    implicit-casts: false
-    implicit-dynamic: false
+#     strict-casts: true

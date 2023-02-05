@@ -76,8 +76,8 @@ Future<void> main(List<String> args) async {
 
   print("Building db and idb.");
   final matcher = FMatcherImpl();
-  await matcher.preper.readConfigs(Pathes.configDir);
-  await matcher.buildDb(Pathes.configDir, Pathes.dbDir);
+  await matcher.preper.readConfigs(Paths.configDir);
+  await matcher.buildDb(Paths.configDir, Paths.dbDir);
 }
 
 Future<void> fetchConsolidated() async {

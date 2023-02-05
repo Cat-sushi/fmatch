@@ -16,7 +16,7 @@
 
 import 'util.dart';
 
-class Pathes {
+class Paths {
   static const String configDir = 'assets/config';
   static const String dbDir = 'assets/database';
   static const String setting = 'settings.csv';
@@ -49,7 +49,7 @@ mixin Settings {
   int queryResultCacheSize = 100000;
 
   Future<void> readSettings(String configDir) async {
-    await for (var l in readCsvLines('$configDir/${Pathes.setting}')) {
+    await for (var l in readCsvLines('$configDir/${Paths.setting}')) {
       if (l.length < 2 || l[0] == null || l[1] == null) {
         continue;
       }
@@ -133,14 +133,14 @@ mixin Configs {
   late final List<WordReplacement> wordReplacements;
   late final List<String> rawWhiteQueries;
   Future<void> readConfigs(String configDir) async {
-    await _readLegalCharConf('$configDir/${Pathes.legalCaharacters}');
+    await _readLegalCharConf('$configDir/${Paths.legalCaharacters}');
     await _readCharacterReplacementConf(
-        '$configDir/${Pathes.characterReplacement}');
-    await _readStringReplacementConf('$configDir/${Pathes.stringReplacement}');
-    await _readLegalEntityTypesConf('$configDir/${Pathes.legalEntryType}');
-    await _readWordsConf('$configDir/${Pathes.words}');
-    await _readWordReplacementConf('$configDir/${Pathes.wordReplacement}');
-    await _readWhiteQueries('$configDir/${Pathes.whiteQueries}');
+        '$configDir/${Paths.characterReplacement}');
+    await _readStringReplacementConf('$configDir/${Paths.stringReplacement}');
+    await _readLegalEntityTypesConf('$configDir/${Paths.legalEntryType}');
+    await _readWordsConf('$configDir/${Paths.words}');
+    await _readWordReplacementConf('$configDir/${Paths.wordReplacement}');
+    await _readWhiteQueries('$configDir/${Paths.whiteQueries}');
   }
 
   Future<void> _readLegalCharConf(String path) async {

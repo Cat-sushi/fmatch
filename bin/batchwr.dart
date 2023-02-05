@@ -62,9 +62,9 @@ Future<void> wbatch([String path = 'batch']) async {
   lastLap = startTime;
   currentLap = lastLap;
   var matcher = FMatcherImpl();
-  await matcher.readSettings(Pathes.configDir);
-  await matcher.preper.readConfigs(Pathes.configDir);
-  await matcher.buildDb(Pathes.configDir, Pathes.dbDir);
+  await matcher.readSettings(Paths.configDir);
+  await matcher.preper.readConfigs(Paths.configDir);
+  await matcher.buildDb(Paths.configDir, Paths.dbDir);
   var terms = matcher.idb.keys.map((e) => e.term.string).toList();
   var queries = StreamQueue<String>(randomQuery(terms));
   await Dispatcher(queries).dispatch();

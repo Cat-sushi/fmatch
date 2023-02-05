@@ -9,9 +9,9 @@ import 'package:test/test.dart';
 
 Future<void> main() async {
   var matcher = FMatcherImpl();
-  await matcher.readSettings(Pathes.configDir);
-  await matcher.preper.readConfigs(Pathes.configDir);
-  await matcher.buildDb(Pathes.configDir, 'test/env1');
+  await matcher.readSettings(Paths.configDir);
+  await matcher.preper.readConfigs(Paths.configDir);
+  await matcher.buildDb(Paths.configDir, 'test/env1');
 
   test('AT&T Inc.', () async {
     var q = r'AT&T INC.';

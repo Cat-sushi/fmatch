@@ -16,12 +16,12 @@
 
 import 'dart:async';
 
-import 'package:fmatch/src/configs.dart';
-import 'package:fmatch/src/fmatcchp_impl.dart';
-
+import 'src/configs.dart';
+import 'src/fmatcchp_impl.dart';
 import 'src/fmatch_impl.dart';
 import 'src/fmclasses.dart';
 
+export 'src/configs.dart' show Paths;
 export 'src/fmclasses.dart'
     show QueryResult, CachedQuery, CachedResult, MatchedEntry;
 export 'src/preprocess.dart' show Term, Entry, LetType;
@@ -48,7 +48,7 @@ abstract class FMatcher with Settings {
   ///
   /// Call this before calling [fmatch()].
   Future<void> init(
-      {String configDir = Pathes.configDir, String dbDir = Pathes.dbDir});
+      {String configDir = Paths.configDir, String dbDir = Paths.dbDir});
 
   /// The matching method.
   ///

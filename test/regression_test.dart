@@ -19,7 +19,7 @@ var env = 'test/env0';
 Future<void> main() async {
   test('Regression 1', () async {
     try {
-      File('$env/${Pathes.idb}').deleteSync();
+      File('$env/${Paths.idb}').deleteSync();
       // ignore: empty_catches
     } catch (e) {}
     await initMatcher();
@@ -35,11 +35,11 @@ Future<void> main() async {
 
 Future<void> initMatcher() async {
   matcher = FMatcherImpl();
-  await matcher.readSettings(Pathes.configDir);
-  await matcher.preper.readConfigs(Pathes.configDir);
-  await matcher.buildDb(Pathes.configDir, env);
+  await matcher.readSettings(Paths.configDir);
+  await matcher.preper.readConfigs(Paths.configDir);
+  await matcher.buildDb(Paths.configDir, env);
   queries = [];
-  await for (var l in readCsvLines('$env/${Pathes.list}')) {
+  await for (var l in readCsvLines('$env/${Paths.list}')) {
     if (l.isEmpty || l[0] == null) {
       continue;
     }

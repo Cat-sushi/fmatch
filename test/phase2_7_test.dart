@@ -9,8 +9,8 @@ import 'package:test/test.dart';
 
 Future<void> main() async {
   var matcher = FMatcherImpl();
-  await matcher.readSettings(Pathes.configDir);
-  await matcher.preper.readConfigs(Pathes.configDir);
+  await matcher.readSettings(Paths.configDir);
+  await matcher.preper.readConfigs(Paths.configDir);
   var list = [
     'AL-AL', // 0
     'MUORWEL MALUAL, MALUAL DHAL', // 1

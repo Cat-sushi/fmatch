@@ -22,7 +22,7 @@ Future<void> main() async {
   await pbatch(matcherp, queriesPath);
 
   var queries = <String>[];
-  await for (var l in readCsvLines('$env/${Pathes.list}')) {
+  await for (var l in readCsvLines('$env/${Paths.list}')) {
     if (l.isEmpty || l[0] == null) {
       continue;
     }

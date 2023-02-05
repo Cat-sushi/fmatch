@@ -119,8 +119,8 @@ class FMatcherImpl with Settings, Tools implements FMatcher {
 
   @override
   Future<void> init(
-      {String configDir = Pathes.configDir,
-      String dbDir = Pathes.dbDir}) async {
+      {String configDir = Paths.configDir,
+      String dbDir = Paths.dbDir}) async {
     await readSettings(configDir);
     await preper.readConfigs(configDir);
     initWhiteQueries();
@@ -128,54 +128,54 @@ class FMatcherImpl with Settings, Tools implements FMatcher {
   }
 
   Future<void> buildDb(String configDir, String dbDir) async {
-    var idbFile = File('$dbDir/${Pathes.idb}');
+    var idbFile = File('$dbDir/${Paths.idb}');
     var idbFileExists = idbFile.existsSync();
     late DateTime idbTimestamp;
     if (idbFileExists) {
-      idbTimestamp = File('$dbDir/${Pathes.idb}').lastModifiedSync();
+      idbTimestamp = File('$dbDir/${Paths.idb}').lastModifiedSync();
     }
     if (!idbFileExists ||
-        File('$dbDir/${Pathes.list}')
+        File('$dbDir/${Paths.list}')
             .lastModifiedSync()
             .isAfter(idbTimestamp) ||
-        File('$configDir/${Pathes.legalCaharacters}')
+        File('$configDir/${Paths.legalCaharacters}')
             .lastModifiedSync()
             .isAfter(idbTimestamp) ||
-        File('$configDir/${Pathes.characterReplacement}')
+        File('$configDir/${Paths.characterReplacement}')
             .lastModifiedSync()
             .isAfter(idbTimestamp) ||
-        File('$configDir/${Pathes.stringReplacement}')
+        File('$configDir/${Paths.stringReplacement}')
             .lastModifiedSync()
             .isAfter(idbTimestamp) ||
-        File('$configDir/${Pathes.legalEntryType}')
+        File('$configDir/${Paths.legalEntryType}')
             .lastModifiedSync()
             .isAfter(idbTimestamp) ||
-        File('$configDir/${Pathes.words}')
+        File('$configDir/${Paths.words}')
             .lastModifiedSync()
             .isAfter(idbTimestamp) ||
-        File('$configDir/${Pathes.wordReplacement}')
+        File('$configDir/${Paths.wordReplacement}')
             .lastModifiedSync()
             .isAfter(idbTimestamp)) {
       await time(() async {
-        db = await Db.readList(preper, '$dbDir/${Pathes.list}');
+        db = await Db.readList(preper, '$dbDir/${Paths.list}');
       }, 'Db.readList');
       await time(() async {
         idb = IDb.fromDb(db);
       }, 'IDb.fromDb');
-      await time(() => db.write('$dbDir/${Pathes.db}'),
+      await time(() => db.write('$dbDir/${Paths.db}'),
           'Db.write'); // for debug configs
-      await time(() => idb.write('$dbDir/${Pathes.idb}'), 'IDb.write');
+      await time(() => idb.write('$dbDir/${Paths.idb}'), 'IDb.write');
     } else {
       await time(() async {
-        idb = await IDb.read('$dbDir/${Pathes.idb}');
+        idb = await IDb.read('$dbDir/${Paths.idb}');
       }, 'IDb.read');
       await time(() => db = Db.fromIDb(idb), 'Db.fromIDb');
-      if (!File('$dbDir/${Pathes.db}').existsSync()) {
-        await time(() => db.write('$dbDir/${Pathes.db}'),
+      if (!File('$dbDir/${Paths.db}').existsSync()) {
+        await time(() => db.write('$dbDir/${Paths.db}'),
             'Db.write'); // for debug reproduction
       }
     }
-    idbTimestamp = File('$dbDir/${Pathes.idb}').lastModifiedSync();
+    idbTimestamp = File('$dbDir/${Paths.idb}').lastModifiedSync();
     databaseVersion = idbTimestamp.millisecondsSinceEpoch;
   }
 

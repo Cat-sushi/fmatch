@@ -8,7 +8,7 @@ import 'package:test/test.dart';
 
 Future<void> main() async {
   var cntxt = Preprocessor();
-  await cntxt.readConfigs(Pathes.configDir);
+  await cntxt.readConfigs(Paths.configDir);
 
   group('Illegal Chateacter Cheking', () {
     test('char1', () {

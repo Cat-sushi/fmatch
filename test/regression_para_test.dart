@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:fmatch/fmatch.dart';
-import 'package:fmatch/src/configs.dart';
 import 'package:fmatch/src/fmatch_impl.dart';
 import 'package:fmatch/src/util.dart';
 import 'package:test/test.dart';

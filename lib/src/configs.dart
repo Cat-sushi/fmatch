@@ -30,7 +30,7 @@ class Pathes {
   static var idb = 'assets/database/idb.json';
 }
 
-class Settings {
+mixin Settings {
   double termMatchingMinLetterRatio = 0.6666;
   int termMatchingMinLetters = 3;
   double termPartialMatchingMinLetterRatio = 0.2;
@@ -91,7 +91,7 @@ class Settings {
           fallbackMaxQueryTermMobility = val.toInt();
           break;
         case 'queryMatchingTermOrderCoefficent':
-          queryMatchingTermOrderCoefficent = val.toDouble();
+          queryMatchingTermOrderCoefficent = val;
           break;
         case 'queryResultCacheSize':
           queryResultCacheSize = val.toInt();

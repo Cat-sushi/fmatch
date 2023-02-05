@@ -16,6 +16,7 @@
 
 import 'dart:async';
 
+import 'package:fmatch/src/configs.dart';
 import 'package:fmatch/src/fmatcchp_impl.dart';
 
 import 'src/fmatch_impl.dart';
@@ -34,24 +35,10 @@ export 'src/preprocess.dart' show normalize;
 /// await matcher.init();
 /// result = await matcher.fmatch('abc');
 /// ```
-abstract class FMatcher {
+abstract class FMatcher with Settings {
   factory FMatcher() {
     return FMatcherImpl();
   }
-  double termMatchingMinLetterRatio = 0.6666;
-  int termMatchingMinLetters = 3;
-  double termPartialMatchingMinLetterRatio = 0.2;
-  int termPartialMatchingMinLetters = 2;
-  double queryMatchingMinTermRatio = 0.5;
-  int queryMatchingMinTerms = 1;
-  double queryMatchingTypicalProperNounDf = 10.0;
-  double queryMatchingMinTermOrderSimilarity = 0.4444;
-  double scoreIdfMagnifier = 2.0;
-  double fallbackThresholdCombinations = 117649;
-  int fallbackMaxQueryTerms = 6;
-  int fallbackMaxQueryTermMobility = 6;
-  double queryMatchingTermOrderCoefficent = 0.5;
-  int queryResultCacheSize = 100000;
 
   int databaseVersion = 0;
 

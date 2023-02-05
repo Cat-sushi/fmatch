@@ -407,14 +407,14 @@ mixin Tools on Settings {
   }
 
   bool checkDevidedMatch(Query query, Entry entry,
-      List<QueryTermInQueryOccurrnece> tmpQueryTermsInQueryOccurrence) {
+      List<QueryTermInQueryOccurrnece> newQueryTermsInQueryOccurrence) {
     var joinedTermQtis = <int, List<int>>{};
-    for (var qti = 0; qti < tmpQueryTermsInQueryOccurrence.length; qti++) {
-      var position = tmpQueryTermsInQueryOccurrence[qti].position;
+    for (var qti = 0; qti < newQueryTermsInQueryOccurrence.length; qti++) {
+      var position = newQueryTermsInQueryOccurrence[qti].position;
       if (position == -1) {
         continue;
       }
-      if (!tmpQueryTermsInQueryOccurrence[qti].partial) {
+      if (!newQueryTermsInQueryOccurrence[qti].partial) {
         continue;
       }
       if (joinedTermQtis[position] == null) {
@@ -439,7 +439,7 @@ mixin Tools on Settings {
         return false;
       }
       for (var qti in me.value) {
-        tmpQueryTermsInQueryOccurrence[qti].termSimilarity = sim;
+        newQueryTermsInQueryOccurrence[qti].termSimilarity = sim;
       }
     }
     return true;

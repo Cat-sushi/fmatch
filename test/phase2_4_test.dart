@@ -8,14 +8,10 @@ import 'package:fmatch/src/fmclasses.dart';
 import 'package:test/test.dart';
 
 Future<void> main() async {
-  Pathes.list = 'test/env1/list.csv';
-  Pathes.db = 'test/env1/db.csv';
-  Pathes.idb = 'test/env1/idb.json';
-
   var matcher = FMatcherImpl();
-  await matcher.readSettings(null);
-  await matcher.preper.readConfigs();
-  await matcher.buildDb();
+  await matcher.readSettings(Pathes.configDir);
+  await matcher.preper.readConfigs(Pathes.configDir);
+  await matcher.buildDb(Pathes.configDir, 'test/env1');
 
   test('AT&T Inc.', () async {
     var q = r'AT&T INC.';

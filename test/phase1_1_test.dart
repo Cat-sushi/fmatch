@@ -2,12 +2,13 @@
 // All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:fmatch/src/configs.dart';
 import 'package:fmatch/src/preprocess.dart';
 import 'package:test/test.dart';
 
 Future<void> main() async {
   var cntxt = Preprocessor();
-  await cntxt.readConfigs();
+  await cntxt.readConfigs(Pathes.configDir);
 
   group('Illegal Chateacter Cheking', () {
     test('char1', () {

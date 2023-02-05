@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.3.0
+
+- Add path arguments of directories of config and database for initialization.
+
 ## 1.2.1
 
 - Relax SDK requirement.

@@ -47,7 +47,8 @@ abstract class FMatcher with Settings {
   /// Reads settings and configs, loads the denial lists to the DB.
   ///
   /// Call this before calling [fmatch()].
-  Future<void> init();
+  Future<void> init(
+      {String configDir = Pathes.configDir, String dbDir = Pathes.dbDir});
 
   /// The matching method.
   ///

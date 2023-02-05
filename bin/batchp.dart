@@ -88,7 +88,7 @@ Future<void> pbatch(FMatcherP matcherp, String queryPath) async {
   var cacheHits2 = 0;
   while (true) {
     var bulk = await queries.take(100);
-    if(bulk.isEmpty) {
+    if (bulk.isEmpty) {
       break;
     }
     var results = await matcherp.fmatchb(bulk);

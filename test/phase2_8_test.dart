@@ -2,14 +2,15 @@
 // All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:fmatch/src/configs.dart';
 import 'package:fmatch/src/database.dart';
 import 'package:fmatch/src/fmatch_impl.dart';
 import 'package:test/test.dart';
 
 Future<void> main() async {
   var matcher = FMatcherImpl();
-  await matcher.readSettings(null);
-  await matcher.preper.readConfigs();
+  await matcher.readSettings(Pathes.configDir);
+  await matcher.preper.readConfigs(Pathes.configDir);
   var list = [
     r'ABCDEFGHI ABCDEFGHI',
     r'ABCDEFGHI ABCJKLMNO',

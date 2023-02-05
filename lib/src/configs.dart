@@ -17,17 +17,19 @@
 import 'util.dart';
 
 class Pathes {
-  static var setting = 'assets/config/settings.csv';
-  static var legalCaharacters = 'assets/config/legal_characters.csv';
-  static var characterReplacement = 'assets/config/character_replacement.csv';
-  static var stringReplacement = 'assets/config/string_replacement.csv';
-  static var legalEntryType = 'assets/config/legal_entity_types.csv';
-  static var words = 'assets/config/words.csv';
-  static var wordReplacement = 'assets/config/word_replacement.csv';
-  static var whiteQueries = 'assets/config/white_queries.csv';
-  static var list = 'assets/database/list.csv';
-  static var db = 'assets/database/db.csv';
-  static var idb = 'assets/database/idb.json';
+  static const String configDir = 'assets/config';
+  static const String dbDir = 'assets/database';
+  static const String setting = 'settings.csv';
+  static const String legalCaharacters = 'legal_characters.csv';
+  static const String characterReplacement = 'character_replacement.csv';
+  static const String stringReplacement = 'string_replacement.csv';
+  static const String legalEntryType = 'legal_entity_types.csv';
+  static const String words = 'words.csv';
+  static const String wordReplacement = 'word_replacement.csv';
+  static const String whiteQueries = 'white_queries.csv';
+  static const String list = 'list.csv';
+  static const String db = 'db.csv';
+  static const String idb = 'idb.json';
 }
 
 mixin Settings {
@@ -46,9 +48,8 @@ mixin Settings {
   double queryMatchingTermOrderCoefficent = 0.5;
   int queryResultCacheSize = 100000;
 
-  Future<void> readSettings([String? path]) async {
-    path ??= Pathes.setting;
-    await for (var l in readCsvLines(path)) {
+  Future<void> readSettings(String configDir) async {
+    await for (var l in readCsvLines('$configDir/${Pathes.setting}')) {
       if (l.length < 2 || l[0] == null || l[1] == null) {
         continue;
       }
@@ -131,14 +132,15 @@ mixin Configs {
   late final RegExp words;
   late final List<WordReplacement> wordReplacements;
   late final List<String> rawWhiteQueries;
-  Future<void> readConfigs() async {
-    await _readLegalCharConf(Pathes.legalCaharacters);
-    await _readCharacterReplacementConf(Pathes.characterReplacement);
-    await _readStringReplacementConf(Pathes.stringReplacement);
-    await _readLegalEntityTypesConf(Pathes.legalEntryType);
-    await _readWordsConf(Pathes.words);
-    await _readWordReplacementConf(Pathes.wordReplacement);
-    await _readWhiteQueries(Pathes.whiteQueries);
+  Future<void> readConfigs(String configDir) async {
+    await _readLegalCharConf('$configDir/${Pathes.legalCaharacters}');
+    await _readCharacterReplacementConf(
+        '$configDir/${Pathes.characterReplacement}');
+    await _readStringReplacementConf('$configDir/${Pathes.stringReplacement}');
+    await _readLegalEntityTypesConf('$configDir/${Pathes.legalEntryType}');
+    await _readWordsConf('$configDir/${Pathes.words}');
+    await _readWordReplacementConf('$configDir/${Pathes.wordReplacement}');
+    await _readWhiteQueries('$configDir/${Pathes.whiteQueries}');
   }
 
   Future<void> _readLegalCharConf(String path) async {

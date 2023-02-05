@@ -17,13 +17,9 @@ late List<String> results;
 var env = 'test/env0';
 
 Future<void> main() async {
-  Pathes.list = '$env/list.csv';
-  Pathes.db = '$env/db.csv';
-  Pathes.idb = '$env/idb.json';
-
   test('Regression 1', () async {
     try {
-      File(Pathes.idb).deleteSync();
+      File('$env/${Pathes.idb}').deleteSync();
       // ignore: empty_catches
     } catch (e) {}
     await initMatcher();
@@ -39,11 +35,11 @@ Future<void> main() async {
 
 Future<void> initMatcher() async {
   matcher = FMatcherImpl();
-  await matcher.readSettings(null);
-  await matcher.preper.readConfigs();
-  await matcher.buildDb();
+  await matcher.readSettings(Pathes.configDir);
+  await matcher.preper.readConfigs(Pathes.configDir);
+  await matcher.buildDb(Pathes.configDir, env);
   queries = [];
-  await for (var l in readCsvLines(Pathes.list)) {
+  await for (var l in readCsvLines('$env/${Pathes.list}')) {
     if (l.isEmpty || l[0] == null) {
       continue;
     }

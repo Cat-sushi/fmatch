@@ -17,6 +17,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:fmatch/src/configs.dart';
 import 'package:fmatch/src/fmatch_impl.dart';
 import 'package:fmatch/src/util.dart';
 import 'package:html/parser.dart';
@@ -75,8 +76,8 @@ Future<void> main(List<String> args) async {
 
   print("Building db and idb.");
   final matcher = FMatcherImpl();
-  await matcher.preper.readConfigs();
-  await matcher.buildDb();
+  await matcher.preper.readConfigs(Pathes.configDir);
+  await matcher.buildDb(Pathes.configDir, Pathes.dbDir);
 }
 
 Future<void> fetchConsolidated() async {

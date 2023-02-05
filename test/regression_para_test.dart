@@ -12,20 +12,17 @@ import '../bin/batchp.dart';
 
 Future<void> main() async {
   var env = 'test/env0';
-  Pathes.list = '$env/list.csv';
-  Pathes.db = '$env/db.csv';
-  Pathes.idb = '$env/idb.json';
   var queriesPath = '$env/queries.csv';
 
   var matcher = FMatcherImpl();
-  await matcher.init();
+  await matcher.init(dbDir: env);
   var matcherp = FMatcherP.fromFMatcher(matcher);
   await matcherp.startServers();
 
   await pbatch(matcherp, queriesPath);
 
   var queries = <String>[];
-  await for (var l in readCsvLines(Pathes.list)) {
+  await for (var l in readCsvLines('$env/${Pathes.list}')) {
     if (l.isEmpty || l[0] == null) {
       continue;
     }

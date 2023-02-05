@@ -77,7 +77,7 @@ Future<void> pbatch(FMatcherP matcherp, String queryPath) async {
   var resultPath = '${trank}_results.csv';
   var logPath = '${trank}_log.txt';
   var resultFile = File(resultPath);
-  resultSink = resultFile.openWrite()..write(utf8Bom);
+  resultSink = resultFile.openWrite()..add(utf8Bom);
   logSink = File(logPath).openWrite();
   startTime = DateTime.now();
   lastLap = startTime;
@@ -86,8 +86,11 @@ Future<void> pbatch(FMatcherP matcherp, String queryPath) async {
   var lc = 0;
   var cacheHits = 0;
   var cacheHits2 = 0;
-  while (await queries.hasNext) {
+  while (true) {
     var bulk = await queries.take(100);
+    if(bulk.isEmpty) {
+      break;
+    }
     var results = await matcherp.fmatchb(bulk);
     for (var result in results) {
       lc++;
@@ -107,5 +110,9 @@ Future<void> pbatch(FMatcherP matcherp, String queryPath) async {
         '\t\t$cacheHits2\t$cacheHits');
     cacheHits2 = 0;
     lastLap = currentLap;
+    await resultSink.flush();
+    await logSink.flush();
   }
+  await resultSink.flush();
+  await logSink.flush();
 }

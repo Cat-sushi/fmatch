@@ -84,16 +84,15 @@ class FMatcherImpl with Settings, Tools implements FMatcher {
     var query = Query.fromPreprocessed(preprocessed, perfectMatching);
     var queryTermsMatchMap = queryTermsMatch(query);
 
-    var maxMissedTC =
-        maxMissedTermCount(query.terms.length, query.perfectMatching);
     bool queryFallenBack = false;
-    if (estimateCombination(query, queryTermsMatchMap, maxMissedTC) >
+    if (estimateCombination(query, queryTermsMatchMap) >
         fallbackThresholdCombinations) {
       queryFallenBack = true;
       reduceQueryTerms(query, queryTermsMatchMap);
-      maxMissedTC =
-          maxMissedTermCount(query.terms.length, query.perfectMatching);
     }
+
+    var maxMissedTC =
+        maxMissedTermCount(query.terms.length, query.perfectMatching);
 
     caliculateQueryTermWeight(query);
 

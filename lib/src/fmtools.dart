@@ -176,14 +176,12 @@ mixin Tools on Settings {
   }
 
   double estimateCombination(
-      Query query,
-      QueryTermsOccurrencesInEntryMap queryTermsMatchMap,
-      int maxMissedTermCount) {
+      Query query, QueryTermsOccurrencesInEntryMap queryTermsMatchMap) {
     var qtc = query.terms.length;
     var maxCombi = 1.0;
     for (var e in queryTermsMatchMap.entries) {
       var queryTermsOccurrences = e.value;
-      var etmcs = entryTermsQueryTermMatchCount(e.key, queryTermsMatchMap);
+      var etmcs = countMatchedQueryTerms(e.key, queryTermsMatchMap);
       var combi = 1.0;
       QueryTerms:
       for (var qti = 0; qti < qtc; qti++) {
@@ -216,35 +214,30 @@ mixin Tools on Settings {
           .sort((a, b) => query.terms[a].df.compareTo(query.terms[b].df));
       queryTermIndices = queryTermIndices.sublist(0, fallbackMaxQueryTerms);
       queryTermIndices.sort();
-      var newLetType = LetType.none;
-      var newTerms =
-          List<QueryTerm>.generate(queryTermIndices.length, (newQti) {
-        var qti = queryTermIndices[newQti];
-        if (query.letType == LetType.postfix && qti == query.terms.length - 1) {
-          newLetType = LetType.none;
-        } else if (query.letType == LetType.prefix && qti == 0) {
-          newLetType = LetType.none;
-        }
-        return query.terms[queryTermIndices[newQti]];
-      });
+      var newTerms = List<QueryTerm>.generate(queryTermIndices.length,
+          (newQti) => query.terms[queryTermIndices[newQti]]);
+      if (query.letType == LetType.postfix &&
+              queryTermIndices.last != query.terms.length - 1 ||
+          query.letType == LetType.prefix && queryTermIndices.first != 0) {
+        query.letType == LetType.none;
+      }
       query.terms = newTerms;
-      query.letType = newLetType;
     }
-    for (var e in queryTermMatchMap.entries.toList()) {
+    for (var e in queryTermMatchMap.entries) {
       var queryTermsOccurrences = e.value;
-      var newQueryTermMatchesInEntry = List<List<QueryTermOccurrence>>.generate(
+      var newQueryTermsOccurrences = List<List<QueryTermOccurrence>>.generate(
           query.terms.length,
           (newQti) => queryTermsOccurrences[queryTermIndices[newQti]]);
-      for (var qti = 0; qti < newQueryTermMatchesInEntry.length; qti++) {
-        var queryTermOccurrences = newQueryTermMatchesInEntry[qti];
+      for (var qti = 0; qti < newQueryTermsOccurrences.length; qti++) {
+        var queryTermOccurrences = newQueryTermsOccurrences[qti];
         queryTermOccurrences
             .sort(((a, b) => -a.termSimilarity.compareTo(b.termSimilarity)));
         if (queryTermOccurrences.length > fallbackMaxQueryTermMobility) {
-          newQueryTermMatchesInEntry[qti] =
+          newQueryTermsOccurrences[qti] =
               queryTermOccurrences.sublist(0, fallbackMaxQueryTermMobility);
         }
       }
-      queryTermMatchMap[e.key] = newQueryTermMatchesInEntry;
+      queryTermMatchMap[e.key] = newQueryTermsOccurrences;
     }
   }
 
@@ -292,7 +285,7 @@ mixin Tools on Settings {
     for (var e in queryTermsMatchMap.entries) {
       var entry = e.key;
       var queryTermOccurrences = e.value;
-      var etmcs = entryTermsQueryTermMatchCount(entry, queryTermsMatchMap);
+      var etmcs = countMatchedQueryTerms(entry, queryTermsMatchMap);
       var wqtso = List<QueryTermInQueryOccurrnece>.generate(
           qtc, (i) => QueryTermInQueryOccurrnece(),
           growable: false);
@@ -305,7 +298,7 @@ mixin Tools on Settings {
     return ret;
   }
 
-  List<int> entryTermsQueryTermMatchCount(Entry entry,
+  List<int> countMatchedQueryTerms(Entry entry,
       Map<Entry, List<List<QueryTermOccurrence>>> queryTermsMatchMap) {
     var matchedQueryTermCounts = List<int>.filled(db[entry]!.terms.length, 0);
     var queryTermsOccurrences = queryTermsMatchMap[entry]!;

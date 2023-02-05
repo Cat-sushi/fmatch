@@ -119,8 +119,7 @@ class FMatcherImpl with Settings, Tools implements FMatcher {
 
   @override
   Future<void> init(
-      {String configDir = Paths.configDir,
-      String dbDir = Paths.dbDir}) async {
+      {String configDir = Paths.configDir, String dbDir = Paths.dbDir}) async {
     await readSettings(configDir);
     await preper.readConfigs(configDir);
     initWhiteQueries();
@@ -135,9 +134,7 @@ class FMatcherImpl with Settings, Tools implements FMatcher {
       idbTimestamp = File('$dbDir/${Paths.idb}').lastModifiedSync();
     }
     if (!idbFileExists ||
-        File('$dbDir/${Paths.list}')
-            .lastModifiedSync()
-            .isAfter(idbTimestamp) ||
+        File('$dbDir/${Paths.list}').lastModifiedSync().isAfter(idbTimestamp) ||
         File('$configDir/${Paths.legalCaharacters}')
             .lastModifiedSync()
             .isAfter(idbTimestamp) ||

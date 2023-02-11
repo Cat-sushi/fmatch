@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.3.1
+
+- Bug fix of legal entity type when query is fallen back.
+
 ## 1.3.0
 
 - Add path arguments of directories of config and database for initialization.

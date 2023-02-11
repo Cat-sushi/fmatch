@@ -219,7 +219,7 @@ mixin Tools on Settings {
       if (query.letType == LetType.postfix &&
               queryTermIndices.last != query.terms.length - 1 ||
           query.letType == LetType.prefix && queryTermIndices.first != 0) {
-        query.letType == LetType.none;
+        query.letType = LetType.none;
       }
       query.terms = newTerms;
     }

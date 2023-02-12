@@ -332,12 +332,12 @@ mixin Tools on Settings {
       }
       var qo = QueryOccurrence(entry, newQueryTermsInQueryOccurrence);
       caliulateScore(qo, query);
-      if (query.perfectMatching && qo.score == query.queryScore ||
-          !query.perfectMatching &&
-              (qo.score >= minScore || missedTermCount == 0)) {
-        if (retCandidate == null || retCandidate.score < qo.score) {
-          return qo;
-        }
+      if (query.perfectMatching) {
+        return qo;
+      }
+      if ((qo.score >= minScore || missedTermCount == 0) &&
+          (retCandidate == null || retCandidate.score < qo.score)) {
+        return qo;
       }
       return retCandidate;
     }

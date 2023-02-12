@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 1.3.2
+
+- Stop query terms reduction for exact matching.
+- Performance optimization.
+
 ## 1.3.1
 
 - Bug fix of legal entity type when query is fallen back.

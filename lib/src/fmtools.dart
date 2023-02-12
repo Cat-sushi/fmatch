@@ -376,6 +376,9 @@ mixin Tools on Settings {
           qti + 1,
           workQueryTermsInQueryOccurrence,
           retCandidate);
+      if (retCandidate?.score == query.queryScore) {
+        break;
+      }
     }
     if (missedTermCount == maxMissedTermCount) {
       return retCandidate;
@@ -407,6 +410,9 @@ mixin Tools on Settings {
 
   bool checkDevidedMatch(Query query, Entry entry,
       List<QueryTermInQueryOccurrnece> newQueryTermsInQueryOccurrence) {
+    if (query.perfectMatching) {
+      return true;
+    }
     var joinedTermQtis = <int, List<int>>{};
     for (var qti = 0; qti < newQueryTermsInQueryOccurrence.length; qti++) {
       var position = newQueryTermsInQueryOccurrence[qti].position;

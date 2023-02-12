@@ -177,6 +177,9 @@ mixin Tools on Settings {
 
   double estimateCombination(
       Query query, QueryTermsOccurrencesInEntryMap queryTermsMatchMap) {
+    if (query.perfectMatching) {
+      return 1.0;
+    }
     var qtc = query.terms.length;
     var maxCombi = 1.0;
     for (var e in queryTermsMatchMap.entries) {
@@ -208,6 +211,9 @@ mixin Tools on Settings {
 
   void reduceQueryTerms(
       Query query, QueryTermsOccurrencesInEntryMap queryTermMatchMap) {
+    if (query.perfectMatching) {
+      return;
+    }
     var queryTermIndices = List<int>.generate(query.terms.length, (i) => i);
     if (queryTermIndices.length > fallbackMaxQueryTerms) {
       queryTermIndices

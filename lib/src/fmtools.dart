@@ -339,10 +339,19 @@ mixin Tools on Settings {
       var qo = QueryOccurrence(entry, newQueryTermsInQueryOccurrence);
       caliulateScore(qo, query);
       if (query.perfectMatching) {
+        if (qo.score == query.queryScore) {
+          return qo;
+        } else {
+          return retCandidate;
+        }
+      }
+      if (qo.score < minScore && missedTermCount > 0) {
+        return retCandidate;
+      }
+      if (retCandidate == null) {
         return qo;
       }
-      if ((qo.score >= minScore || missedTermCount == 0) &&
-          (retCandidate == null || retCandidate.score < qo.score)) {
+      if (retCandidate.score < qo.score) {
         return qo;
       }
       return retCandidate;

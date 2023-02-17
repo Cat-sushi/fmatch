@@ -354,23 +354,23 @@ mixin Tools on Settings {
       if (!checkDevidedMatch(query, entry, newQueryTermsInQueryOccurrence)) {
         return retCandidate;
       }
-      var qo = QueryOccurrence(entry, newQueryTermsInQueryOccurrence);
-      caliulateScore(qo, query);
+      var newCandidate = QueryOccurrence(entry, newQueryTermsInQueryOccurrence);
+      caliulateScore(newCandidate, query);
       if (query.perfectMatching) {
-        if (qo.score == query.queryScore) {
-          return qo;
+        if (newCandidate.score == query.queryScore) {
+          return newCandidate;
         } else {
           return retCandidate;
         }
       }
-      if (qo.score < minScore && missedTermCount > 0) {
+      if (newCandidate.score < minScore && missedTermCount > 0) {
         return retCandidate;
       }
       if (retCandidate == null) {
-        return qo;
+        return newCandidate;
       }
-      if (retCandidate.score < qo.score) {
-        return qo;
+      if (retCandidate.score < newCandidate.score) {
+        return newCandidate;
       }
       return retCandidate;
     }

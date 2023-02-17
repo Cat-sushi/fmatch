@@ -176,7 +176,9 @@ mixin Tools on Settings {
   }
 
   double estimateCombination(
-      Query query, QueryTermsOccurrencesInEntryMap queryTermsMatchMap) {
+    Query query,
+    QueryTermsOccurrencesInEntryMap queryTermsMatchMap,
+  ) {
     if (query.perfectMatching) {
       return 1.0;
     }
@@ -210,7 +212,9 @@ mixin Tools on Settings {
   }
 
   void reduceQueryTerms(
-      Query query, QueryTermsOccurrencesInEntryMap queryTermMatchMap) {
+    Query query,
+    QueryTermsOccurrencesInEntryMap queryTermMatchMap,
+  ) {
     if (query.perfectMatching) {
       return;
     }
@@ -283,9 +287,10 @@ mixin Tools on Settings {
   }
 
   List<QueryOccurrence> queryMatch(
-      Query query,
-      QueryTermsOccurrencesInEntryMap queryTermsMatchMap,
-      int maxMissedTermCount) {
+    Query query,
+    QueryTermsOccurrencesInEntryMap queryTermsMatchMap,
+    int maxMissedTermCount,
+  ) {
     var qtc = query.terms.length;
     var ret = <QueryOccurrence>[];
     for (var e in queryTermsMatchMap.entries) {
@@ -295,8 +300,17 @@ mixin Tools on Settings {
       var wqtso = List<QueryTermInQueryOccurrnece>.generate(
           qtc, (i) => QueryTermInQueryOccurrnece(),
           growable: false);
-      var qo = joinQueryTermOccurrencesRecursively(query, entry,
-          queryTermOccurrences, etmcs, maxMissedTermCount, 0, 0, wqtso, null);
+      var qo = joinQueryTermOccurrencesRecursively(
+        query,
+        entry,
+        queryTermOccurrences,
+        etmcs,
+        maxMissedTermCount,
+        0,
+        0,
+        wqtso,
+        null,
+      );
       if (qo != null) {
         ret.add(qo);
       }
@@ -304,8 +318,10 @@ mixin Tools on Settings {
     return ret;
   }
 
-  List<int> countMatchedQueryTerms(Entry entry,
-      Map<Entry, List<List<QueryTermOccurrence>>> queryTermsMatchMap) {
+  List<int> countMatchedQueryTerms(
+    Entry entry,
+    Map<Entry, List<List<QueryTermOccurrence>>> queryTermsMatchMap,
+  ) {
     var matchedQueryTermCounts = List<int>.filled(db[entry]!.terms.length, 0);
     var queryTermsOccurrences = queryTermsMatchMap[entry]!;
     for (var queryTermOccurrences in queryTermsOccurrences) {
@@ -421,8 +437,11 @@ mixin Tools on Settings {
     );
   }
 
-  bool checkDevidedMatch(Query query, Entry entry,
-      List<QueryTermInQueryOccurrnece> newQueryTermsInQueryOccurrence) {
+  bool checkDevidedMatch(
+    Query query,
+    Entry entry,
+    List<QueryTermInQueryOccurrnece> newQueryTermsInQueryOccurrence,
+  ) {
     if (query.perfectMatching) {
       return true;
     }

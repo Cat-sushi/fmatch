@@ -317,22 +317,24 @@ mixin Tools on Settings {
   }
 
   QueryOccurrence? joinQueryTermOccurrencesRecursively(
-      Query query,
-      Entry entry,
-      List<List<QueryTermOccurrence>> queryTermsOccurrences,
-      List<int> matchedQueryTermCounts,
-      int maxMissedTermCount,
-      int missedTermCount,
-      int qti,
-      List<QueryTermInQueryOccurrnece> workQueryTermsInQueryOccurrence,
-      QueryOccurrence? retCandidate) {
+    Query query,
+    Entry entry,
+    List<List<QueryTermOccurrence>> queryTermsOccurrences,
+    List<int> matchedQueryTermCounts,
+    int maxMissedTermCount,
+    int missedTermCount,
+    int qti,
+    List<QueryTermInQueryOccurrnece> workQueryTermsInQueryOccurrence,
+    QueryOccurrence? retCandidate,
+  ) {
     if (qti == queryTermsOccurrences.length) {
       var newQueryTermsInQueryOccurrence =
           List<QueryTermInQueryOccurrnece>.generate(
-              workQueryTermsInQueryOccurrence.length,
-              (i) => QueryTermInQueryOccurrnece.of(
-                  workQueryTermsInQueryOccurrence[i]),
-              growable: false);
+        workQueryTermsInQueryOccurrence.length,
+        (i) =>
+            QueryTermInQueryOccurrnece.of(workQueryTermsInQueryOccurrence[i]),
+        growable: false,
+      );
       if (!checkDevidedMatch(query, entry, newQueryTermsInQueryOccurrence)) {
         return retCandidate;
       }
@@ -376,15 +378,16 @@ mixin Tools on Settings {
         ..partial = qto.partial
         ..termSimilarity = qto.termSimilarity;
       retCandidate = joinQueryTermOccurrencesRecursively(
-          query,
-          entry,
-          queryTermsOccurrences,
-          matchedQueryTermCounts,
-          maxMissedTermCount,
-          missedTermCount,
-          qti + 1,
-          workQueryTermsInQueryOccurrence,
-          retCandidate);
+        query,
+        entry,
+        queryTermsOccurrences,
+        matchedQueryTermCounts,
+        maxMissedTermCount,
+        missedTermCount,
+        qti + 1,
+        workQueryTermsInQueryOccurrence,
+        retCandidate,
+      );
       if (retCandidate?.score == query.queryScore) {
         break;
       }
@@ -398,7 +401,7 @@ mixin Tools on Settings {
         continue;
       }
       if (matchedQueryTermCounts[qto.position] == 1) {
-        return retCandidate;
+        return retCandidate; // has dedicated position
       }
     }
     workQueryTermsInQueryOccurrence[qti]
@@ -406,15 +409,16 @@ mixin Tools on Settings {
       ..termSimilarity = 0.0
       ..sequenceNo = 0;
     return joinQueryTermOccurrencesRecursively(
-        query,
-        entry,
-        queryTermsOccurrences,
-        matchedQueryTermCounts,
-        maxMissedTermCount,
-        missedTermCount + 1,
-        qti + 1,
-        workQueryTermsInQueryOccurrence,
-        retCandidate);
+      query,
+      entry,
+      queryTermsOccurrences,
+      matchedQueryTermCounts,
+      maxMissedTermCount,
+      missedTermCount + 1,
+      qti + 1,
+      workQueryTermsInQueryOccurrence,
+      retCandidate,
+    );
   }
 
   bool checkDevidedMatch(Query query, Entry entry,

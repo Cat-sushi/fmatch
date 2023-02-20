@@ -265,10 +265,9 @@ class ResultCache {
       return null;
     }
     var rce = _map.remove(query);
-    if (rce == null) {
-      return null;
-    }
+    if (rce != null) {
     _map[query] = rce;
+    }
     return rce;
   }
 
@@ -276,8 +275,8 @@ class ResultCache {
     if (_queryResultCacheSize == 0) {
       return;
     }
-    var rce = _map.remove(query) ?? result;
-    _map[query] = rce;
+    _map.remove(query);
+    _map[query] = result;
     if (_map.length > _queryResultCacheSize) {
       _map.remove(_map.keys.first);
     }

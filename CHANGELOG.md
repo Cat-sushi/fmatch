@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.3.3
+
+- Refactoring.
+
 ## 1.3.2
 
 - Stop query terms reduction for exact matching.

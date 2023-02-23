@@ -41,7 +41,7 @@ mixin Tools on Settings {
       pow(log(nd / min<double>(max<double>(df, 1.0), nd)) / ln10, idfm)
           .toDouble();
 
-  static bool isLetByQueryTerm(Query query, int qti) =>
+  static bool isLetTermIndex(Query query, int qti) =>
       query.letType == LetType.postfix && qti == query.terms.length - 1 ||
       query.letType == LetType.prefix && qti == 0;
 
@@ -59,7 +59,7 @@ mixin Tools on Settings {
     QueryTermsOccurrencesInEntryMap queryTermsMatchMap = {};
     for (var qti = 0; qti < query.terms.length; qti++) {
       var qterm = query.terms[qti];
-      var isLet = isLetByQueryTerm(query, qti);
+      var isLet = isLetTermIndex(query, qti);
       if (isLet ||
           query.perfectMatching ||
           qterm.term.length < termMatchingMinLetters &&
@@ -377,16 +377,22 @@ mixin Tools on Settings {
     QueryTermOccurrence:
     for (var i = 0; i < queryTermsOccurrences[qti].length; i++) {
       var qto = queryTermsOccurrences[qti][i];
-      for (var qtj = 0; qtj < qti; qtj++) {
-        if (qto.partial && workQueryTermsInQueryOccurrence[qtj].partial) {
-          continue;
-        }
-        if (workQueryTermsInQueryOccurrence[qtj].position == qto.position) {
-          continue QueryTermOccurrence; // collision
-        }
-        if (workQueryTermsInQueryOccurrence[qtj].position > qto.position &&
-            query.terms[qti].term == query.terms[qtj].term) {
-          continue QueryTermOccurrence; // same terms in reverse order
+      if (!isLetTermIndex(query, qti)) {
+        for (var qtj = 0; qtj < qti; qtj++) {
+          if (isLetTermIndex(query, qtj)) {
+            continue;
+          }
+          if (workQueryTermsInQueryOccurrence[qtj].position > qto.position &&
+              workQueryTermsInQueryOccurrence[qtj].partial == qto.partial &&
+              query.terms[qti].term == query.terms[qtj].term) {
+            continue QueryTermOccurrence; // same terms in reverse order
+          }
+          if (qto.partial && workQueryTermsInQueryOccurrence[qtj].partial) {
+            continue;
+          }
+          if (workQueryTermsInQueryOccurrence[qtj].position == qto.position) {
+            continue QueryTermOccurrence; // collision
+          }
         }
       }
       workQueryTermsInQueryOccurrence[qti]
@@ -501,7 +507,7 @@ mixin Tools on Settings {
       if (e.position == -1) {
         continue;
       }
-      if (isLetByQueryTerm(query, qti)) {
+      if (isLetTermIndex(query, qti)) {
         continue;
       }
       qts.add(e);
@@ -523,8 +529,7 @@ mixin Tools on Settings {
       var distance = 0.0;
       if (e.position == -1) {
         distance = qtc.toDouble();
-      } else if (query.letType == LetType.postfix && qti == qtc - 1 ||
-          query.letType == LetType.prefix && qti == 0) {
+      } else if (isLetTermIndex(query, qti)) {
         distance = 0.0;
       } else {
         distance =

@@ -383,7 +383,6 @@ mixin Tools on Settings {
             continue;
           }
           if (workQueryTermsInQueryOccurrence[qtj].position > qto.position &&
-              workQueryTermsInQueryOccurrence[qtj].partial == qto.partial &&
               query.terms[qti].term == query.terms[qtj].term) {
             continue QueryTermOccurrence; // same terms in reverse order
           }

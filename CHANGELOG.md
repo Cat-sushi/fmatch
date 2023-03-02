@@ -3,6 +3,7 @@
 ## 1.3.3
 
 - Refactoring.
+- Performance optimization.
 
 ## 1.3.2
 

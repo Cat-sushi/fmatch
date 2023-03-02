@@ -39,8 +39,12 @@ class Term implements Comparable<Term> {
   static final _canonicalized = <String, Term>{};
   final String string; // redundant for performance optimization
   final Int32List runes;
+  @override
+  final int hashCode;
 
-  Term._(this.string) : runes = Int32List.fromList(string.runes.toList());
+  Term._(this.string)
+      : runes = Int32List.fromList(string.runes.toList()),
+        hashCode = string.hashCode;
   factory Term(String s, {bool canonicalizing = false}) {
     if (canonicalizing == false) {
       return Term._(s);
@@ -61,9 +65,8 @@ class Term implements Comparable<Term> {
   @override
   int compareTo(dynamic other) => string.compareTo((other as Term).string);
   @override
-  int get hashCode => string.hashCode;
-  @override
-  operator ==(Object other) => string == (other as Term).string;
+  operator ==(Object other) =>
+      hashCode == other.hashCode && string == (other as Term).string;
 }
 
 /// Normalized entry of the database created from the denial lists.

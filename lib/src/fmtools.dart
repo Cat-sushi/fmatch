@@ -125,9 +125,6 @@ mixin Tools on Settings {
   }
 
   double similarity(Term dbTerm, Term queryTerm) {
-    if (dbTerm == queryTerm) {
-      return 1.0;
-    }
     var lenDt = dbTerm.length;
     var lenQt = queryTerm.length;
     int lenMax;
@@ -139,11 +136,14 @@ mixin Tools on Settings {
       lenMin = lenQt;
       lenMax = lenDt;
     }
-    if (lenMin < termMatchingMinLetters) {
+    if (lenMin != lenMax && lenMin < termMatchingMinLetters) {
       return 0.0;
     }
     if (lenMin.toDouble() / lenMax < termMatchingMinLetterRatio) {
       return 0.0;
+    }
+    if (lenMin == lenMax && dbTerm == queryTerm) {
+      return 1.0;
     }
     var matched = lenMax - distance(dbTerm, queryTerm);
     if (matched < termMatchingMinLetters) {

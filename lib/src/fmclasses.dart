@@ -266,7 +266,7 @@ class ResultCache {
     }
     var rce = _map.remove(query);
     if (rce != null) {
-    _map[query] = rce;
+      _map[query] = rce;
     }
     return rce;
   }

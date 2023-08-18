@@ -17,7 +17,6 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:math';
 
 import 'package:async/async.dart';
 import 'package:simple_mutex/simple_mutex.dart';
@@ -122,16 +121,13 @@ class Dispatcher {
   final int serverCount;
   final bool activateCache;
   late final List<QueryResult?> results;
-  var maxResultsLength = 0;
   var ixS = 0;
   var first = true;
 
   Future<List<QueryResult>> dispatch() async {
-    results = List<QueryResult?>.filled(queryCount, null);
-    var futures = <Future>[];
-    for (var i = 0; i < serverCount; i++) {
-      futures.add(sendReceve());
-    }
+    results = List<QueryResult?>.filled(queryCount, null, growable: false);
+    var futures = List<Future<void>>.generate(serverCount, (i) => sendReceve(),
+        growable: false);
     await Future.wait<void>(futures);
     return results.cast<QueryResult>();
   }
@@ -149,7 +145,6 @@ class Dispatcher {
       var result = await client.fmatch(query, activateCache);
       serverPoolController.add(client);
       results[ix] = result;
-      maxResultsLength = max(results.length, maxResultsLength);
     }
   }
 }

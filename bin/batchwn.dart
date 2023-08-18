@@ -86,7 +86,8 @@ class Dispatcher {
   var ixS = 0;
   var ixO = 0;
   Future<void> dispatch() async {
-    var futures = List<Future>.generate(multiplicity, (i) => sendReceve());
+    var futures =
+        List<Future<void>>.generate(multiplicity, (i) => sendReceve());
     await Future.wait<void>(futures);
     print('Max result buffer length: $maxResultsLength');
     await logSink.close();

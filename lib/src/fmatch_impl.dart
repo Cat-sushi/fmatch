@@ -36,7 +36,7 @@ class FMatcherImpl with Settings, Tools implements FMatcher {
 
     if (preper.hasIllegalCharacter(inputString)) {
       return QueryResult.fromMessage(
-          inputString, 'Illegal characters in query: "$inputString"');
+          inputString, 'Illegal character(s) in the query: "$inputString"');
     }
 
     var rawQuery = normalize(inputString);
@@ -51,7 +51,7 @@ class FMatcherImpl with Settings, Tools implements FMatcher {
     var preprocessed = preper.preprocess(rawQuery);
     if (preprocessed.terms.isEmpty) {
       return QueryResult.fromMessage(
-          inputString, 'No valid terms in query: "$inputString"');
+          inputString, 'No valid term in the query');
     }
 
     var cachedQuery =
@@ -63,7 +63,7 @@ class FMatcherImpl with Settings, Tools implements FMatcher {
         DateTime.now(),
         inputString,
         rawQuery,
-        'White query: "${preprocessed.terms.map((e) => e.string).join(' ')}"',
+        'White query',
       );
     }
 

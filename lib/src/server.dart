@@ -103,7 +103,7 @@ class CacheServer {
 
 class CacheClient implements ResultCache {
   final SendPort _cssp;
-  final StreamIterator _ccri;
+  final StreamIterator<dynamic> _ccri;
   final SendPort _ccsp;
 
   CacheClient._(this._cssp, this._ccri, this._ccsp);

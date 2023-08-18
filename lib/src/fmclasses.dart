@@ -102,7 +102,7 @@ class MatchedEntry {
   MatchedEntry.fromJson(Map<String, dynamic> json)
       : entry = Entry(json['entry'] as String),
         score = json['score'] as double;
-  Map toJson() => <String, dynamic>{
+  Map<String, dynamic> toJson() => <String, dynamic>{
         'entry': entry,
         'score': score,
       };
@@ -181,7 +181,7 @@ class CachedResult {
                   MatchedEntry.fromJson(e as Map<String, dynamic>))
               .toList(),
         );
-  Map toJson() => <String, dynamic>{
+  Map<String, dynamic> toJson() => <String, dynamic>{
         'cachedQuery': cachedQuery,
         'queryScore': queryScore,
         'queryFallenBack': queryFallenBack,
@@ -243,7 +243,7 @@ class QueryResult {
         cachedResult =
             CachedResult.fromJson(json['cachedResult'] as Map<String, dynamic>),
         message = json['message'] as String;
-  Map toJson() => <String, dynamic>{
+  Map<String, dynamic> toJson() => <String, dynamic>{
         'serverId': serverId,
         'start': dateTime.toUtc().toIso8601String(),
         'durationInMilliseconds': durationInMilliseconds,

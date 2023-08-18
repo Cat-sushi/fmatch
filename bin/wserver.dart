@@ -118,7 +118,7 @@ Future<FMatcherP> readSettingsAndConfigs(FMatcher matcher) async {
   return FMatcherP.fromFMatcher(matcher, serverCount: serverCount, mutex: true);
 }
 
-Future main(List<String> args) async {
+Future<void> main(List<String> args) async {
   var argParser = ArgParser()
     ..addFlag('help', abbr: 'h', negatable: false, help: 'print this help')
     ..addOption('server', abbr: 's', valueHelp: 'number of servers')

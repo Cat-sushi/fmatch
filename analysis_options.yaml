@@ -23,7 +23,9 @@ linter:
     - unnecessary_null_checks
     - unawaited_futures
 
+analyzer:
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
 
-# analyzer:
-#   language:
-#     strict-casts: true

@@ -77,8 +77,8 @@ abstract class FMatcherP {
   /// await fmatcherp.startServers();
   /// results = fmatcherp.fmatchb('abc', 'def');
   /// ```
-  factory FMatcherP({int serverCount = 0, bool mutex = false}) {
-    return FMatcherPImpl(serverCount: serverCount, mutex: mutex);
+  factory FMatcherP({int serverCount = 0}) {
+    return FMatcherPImpl(serverCount: serverCount);
   }
 
   /// Construt from PMatcher. See usage.
@@ -105,7 +105,7 @@ abstract class FMatcherP {
   Future<void> startServers();
 
   /// This stops the internal servers.
-  void stopServers();
+  Future<void> stopServers();
 
   /// The text matching method.
   ///

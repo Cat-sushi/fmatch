@@ -64,7 +64,7 @@ void main(List<String> args) async {
 
   await time(() => pbatch(matcherp, queryPath), 'pbatch');
 
-  matcherp.stopServers();
+  await matcherp.stopServers();
 }
 
 Future<void> pbatch(FMatcherP matcherp, String queryPath) async {

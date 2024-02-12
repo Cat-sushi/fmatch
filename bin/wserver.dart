@@ -99,7 +99,7 @@ Future<Response> _restartHandler(Request request) async {
   var oldMatcherp = matcherp;
   matcher = newMatcher;
   matcherp = newMatcherp;
-  oldMatcherp.stopServers();
+  await oldMatcherp.stopServers();
   return Response.ok('Server restartd: ${DateTime.now()}\n');
 }
 

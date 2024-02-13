@@ -165,6 +165,7 @@ mixin Configs {
 
   Future<void> _readCharacterReplacementConf(String path) async {
     characterRreplacements = {};
+    var reverseCharacterRreplacements = <String, String>{};
     await for (var l in readCsvLines(path)) {
       if (l.length < 2) {
         continue;
@@ -194,15 +195,23 @@ mixin Configs {
           print('warning: useless conversion: $r <= $p');
           continue;
         }
+        if (r != null) {
+          print('warning: duplicated conversion: $r <= $p');
+          continue;
+        }
+        var rr = characterRreplacements[replacement];
+        if (rr != null) {
+          print('error: transitive conversion $rr <= $replacement <= $p');
+          // no continue
+        }
+        var pp = reverseCharacterRreplacements[p];
+        if (pp != null) {
+          print('error: transitive conversion $replacement <= $p <= $pp');
+          // no continue
+        }
         characterRreplacements[p] = replacement;
+        reverseCharacterRreplacements[replacement] = p;
       }
-    }
-    for (var k in characterRreplacements.values) {
-      var v = characterRreplacements[k];
-      if (v == null) {
-        continue;
-      }
-      print('error: transitive conversion $v <= $k');
     }
   }
 

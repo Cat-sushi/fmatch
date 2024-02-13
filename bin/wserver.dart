@@ -115,7 +115,7 @@ Future<FMatcherP> readSettingsAndConfigs(FMatcher matcher) async {
         max(int.tryParse(options['server'] as String) ?? serverCount, 1);
   }
 
-  return FMatcherP.fromFMatcher(matcher, serverCount: serverCount, mutex: true);
+  return FMatcherP.fromFMatcher(matcher, serverCount: serverCount);
 }
 
 Future<void> main(List<String> args) async {

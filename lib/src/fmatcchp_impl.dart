@@ -40,8 +40,7 @@ class FMatcherPImpl implements FMatcherP {
         _serverCount =
             serverCount > 0 ? serverCount : Platform.numberOfProcessors;
 
-  FMatcherPImpl.fromFMatcher(this.fmatcher,
-      {this.serverCount = 0, bool mutex = false})
+  FMatcherPImpl.fromFMatcher(this.fmatcher, {this.serverCount = 0})
       : isInitialized = true,
         _serverCount =
             serverCount > 0 ? serverCount : Platform.numberOfProcessors;

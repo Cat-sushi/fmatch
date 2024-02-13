@@ -69,8 +69,6 @@ abstract class FMatcherP {
   ///
   /// When [serverCount] == 0, `Platform.numberOfProcessors` will be used.
   ///
-  /// If you will [stopServers] asynchronously, pass [mutex] `true`.
-  ///
   /// Usage
   /// ```dart
   /// fmatcherp = FMatcherP();
@@ -85,8 +83,6 @@ abstract class FMatcherP {
   ///
   /// When [serverCount] == 0, `Platform.numberOfProcessors` will be used.
   ///
-  /// If you will [stopServers] asynchronously, pass [mutex] `true`.
-  ///
   /// Usage
   /// ```dart
   /// fmatcher = FMatcher();
@@ -95,10 +91,8 @@ abstract class FMatcherP {
   /// await fmatcherp.startServers();
   /// results = fmatcherp.fmatchb('abc', 'def');
   /// ```
-  factory FMatcherP.fromFMatcher(FMatcher fmatcher,
-      {int serverCount = 0, bool mutex = false}) {
-    return FMatcherPImpl.fromFMatcher(fmatcher,
-        serverCount: serverCount, mutex: mutex);
+  factory FMatcherP.fromFMatcher(FMatcher fmatcher, {int serverCount = 0}) {
+    return FMatcherPImpl.fromFMatcher(fmatcher, serverCount: serverCount);
   }
 
   /// This spawns the internal serve idsolatess.

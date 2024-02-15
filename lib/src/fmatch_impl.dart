@@ -50,8 +50,7 @@ class FMatcherImpl with Settings, Tools implements FMatcher {
 
     var preprocessed = preper.preprocess(rawQuery);
     if (preprocessed.terms.isEmpty) {
-      return QueryResult.fromMessage(
-          inputString, 'No valid term in the query');
+      return QueryResult.fromMessage(inputString, 'No valid term in the query');
     }
 
     var cachedQuery =

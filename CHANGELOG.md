@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 1.4.1
+
+- Update packages.
+
+## 1.4.0
+
+- Migrate to Dart 3.3
+- Refactoring.
+- Performance optimization.
+- Remove mutex which should be aquired by upper layers.
+
 ## 1.3.3
 
 - Refactoring.

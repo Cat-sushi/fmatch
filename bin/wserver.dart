@@ -134,7 +134,8 @@ Future<void> main(List<String> args) async {
   final ip = InternetAddress.anyIPv4;
 
   // Configure a pipeline that logs requests.
-  final handler = Pipeline().addMiddleware(logRequests()).addHandler(_router);
+  final handler =
+      Pipeline().addMiddleware(logRequests()).addHandler(_router.call);
 
   matcher = FMatcher();
   matcherp = await readSettingsAndConfigs(matcher);

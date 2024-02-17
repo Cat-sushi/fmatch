@@ -38,8 +38,9 @@ class Query {
         queryScore = 0;
 }
 
-typedef QueryTermsOccurrencesInEntryMap
-    = Map<Entry, List<List<QueryTermOccurrence>>>;
+extension type QueryTermsOccurrencesInEntryMap(
+        Map<Entry, List<List<QueryTermOccurrence>>> _)
+    implements Map<Entry, List<List<QueryTermOccurrence>>> {}
 
 class QueryTermOccurrence {
   final int position;

@@ -56,7 +56,7 @@ mixin Tools on Settings {
   }
 
   QueryTermsOccurrencesInEntryMap queryTermsMatch(Query query) {
-    QueryTermsOccurrencesInEntryMap queryTermsMatchMap = {};
+    var queryTermsMatchMap = QueryTermsOccurrencesInEntryMap({});
     for (var qti = 0; qti < query.terms.length; qti++) {
       var qterm = query.terms[qti];
       var isLet = isLetTermIndex(query, qti);

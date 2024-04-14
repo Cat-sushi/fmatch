@@ -26,7 +26,7 @@ mixin Tools on Settings {
   final preper = Preprocessor();
   late final Db db;
   late final IDb idb;
-  late final whiteQueries = <CachedQuery>{};
+  late final whiteQueries = WhiteQueries({});
   late var resultCache = ResultCache(queryResultCacheSize);
   late final nd = db.length.toDouble(); // nd >= 2.0
   static const dfz = 1.0;

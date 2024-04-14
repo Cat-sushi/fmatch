@@ -24,8 +24,7 @@ import 'src/fmclasses.dart';
 export 'src/configs.dart' show Paths;
 export 'src/fmclasses.dart'
     show QueryResult, CachedQuery, CachedResult, MatchedEntry;
-export 'src/preprocess.dart' show Term, Entry, LetType;
-export 'src/preprocess.dart' show normalize;
+export 'src/preprocess.dart' show Term, Entry, LetType, normalize;
 
 /// Fuzzy text matching engine.
 ///

@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.4.2
+
+- Migrate typedef to extention type
+
 ## 1.4.1
 
 - Update packages.

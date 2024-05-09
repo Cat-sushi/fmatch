@@ -18,7 +18,7 @@ import 'dart:async';
 
 import 'src/configs.dart';
 import 'src/fmatch_impl.dart';
-import 'src/fmatcchp_impl.dart';
+import 'src/fmatchp_impl.dart';
 import 'src/fmclasses.dart';
 
 export 'src/configs.dart' show Paths;

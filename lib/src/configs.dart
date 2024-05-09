@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import 'dart:io';
 import 'util.dart';
 
 class Paths {
@@ -47,6 +48,7 @@ mixin Settings {
   int fallbackMaxQueryTermMobility = 6;
   double queryMatchingTermOrderCoefficent = 0.5;
   int queryResultCacheSize = 100000;
+  int serverCount = Platform.numberOfProcessors;
 
   Future<void> readSettings(String configDir) async {
     await for (var l in readCsvLines('$configDir/${Paths.setting}')) {
@@ -96,6 +98,9 @@ mixin Settings {
           break;
         case 'queryResultCacheSize':
           queryResultCacheSize = val.toInt();
+          break;
+        case 'serverCount':
+          serverCount = val.toInt();
           break;
         default:
           break;

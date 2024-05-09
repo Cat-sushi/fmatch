@@ -26,8 +26,12 @@ import 'util.dart';
 final _perfMatchQuery = RegExp(r'^"(.+)"$');
 
 class FMatcherImpl with Settings, Tools implements FMatcher {
+  final int? _cacheSize;
+
   @override
   int databaseVersion = 0;
+
+  FMatcherImpl({int? cacheSize}): _cacheSize = cacheSize;
 
   @override
   Future<QueryResult> fmatch(String inputString,
@@ -120,6 +124,7 @@ class FMatcherImpl with Settings, Tools implements FMatcher {
   Future<void> init(
       {String configDir = Paths.configDir, String dbDir = Paths.dbDir}) async {
     await readSettings(configDir);
+    queryResultCacheSize = _cacheSize ?? queryResultCacheSize;
     await preper.readConfigs(configDir);
     initWhiteQueries();
     await buildDb(configDir, dbDir);

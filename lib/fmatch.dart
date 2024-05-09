@@ -17,8 +17,8 @@
 import 'dart:async';
 
 import 'src/configs.dart';
-import 'src/fmatcchp_impl.dart';
 import 'src/fmatch_impl.dart';
+import 'src/fmatcchp_impl.dart';
 import 'src/fmclasses.dart';
 
 export 'src/configs.dart' show Paths;
@@ -35,8 +35,8 @@ export 'src/preprocess.dart' show Term, Entry, LetType, normalize;
 /// result = await matcher.fmatch('abc');
 /// ```
 abstract class FMatcher with Settings {
-  factory FMatcher() {
-    return FMatcherImpl();
+  factory FMatcher({int? cacheSize}) {
+    return FMatcherImpl(cacheSize: cacheSize);
   }
 
   int databaseVersion = 0;
@@ -74,8 +74,8 @@ abstract class FMatcherP {
   /// await fmatcherp.startServers();
   /// results = fmatcherp.fmatchb('abc', 'def');
   /// ```
-  factory FMatcherP({int serverCount = 0}) {
-    return FMatcherPImpl(serverCount: serverCount);
+  factory FMatcherP({int? cacheSize, int? serverCount}) {
+    return FMatcherPImpl(cacheSize: cacheSize, serverCount: serverCount);
   }
 
   /// Construt from PMatcher. See usage.
@@ -90,7 +90,7 @@ abstract class FMatcherP {
   /// await fmatcherp.startServers();
   /// results = fmatcherp.fmatchb('abc', 'def');
   /// ```
-  factory FMatcherP.fromFMatcher(FMatcher fmatcher, {int serverCount = 0}) {
+  factory FMatcherP.fromFMatcher(FMatcher fmatcher, {int? serverCount}) {
     return FMatcherPImpl.fromFMatcher(fmatcher, serverCount: serverCount);
   }
 

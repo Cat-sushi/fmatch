@@ -284,4 +284,4 @@ class ResultCache {
   }
 }
 
-extension type WhiteQueries(Set<CachedQuery> _) implements Set<CachedQuery>{}
+extension type WhiteQueries(Set<CachedQuery> _) implements Set<CachedQuery> {}

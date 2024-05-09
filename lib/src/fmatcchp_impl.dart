@@ -15,7 +15,6 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import 'dart:async';
-import 'dart:io';
 import 'dart:isolate';
 
 import 'package:async/async.dart';
@@ -27,34 +26,32 @@ import 'server.dart';
 class FMatcherPImpl implements FMatcherP {
   @override
   final FMatcher fmatcher;
+  late final int? serverCount;
   final bool isInitialized;
-  final int _serverCount;
-  final int serverCount;
   late final SendPort cacheServer;
   late final StreamController<Client> serverPoolController;
   late final StreamQueue<Client> serverPool;
 
-  FMatcherPImpl({this.serverCount = 0})
-      : fmatcher = FMatcher(),
-        isInitialized = false,
-        _serverCount =
-            serverCount > 0 ? serverCount : Platform.numberOfProcessors;
+  FMatcherPImpl({int? cacheSize, this.serverCount})
+      : fmatcher = FMatcher(cacheSize: cacheSize),
+        isInitialized = false;
 
-  FMatcherPImpl.fromFMatcher(this.fmatcher, {this.serverCount = 0})
-      : isInitialized = true,
-        _serverCount =
-            serverCount > 0 ? serverCount : Platform.numberOfProcessors;
+  FMatcherPImpl.fromFMatcher(this.fmatcher, {int? serverCount})
+      : isInitialized = true {
+    fmatcher.serverCount = serverCount ?? fmatcher.serverCount;
+  }
 
   @override
   Future<void> startServers() async {
     if (!isInitialized) {
       await fmatcher.init();
+      fmatcher.serverCount = serverCount ?? fmatcher.serverCount;
     }
     serverPoolController = StreamController<Client>();
     serverPool = StreamQueue(serverPoolController.stream);
     cacheServer = await CacheServer.spawn(fmatcher.queryResultCacheSize);
 
-    for (var id = 0; id < _serverCount; id++) {
+    for (var id = 0; id < fmatcher.serverCount; id++) {
       var c = Client(id);
       await c.spawnServer(fmatcher as FMatcherImpl, cacheServer);
       serverPoolController.add(c);
@@ -63,7 +60,7 @@ class FMatcherPImpl implements FMatcherP {
 
   @override
   Future<void> stopServers() async {
-    for (var id = 0; id < _serverCount; id++) {
+    for (var id = 0; id < fmatcher.serverCount; id++) {
       var c = await serverPool.next;
       c.closeServer();
     }
@@ -82,7 +79,7 @@ class FMatcherPImpl implements FMatcherP {
   Future<List<QueryResult>> fmatchb(List<String> queries,
       [bool activateCache = true]) async {
     var result = await Dispatcher(queries, serverPoolController, serverPool,
-            _serverCount, activateCache)
+            fmatcher.serverCount, activateCache)
         .dispatch();
     return result;
   }

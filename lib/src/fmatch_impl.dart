@@ -31,7 +31,7 @@ class FMatcherImpl with Settings, Tools implements FMatcher {
   @override
   int databaseVersion = 0;
 
-  FMatcherImpl({int? cacheSize}): _cacheSize = cacheSize;
+  FMatcherImpl({int? cacheSize}) : _cacheSize = cacheSize;
 
   @override
   Future<QueryResult> fmatch(String inputString,

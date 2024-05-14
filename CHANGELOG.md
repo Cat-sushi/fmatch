@@ -3,6 +3,8 @@
 ## 1.4.2
 
 - Migrate typedef to extention type
+- Migrate to Dart 3.4
+- Add serverCount to settings.csv
 
 ## 1.4.1
 

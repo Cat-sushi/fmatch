@@ -1,10 +1,10 @@
 name: fmatch
 description: Fuzzy text matching engine for entity screening or person screening against denial lists such as BIS Entity List.
-version: 1.4.1
+version: 1.4.2
 homepage: https://github.com/Cat-sushi/fmatch
 
 environment:
-  sdk: ">=3.3.0 <4.0.0"
+  sdk: ">=3.4.0 <4.0.0"
 
 dependencies:
   args: ^2.3.1
